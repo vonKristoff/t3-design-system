@@ -36,7 +36,7 @@ describe("oklch generation", () => {
     expect(Object.values(scale)).toContain("#2563eb");
   });
   test("light/dark extremes stay valid", () => {
-    for (const name of ["yellow-50", "slate-950", "white-50" as string].filter((n) => n !== "white-50")) {
+    for (const name of ["yellow-50", "zinc-950"]) {
       const s = generateScale(name);
       for (const v of Object.values(s)) expect(isValidCssColor(v)).toBe(true);
     }
@@ -58,7 +58,7 @@ describe("serialization round-trip", () => {
   test("modified theme round-trips and stays small", () => {
     const modified = {
       ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, accent: "violet-600", trafficOk: "emerald-500" },
+      colors: { ...DEFAULT_THEME.colors, accent: "purple-600", trafficOk: "teal-500" },
       fonts: { primary: "DM Sans" },
       layout: "wide" as const,
       width: "article" as const,

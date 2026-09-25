@@ -30,8 +30,8 @@
 	}
 </script>
 
-<fieldset class="flex flex-col gap-3">
-	<div class="grid grid-cols-2 items-center gap-2">
+<fieldset class="block">
+	<div class="mb-1.5 grid grid-cols-2 items-center gap-2">
 		<span>
 			<span class="block text-sm font-medium text-neutral-800">{label}</span>
 			{#if hint}
@@ -46,27 +46,20 @@
 		></span>
 	</div>
 
-	<div role="radiogroup" aria-label={label + ' family'} class="grid grid-cols-11 gap-1">
-		{#each PALETTE_FAMILIES as fam (fam)}
-			{@const hex = TAILWIND_PALETTE[fam]['500']}
-			<button
-				type="button"
-				role="radio"
-				aria-checked={fam === family}
-				title={fam}
-				onclick={() => pickFamily(fam)}
-				class="flex items-center justify-center rounded-md p-1 {fam === family
-					? 'ring-2 ring-neutral-900 ring-offset-1'
-					: 'hover:bg-neutral-100'}"
-			>
-				<span
-					class="inline-block h-4 w-4 rounded-full border border-black/20"
-					style:background={hex}
-					aria-hidden="true"
-				></span>
-			</button>
-		{/each}
-	</div>
+	<label class="mb-1.5 block">
+		<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
+		<select
+			value={family}
+			onchange={(e) => pickFamily((e.currentTarget as HTMLSelectElement).value)}
+			class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+		>
+			{#each PALETTE_FAMILIES as fam (fam)}
+				<option value={fam} selected={fam === family}>
+					{fam} · {TAILWIND_PALETTE[fam]['500']}
+				</option>
+			{/each}
+		</select>
+	</label>
 
 	<StrengthSelect {family} {step} onpick={pickStep} />
 </fieldset>
