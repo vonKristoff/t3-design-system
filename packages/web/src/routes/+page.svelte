@@ -9,6 +9,7 @@
 		SCALE_STEPS,
 		fluidClamp,
 		layoutToDataGrid,
+		docShellClasses,
 		resolveTailwindHex,
 		type BlockquoteVariant,
 		type ContentWidth,
@@ -254,8 +255,8 @@
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
 			(font ? `<link rel="stylesheet" href="${font}">` : '') +
 			`<style>${css}</style></head>` +
-			`<body class="markdown content-grid bq-${getBlockquote()}" data-grid="${layoutToDataGrid(layout)}">` +
-			`<div class="tsb-doc tsb-width-${width}">${html}${CHIPS_HTML}</div></body></html>`;
+			`<body class="markdown bq-${getBlockquote()}">` +
+			`<div class="${docShellClasses(width)}" data-grid="${layoutToDataGrid(layout)}">${html}${CHIPS_HTML}</div></body></html>`;
 	});
 
 	function fitFrame(): void {

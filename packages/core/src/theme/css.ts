@@ -63,7 +63,7 @@ export function generateLayoutCss(): string {
 .content-grid[data-grid="full"] > .full-width { grid-column: full; }
 .content-grid .breakout img, .content-grid .full-width img { width: 100%; }
 @media (max-width: 40rem) {
-  .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; }
+  .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
   .content-grid[data-grid="breakout"] > .breakout, .content-grid[data-grid="full"] > .breakout,
   .content-grid[data-grid="full"] > .full-width { padding-inline: 0; }
 }`;
@@ -77,6 +77,15 @@ export function layoutToDataGrid(mode: LayoutMode): "" | "breakout" | "full" {
 }
 
 /**
+ * Class contract for the document shell. The grid must sit on the element
+ * whose direct children are the content (breakout/full-width targets), so
+ * the builder and the shipped CSS stay in lockstep.
+ */
+export function docShellClasses(width: ContentWidth): string {
+  return `tsb-doc content-grid tsb-width-${width}`;
+}
+
+/**
  * Document canvas measure, expressed as the grid's content track so the
  * measure rule ships with the system. Article ≈ 60ch best practice.
  */
@@ -86,7 +95,7 @@ export function generateWidthCss(width: ContentWidth): string {
     width === "comfortable" ? "48rem" :
     width === "full" ? "none" : "72rem";
   return `/* Content width: ${width}. */
-.tsb-doc { --content-max: ${max}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); padding: 1.5rem 1rem; }`;
+.tsb-doc { --content-max: ${max}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
@@ -153,14 +162,14 @@ img { max-width: 100%; border-radius: 0.5rem; }
    Splendor: Merriweather/Georgia serif body, modular heading scale, generous line-height.
    Sizes are fluid (tolin-style clamp over 360–1280px viewports); desktop max = Splendor scale. */
 .markdown { font-size: 1.05rem; font-optical-sizing: auto; }
-.markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 1.414rem 0 0.5rem; font-weight: inherit; line-height: 1.42; text-wrap: balance; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 1.414rem 0 0.5rem; font-weight: inherit; line-height: normal; text-wrap: balance; }
 .markdown h1 { font-family: var(--font-h1); font-weight: var(--font-h1-weight, 400); font-size: ${fluid("h1")}; margin-top: 0; }
 .markdown h2 { font-family: var(--font-h2); font-weight: var(--font-h2-weight, 400); font-size: ${fluid("h2")}; }
 .markdown h3 { font-family: var(--font-h3); font-weight: var(--font-h3-weight, 400); font-size: ${fluid("h3")}; }
 .markdown h4 { font-family: var(--font-h4); font-weight: var(--font-h4-weight, 400); font-size: ${fluid("h4")}; }
 .markdown h5 { font-family: var(--font-h5); font-weight: var(--font-h5-weight, 400); font-size: ${fluid("h5")}; }
 .markdown h6 { font-family: var(--font-h6); font-weight: var(--font-h6-weight, 400); font-size: ${fluid("h6")}; }
-.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-800); line-height: 1.7; font-size: ${fluid("p")}; text-wrap: pretty; }
+.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-800); line-height: normal; font-size: ${fluid("p")}; text-wrap: pretty; }
 .markdown p { margin-bottom: 1.3rem; }
 .markdown ul, .markdown ol { font-family: var(--font-list); font-weight: var(--font-list-weight, 400); }
 .markdown li { margin-left: 0.5rem; }
@@ -192,7 +201,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
   padding: 1.5rem 1rem;
   text-align: center;
 }
-.markdown.bq-pull blockquote p { font-size: ${fluid("h3")}; font-style: italic; line-height: 1.4; font-weight: var(--font-blockquote-weight, 400); }
+.markdown.bq-pull blockquote p { font-size: ${fluid("h3")}; font-style: italic; line-height: normal; font-weight: var(--font-blockquote-weight, 400); }
 .markdown.bq-minimal blockquote {
   color: var(--prose-600);
   background: transparent;

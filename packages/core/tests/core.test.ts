@@ -9,6 +9,7 @@ import { generateThemeFiles } from "../src/theme/css.ts";
 import { fontWeightVars } from "../src/theme/css.ts";
 import { googleFontHref } from "../src/typography/fonts.ts";
 import { layoutToDataGrid } from "../src/theme/css.ts";
+import { docShellClasses } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
 
@@ -81,6 +82,10 @@ describe("serialization round-trip", () => {
     expect(layoutToDataGrid("compact")).toBe("");
     expect(layoutToDataGrid("minimal")).toBe("breakout");
     expect(layoutToDataGrid("wide")).toBe("full");
+    // Grid must be on the element holding the content items.
+    expect(docShellClasses("wide")).toBe("tsb-doc content-grid tsb-width-wide");
+    expect(files["layout.css"]).not.toContain(".tsb-doc { padding");
+    expect(files["typography.css"]).toContain("line-height: normal");
   });
   test("blockquote variants ship and round-trip", () => {
     const gen = generateTheme(DEFAULT_THEME);
