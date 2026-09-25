@@ -94,16 +94,26 @@ const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
 
 /**
  * Route markdown structures to grid tracks by element. Authors keep using
- * plain markdown (no wrapper divs required). Only emitted when a grid level
- * is active, so single-column mode stays untouched.
+ * plain markdown (no wrapper divs required).
+ *
+ * The grid mode caps intent: `compact` disables routing entirely, `minimal`
+ * allows breakout, `full` additionally allows full-bleed. So an element at
+ * "full" level degrades to breakout in minimal mode.
  */
 export function generateRoutingCss(breakouts: Breakouts): string {
   const breakoutSel: string[] = [];
   const fullSel: string[] = [];
   for (const el of Object.keys(BREAKOUT_SELECTOR) as BreakoutElement[]) {
     const level: BreakoutLevel = breakouts[el] ?? "content";
-    if (level === "breakout") breakoutSel.push(`.content-grid[data-grid="breakout"] > ${BREAKOUT_SELECTOR[el]}, .content-grid[data-grid="full"] > ${BREAKOUT_SELECTOR[el]}`);
-    if (level === "full") fullSel.push(`.content-grid[data-grid="full"] > ${BREAKOUT_SELECTOR[el]}`);
+    const s = BREAKOUT_SELECTOR[el];
+    if (level === "breakout") {
+      breakoutSel.push(`.content-grid[data-grid="breakout"] > ${s}`);
+      breakoutSel.push(`.content-grid[data-grid="full"] > ${s}`);
+    }
+    if (level === "full") {
+      fullSel.push(`.content-grid[data-grid="full"] > ${s}`);
+      breakoutSel.push(`.content-grid[data-grid="breakout"] > ${s}`);
+    }
   }
   const lines: string[] = ["/* Element breakout routing. */"];
   if (breakoutSel.length) lines.push(`${breakoutSel.join(",\n")} { grid-column: breakout; }`);

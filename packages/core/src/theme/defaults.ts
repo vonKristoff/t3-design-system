@@ -37,7 +37,7 @@ export const DEFAULT_THEME: ThemeOptions = {
     blockquote: "breakout",
     table: "breakout",
     pre: "breakout",
-    img: "content",
+    img: "full",
     callout: "content",
     hr: "content",
   },

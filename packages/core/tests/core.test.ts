@@ -93,6 +93,9 @@ describe("serialization round-trip", () => {
     expect(files["layout.css"]).toContain('> blockquote,');
     expect(files["layout.css"]).toContain("grid-column: breakout;");
     expect(files["layout.css"]).toContain("--breakout-pad: 5rem;");
+    // Images default to full, capped to breakout inside minimal mode.
+    expect(files["layout.css"]).toContain('.content-grid[data-grid="breakout"] > img { grid-column: breakout; }');
+    expect(files["layout.css"]).toContain('.content-grid[data-grid="full"] > img { grid-column: full; }');
     const routed = {
       ...structuredClone(DEFAULT_THEME),
       breakout: "wide" as const,
