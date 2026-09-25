@@ -52,9 +52,9 @@
 				aria-checked={fam === family}
 				title={fam}
 				onclick={() => pickFamily(fam)}
-				class="flex items-center justify-center rounded-md border p-1 {fam === family
-					? 'border-neutral-900 ring-2 ring-neutral-900 ring-offset-1'
-					: 'border-neutral-200 hover:border-neutral-400'}"
+				class="flex items-center justify-center rounded-md p-1 {fam === family
+					? 'ring-2 ring-neutral-900 ring-offset-1'
+					: 'hover:bg-neutral-100'}"
 			>
 				<span
 					class="inline-block h-4 w-4 rounded-full border border-black/20"
