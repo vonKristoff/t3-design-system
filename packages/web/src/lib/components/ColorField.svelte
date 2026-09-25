@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { PALETTE_FAMILIES, TAILWIND_PALETTE, resolveTailwindHex } from '@tsup-system/core';
+	import { resolveTailwindHex } from '@tsup-system/core';
+	import FamilySelect from './FamilySelect.svelte';
 	import StrengthSelect from './StrengthSelect.svelte';
 
 	interface Props {
@@ -39,20 +40,10 @@
 					<span class="block text-xs text-neutral-500">{hint}</span>
 				{/if}
 			</span>
-			<label class="block">
+			<span class="block">
 				<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
-				<select
-					value={family}
-					onchange={(e) => pickFamily((e.currentTarget as HTMLSelectElement).value)}
-					class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-				>
-					{#each PALETTE_FAMILIES as fam (fam)}
-						<option value={fam} selected={fam === family}>
-							{fam} · {TAILWIND_PALETTE[fam]['500']}
-						</option>
-					{/each}
-				</select>
-			</label>
+				<FamilySelect {family} onpick={pickFamily} />
+			</span>
 			<StrengthSelect {family} {step} onpick={pickStep} />
 		</span>
 		<span
