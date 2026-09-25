@@ -143,7 +143,7 @@ export function generateWidthCss(width: ContentWidth, breakout: BreakoutWidth): 
       ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
       : "";
   return `/* Content width: ${width}; breakout: ${breakout}. */
-.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
+.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
