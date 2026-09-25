@@ -1,7 +1,7 @@
 import { isValidTailwindName } from "../colors/tailwind-palette.ts";
 import { DEFAULT_THEME } from "./defaults.ts";
-import type { BreakoutElement, FontElement, FontRole, ThemeOptions } from "./types.ts";
-import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION } from "./types.ts";
+import type { BreakoutElement, FontElement, FontRole, SizeUnit, SizeValue, ThemeOptions } from "./types.ts";
+import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SIZE_UNITS } from "./types.ts";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "accent",
@@ -16,6 +16,38 @@ const VALID_ELEMENTS: FontElement[] = [
 ];
 
 const VALID_ROLES: FontRole[] = ["primary", "secondary", "tertiary"];
+
+// Legacy v1 width tokens -> size values, so older payloads keep decoding.
+const LEGACY_WIDTH: Record<string, SizeValue> = {
+  article: { value: 60, unit: "ch" },
+  comfortable: { value: 48, unit: "rem" },
+  wide: { value: 70, unit: "%" },
+  full: { value: 100, unit: "%" },
+};
+const LEGACY_BREAKOUT: Record<string, SizeValue> = {
+  none: { value: 0, unit: "%" },
+  snug: { value: 3, unit: "%" },
+  medium: { value: 6, unit: "%" },
+  wide: { value: 10, unit: "%" },
+};
+
+function parseSize(raw: unknown, fallback: SizeValue, field: string): SizeValue {
+  if (raw === undefined) return fallback;
+  if (typeof raw === "string") {
+    const legacy = field === "width" ? LEGACY_WIDTH[raw] : LEGACY_BREAKOUT[raw];
+    if (legacy) return legacy;
+    throw err(`Invalid ${field}: ${JSON.stringify(raw)}.`);
+  }
+  if (typeof raw !== "object" || raw === null) throw err(`Invalid ${field} object.`);
+  const v = raw as Record<string, unknown>;
+  if (typeof v["value"] !== "number" || !Number.isFinite(v["value"])) {
+    throw err(`Invalid ${field}.value: ${JSON.stringify(v["value"])}. Expected a number.`);
+  }
+  if (!SIZE_UNITS.includes(v["unit"] as SizeUnit)) {
+    throw err(`Invalid ${field}.unit: ${JSON.stringify(v["unit"])}. Expected one of ${SIZE_UNITS.join(", ")}.`);
+  }
+  return { value: v["value"] as number, unit: v["unit"] as SizeUnit };
+}
 
 const err = (detail: string): Error => new Error(`Invalid theme payload.\n${detail}`);
 
@@ -120,31 +152,9 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  // --- width (absent => wide) ---
-  const rawWidth = v["width"];
-  if (
-    rawWidth !== undefined &&
-    rawWidth !== "article" &&
-    rawWidth !== "comfortable" &&
-    rawWidth !== "wide" &&
-    rawWidth !== "full"
-  ) {
-    throw err(`Invalid content width: ${JSON.stringify(rawWidth)}.`);
-  }
-  const width = (rawWidth ?? DEFAULT_THEME.width ?? "wide") as ThemeOptions["width"];
-
-  // --- breakout width (absent => medium) ---
-  const rawBreakout = v["breakout"];
-  if (
-    rawBreakout !== undefined &&
-    rawBreakout !== "none" &&
-    rawBreakout !== "snug" &&
-    rawBreakout !== "medium" &&
-    rawBreakout !== "wide"
-  ) {
-    throw err(`Invalid breakout width: ${JSON.stringify(rawBreakout)}.`);
-  }
-  const breakout = (rawBreakout ?? DEFAULT_THEME.breakout ?? "medium") as ThemeOptions["breakout"];
+  // --- width / breakout (absent => defaults). Legacy v1 tokens are migrated. ---
+  const width = parseSize(v["width"], DEFAULT_THEME.width!, "width");
+  const breakout = parseSize(v["breakout"], DEFAULT_THEME.breakout!, "breakout");
 
   // --- per-element breakout routing (absent => defaults) ---
   let breakouts: ThemeOptions["breakouts"];

@@ -11,6 +11,7 @@ import { googleFontHref } from "../src/typography/fonts.ts";
 import { docShellClasses } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
+import { validateThemeOptions } from "../src/theme/validate.ts";
 
 describe("colour resolution", () => {
   test("blue-600 resolves", () => {
@@ -64,8 +65,8 @@ describe("serialization round-trip", () => {
       ...structuredClone(DEFAULT_THEME),
       colors: { ...DEFAULT_THEME.colors, accent: "purple-600", trafficOk: "teal-500" },
       fonts: { primary: "DM Sans" },
-      width: "article" as const,
-      breakout: "snug" as const,
+      width: { value: 60, unit: "ch" as const },
+      breakout: { value: 4, unit: "rem" as const },
     };
     const payload = encodeTheme(modified);
     expect(payload.length).toBeLessThan(300);
@@ -77,10 +78,10 @@ describe("serialization round-trip", () => {
     expect(files["layout.css"]).toContain(".content-grid");
     expect(files["layout.css"]).toContain(".content-grid > .breakout");
     expect(files["layout.css"]).toContain(".content-grid > .full-width");
-    expect(files["layout.css"]).toContain("--content-max: 72rem;");
+    expect(files["layout.css"]).toContain("--content-size: 70%;");
     expect(files["layout.css"]).not.toContain("data-grid");
     // Grid must be on the element holding the content items.
-    expect(docShellClasses("wide")).toBe("tsb-doc content-grid tsb-width-wide");
+    expect(docShellClasses({ value: 72, unit: "rem" })).toBe("tsb-doc content-grid tsb-width-72rem");
     expect(files["layout.css"]).not.toContain(".tsb-doc { padding");
     expect(files["typography.css"]).toContain("line-height: normal");
   });
@@ -89,26 +90,39 @@ describe("serialization round-trip", () => {
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(files["layout.css"]).toContain("> blockquote,");
     expect(files["layout.css"]).toContain("grid-column: breakout;");
-    expect(files["layout.css"]).toContain("--breakout-pct: 6%;");
+    expect(files["layout.css"]).toContain("--breakout-size: 6%;");
     // Images default to full-bleed.
     expect(files["layout.css"]).toContain("> img { grid-column: full; }");
     const routed = {
       ...structuredClone(DEFAULT_THEME),
-      breakout: "wide" as const,
+      breakout: { value: 10, unit: "%" as const },
       breakouts: { blockquote: "full" as const, table: "content" as const, img: "content" as const },
     };
     expect(decodeTheme(encodeTheme(routed))).toEqual(routed);
     const f2 = generateThemeFiles(routed, generateTheme(routed), "");
-    expect(f2["layout.css"]).toContain("--breakout-pct: 10%;");
+    expect(f2["layout.css"]).toContain("--breakout-size: 10%;");
     expect(f2["layout.css"]).toContain("> blockquote { grid-column: full; }");
     expect(f2["layout.css"]).not.toContain("> table");
     expect(f2["layout.css"]).not.toContain("grid-column: full; }".repeat(2));
   });
   test("full content width collapses the grid to one track", () => {
-    const full = { ...structuredClone(DEFAULT_THEME), width: "full" as const };
+    const full = { ...structuredClone(DEFAULT_THEME), width: { value: 100, unit: "%" as const } };
     const files = generateThemeFiles(full, generateTheme(full), "");
-    expect(files["layout.css"]).toContain("--content-max: 100%;");
+    expect(files["layout.css"]).toContain("--content-size: 100%;");
     expect(files["layout.css"]).toContain(".tsb-doc.content-grid { grid-template-columns:");
+  });
+  test("legacy width tokens migrate on decode", () => {
+    const legacy = {
+      version: 1,
+      colors: DEFAULT_THEME.colors,
+      fonts: DEFAULT_THEME.fonts,
+      fontAssignments: DEFAULT_THEME.fontAssignments,
+      width: "article",
+      breakout: "snug",
+    };
+    const decoded = validateThemeOptions(legacy);
+    expect(decoded.width).toEqual({ value: 60, unit: "ch" });
+    expect(decoded.breakout).toEqual({ value: 3, unit: "%" });
   });
   test("blockquote variants ship and round-trip", () => {
     const gen = generateTheme(DEFAULT_THEME);

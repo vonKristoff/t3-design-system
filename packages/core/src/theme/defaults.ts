@@ -30,8 +30,8 @@ export const DEFAULT_THEME: ThemeOptions = {
     blockquote: "secondary",
     code: "tertiary",
   },
-  width: "wide",
-  breakout: "medium",
+  width: { value: 70, unit: "%" },
+  breakout: { value: 6, unit: "%" },
   breakouts: {
     blockquote: "breakout",
     table: "breakout",

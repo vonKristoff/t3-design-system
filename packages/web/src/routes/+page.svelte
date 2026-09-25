@@ -2,9 +2,8 @@
 	import {
 		CURATED_FONTS,
 		FLUID_SIZES,
-		CONTENT_WIDTHS,
-		BREAKOUT_WIDTHS,
 		BREAKOUT_ELEMENTS,
+		SIZE_UNITS,
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
@@ -14,8 +13,8 @@
 		type BlockquoteVariant,
 		type BreakoutElement,
 		type BreakoutLevel,
-		type BreakoutWidth,
-		type ContentWidth,
+		type SizeUnit,
+		type SizeValue,
 		type FontElement,
 		type FontRole,
 		type SemanticName
@@ -141,20 +140,6 @@
 
 	const ROLES: RoleKey[] = ['primary', 'secondary', 'tertiary'];
 
-	const WIDTH_HINT: Record<ContentWidth, string> = {
-		article: 'Article · 60ch measure',
-		comfortable: 'Comfortable · 48rem',
-		wide: 'Wide · 72rem',
-		full: 'Full width'
-	};
-
-	const BREAKOUT_HINT: Record<BreakoutWidth, string> = {
-		none: 'None · flush with content',
-		snug: 'Snug · 2rem each side',
-		medium: 'Medium · 5rem each side',
-		wide: 'Wide · 10rem each side'
-	};
-
 	const BREAKOUT_ELEMENT_LABEL: Record<BreakoutElement, string> = {
 		blockquote: 'Blockquote',
 		table: 'Table',
@@ -166,13 +151,43 @@
 
 	const BREAKOUT_LEVELS: BreakoutLevel[] = ['content', 'breakout', 'full'];
 
-	// Container-relative band widths for the measure diagram (matches core).
-	const CONTENT_PCT: Record<ContentWidth, number> = { article: 55, comfortable: 62, wide: 70, full: 90 };
-	const BREAKOUT_PCT: Record<BreakoutWidth, number> = { none: 0, snug: 3, medium: 6, wide: 10 };
-	const contentPct = $derived(`${CONTENT_PCT[getWidth()]}%`);
+	// Slider bounds per unit (value can exceed these; these are sensible ranges).
+	const SIZE_RANGE: Record<SizeUnit, { min: number; max: number; step: number }> = {
+		'%': { min: 20, max: 100, step: 1 },
+		rem: { min: 10, max: 120, step: 1 },
+		em: { min: 10, max: 120, step: 1 },
+		ch: { min: 20, max: 120, step: 1 },
+		px: { min: 160, max: 1920, step: 10 }
+	};
+
+	function sizePx(s: SizeValue, refPx = 1480): number {
+		if (s.unit === '%') return (s.value / 100) * refPx;
+		if (s.unit === 'px') return s.value;
+		if (s.unit === 'rem' || s.unit === 'em') return s.value * 16;
+		return s.value * 8; // ch ≈ 8px at typical body size
+	}
+
+	const contentPct = $derived(`${Math.min(100, Math.round((sizePx(getWidth()) / 1480) * 100))}%`);
 	const breakoutPct = $derived(
-		`${Math.min(96, CONTENT_PCT[getWidth()] + BREAKOUT_PCT[getBreakoutWidth()] * 2)}%`
+		`${Math.min(100, Math.round((sizePx(getWidth()) / 1480) * 100) + Math.round((sizePx(getBreakoutWidth()) / 1480) * 200))}%`
 	);
+
+	function setWidthValue(value: number): void {
+		setWidth({ ...getWidth(), value });
+	}
+	function setWidthUnit(unit: SizeUnit): void {
+		setWidth({ value: clampForUnit(getWidth().value, unit), unit });
+	}
+	function setBreakoutValue(value: number): void {
+		setBreakoutWidth({ ...getBreakoutWidth(), value });
+	}
+	function setBreakoutUnit(unit: SizeUnit): void {
+		setBreakoutWidth({ value: clampForUnit(getBreakoutWidth().value, unit), unit });
+	}
+	function clampForUnit(value: number, unit: SizeUnit): number {
+		const r = SIZE_RANGE[unit];
+		return Math.min(r.max, Math.max(r.min, value));
+	}
 
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout' | 'step-components';
 
@@ -811,34 +826,60 @@
 				{#if openSections['step-layout']}
 					<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
 						<div class="grid gap-3 md:grid-cols-2">
-							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+							<div class="rounded-lg border border-neutral-200 bg-white p-3">
 								<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
-								<select
-									value={getWidth()}
-									onchange={(e) =>
-										setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
-									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								<div class="flex items-center gap-2">
+									<input
+										type="range"
+										min={SIZE_RANGE[getWidth().unit].min}
+										max={SIZE_RANGE[getWidth().unit].max}
+										step={SIZE_RANGE[getWidth().unit].step}
+										value={getWidth().value}
+										oninput={(e) => setWidthValue(Number((e.currentTarget as HTMLInputElement).value))}
+										class="min-w-0 flex-1 accent-neutral-900"
+										aria-label="Content width"
+									/>
+									<output class="w-12 shrink-0 text-right font-mono text-xs">{getWidth().value}</output>
+									<select
+										value={getWidth().unit}
+										onchange={(e) => setWidthUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
+										class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
+										aria-label="Content width unit"
+									>
+										{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
+									</select>
+								</div>
+								<span class="mt-1 block text-xs text-neutral-500"
+									>Reading measure. Use ch for ~60–75 character lines; % scales with the container.</span
 								>
-									{#each CONTENT_WIDTHS as w (w)}
-										<option value={w}>{WIDTH_HINT[w]}</option>
-									{/each}
-								</select>
-								<span class="mt-1 block text-xs text-neutral-500">Article ≈ 60ch best practice.</span>
-							</label>
-							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+							</div>
+							<div class="rounded-lg border border-neutral-200 bg-white p-3">
 								<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout width</span>
-								<select
-									value={getBreakoutWidth()}
-									onchange={(e) =>
-										setBreakoutWidth((e.currentTarget as HTMLSelectElement).value as BreakoutWidth)}
-									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								<div class="flex items-center gap-2">
+									<input
+										type="range"
+										min={SIZE_RANGE[getBreakoutWidth().unit].min}
+										max={SIZE_RANGE[getBreakoutWidth().unit].max}
+										step={SIZE_RANGE[getBreakoutWidth().unit].step}
+										value={getBreakoutWidth().value}
+										oninput={(e) => setBreakoutValue(Number((e.currentTarget as HTMLInputElement).value))}
+										class="min-w-0 flex-1 accent-neutral-900"
+										aria-label="Breakout width"
+									/>
+									<output class="w-12 shrink-0 text-right font-mono text-xs">{getBreakoutWidth().value}</output>
+									<select
+										value={getBreakoutWidth().unit}
+										onchange={(e) => setBreakoutUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
+										class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
+										aria-label="Breakout width unit"
+									>
+										{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
+									</select>
+								</div>
+								<span class="mt-1 block text-xs text-neutral-500"
+									>Extra width each side of content. % keeps breakouts distinct at any viewport.</span
 								>
-									{#each BREAKOUT_WIDTHS as bw (bw)}
-										<option value={bw}>{BREAKOUT_HINT[bw]}</option>
-									{/each}
-								</select>
-								<span class="mt-1 block text-xs text-neutral-500">How far breakouts extend past content.</span>
-							</label>
+							</div>
 						</div>
 
 						<div class="rounded-lg border border-neutral-200 bg-white p-3">

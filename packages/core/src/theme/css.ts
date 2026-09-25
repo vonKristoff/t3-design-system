@@ -4,11 +4,9 @@ import { fluidClamp, FLUID_SIZES } from "../typography/fluid.ts";
 import type {
   BreakoutElement,
   BreakoutLevel,
-  BreakoutWidth,
   Breakouts,
-  ContentWidth,
   FontElement,
-  LayoutMode,
+  SizeValue,
   ThemeOptions,
 } from "./types.ts";
 
@@ -61,14 +59,14 @@ const DEFAULT_ROLE: Record<FontElement, "primary" | "secondary" | "tertiary"> = 
  */
 export function generateLayoutCss(): string {
   return `/* Layout: always-on content-grid. Routing decides what breaks out.
-   Tracks are proportional to the container (with the rem measure as a cap),
-   so bands stay distinct at any viewport and the grid drops into any parent. */
+   Band sizes come from --content-size / --breakout-size (value + unit), so
+   % units stay proportional to the container while rem/ch act as caps. */
 .content-grid { display: grid; width: 100%; grid-template-columns:
   [full-start] minmax(0, 1fr)
-  [breakout-start] minmax(0, var(--breakout-pct, 6%))
-  [content-start] minmax(0, min(var(--content-max, 72rem), var(--content-pct, 70%)))
+  [breakout-start] minmax(0, var(--breakout-size, 6%))
+  [content-start] minmax(0, var(--content-size, 70%))
   [content-end]
-  minmax(0, var(--breakout-pct, 6%))
+  minmax(0, var(--breakout-size, 6%))
   [breakout-end] minmax(0, 1fr) [full-end]; }
 .content-grid > * { grid-column: content; min-width: 0; }
 .content-grid > .breakout { grid-column: breakout; }
@@ -81,20 +79,6 @@ export function generateLayoutCss(): string {
   .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
 }`;
 }
-
-const BREAKOUT_PCT: Record<BreakoutWidth, string> = {
-  none: "0%",
-  snug: "3%",
-  medium: "6%",
-  wide: "10%",
-};
-
-const CONTENT_PCT: Record<ContentWidth, string> = {
-  article: "55%",
-  comfortable: "62%",
-  wide: "70%",
-  full: "100%",
-};
 
 const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
   blockquote: "blockquote",
@@ -135,27 +119,23 @@ export function generateRoutingCss(breakouts: Breakouts): string {
  * whose direct children are the content (breakout/full-width targets), so
  * the builder and the shipped CSS stay in lockstep.
  */
-export function docShellClasses(width: ContentWidth): string {
-  return `tsb-doc content-grid tsb-width-${width}`;
+export function docShellClasses(width: SizeValue): string {
+  return `tsb-doc content-grid tsb-width-${width.value}${width.unit === "%" ? "pct" : width.unit}`;
 }
 
 /**
  * Document canvas measure, expressed as the grid's content track so the
  * measure rule ships with the system. Article ≈ 60ch best practice.
  */
-export function generateWidthCss(width: ContentWidth, breakout: BreakoutWidth): string {
-  const max =
-    width === "article" ? "60ch" :
-    width === "comfortable" ? "48rem" :
-    width === "wide" ? "72rem" : "100%";
-  // "full" has no room for gutters: collapse the grid to a single track
-  // (line names retained so routing selectors stay valid).
+export function generateWidthCss(width: SizeValue, breakout: SizeValue): string {
+  const size = (s: SizeValue) => `${s.value}${s.unit}`;
+  // "full"-style bleeding: a single track, line names retained for routing.
   const fullOverride =
-    width === "full"
+    width.unit === "%" && width.value >= 100
       ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
       : "";
-  return `/* Content width: ${width}; breakout: ${breakout}. */
-.tsb-doc { --content-max: ${max}; --content-pct: ${CONTENT_PCT[width]}; --breakout-pct: ${BREAKOUT_PCT[breakout]}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
+  return `/* Content ${size(width)}; breakout +${size(breakout)} per side. */
+.tsb-doc { --content-size: ${size(width)}; --breakout-size: ${size(breakout)}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
@@ -322,7 +302,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
   const layoutCss =
     generateLayoutCss() +
     "\n" +
-    generateWidthCss(options.width ?? "wide", options.breakout ?? "medium") +
+    generateWidthCss(options.width ?? { value: 70, unit: "%" }, options.breakout ?? { value: 6, unit: "%" }) +
     "\n" +
     generateRoutingCss(options.breakouts ?? {});
 

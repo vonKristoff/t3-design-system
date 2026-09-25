@@ -18,8 +18,7 @@ import {
 	type BlockquoteVariant,
 	type BreakoutElement,
 	type BreakoutLevel,
-	type BreakoutWidth,
-	type ContentWidth,
+	type SizeValue,
 	type FontElement,
 		type FontRole,
 		type ThemeColors,
@@ -69,8 +68,8 @@ function readTheme(): ThemeOptions {
 		weights: theme.weights ? { ...theme.weights } : undefined,
 		elementWeights: theme.elementWeights ? { ...theme.elementWeights } : undefined,
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
-		width: theme.width ?? 'wide',
-		breakout: theme.breakout ?? 'medium',
+		width: { ...(theme.width ?? DEFAULT_THEME.width!) },
+		breakout: { ...(theme.breakout ?? DEFAULT_THEME.breakout!) },
 		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined
 	};
 }
@@ -128,19 +127,19 @@ export function getLayoutCss(): string {
 	return _layoutCss;
 }
 
-export function getWidth(): ContentWidth {
-	return theme.width ?? 'wide';
+export function getWidth(): SizeValue {
+	return theme.width ?? DEFAULT_THEME.width!;
 }
 
-export function setWidth(width: ContentWidth): void {
+export function setWidth(width: SizeValue): void {
 	theme.width = width;
 }
 
-export function getBreakoutWidth(): BreakoutWidth {
-	return theme.breakout ?? 'medium';
+export function getBreakoutWidth(): SizeValue {
+	return theme.breakout ?? DEFAULT_THEME.breakout!;
 }
 
-export function setBreakoutWidth(breakout: BreakoutWidth): void {
+export function setBreakoutWidth(breakout: SizeValue): void {
 	theme.breakout = breakout;
 }
 

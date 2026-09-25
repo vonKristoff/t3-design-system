@@ -70,10 +70,8 @@ export function encodeTheme(options: ThemeOptions): string {
   if (!same(options.fontAssignments ?? {}, DEFAULT_THEME.fontAssignments ?? {})) {
     out["fontAssignments"] = options.fontAssignments ?? {};
   }
-  const width = options.width ?? "wide";
-  if (width !== "wide") out["width"] = width;
-  const breakout = options.breakout ?? "medium";
-  if (breakout !== "medium") out["breakout"] = breakout;
+  if (!same(options.width ?? {}, DEFAULT_THEME.width ?? {})) out["width"] = options.width;
+  if (!same(options.breakout ?? {}, DEFAULT_THEME.breakout ?? {})) out["breakout"] = options.breakout;
   if (!same(options.breakouts ?? {}, DEFAULT_THEME.breakouts ?? {})) {
     out["breakouts"] = options.breakouts ?? {};
   }
