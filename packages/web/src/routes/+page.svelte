@@ -560,7 +560,9 @@
 				<button
 					type="button"
 					onclick={copyCommand}
-					class="flex shrink-0 items-center justify-center gap-1.5 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
+					class="flex min-w-28 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium text-white {copied
+						? 'bg-green-600'
+						: 'bg-neutral-900 hover:bg-neutral-700'}"
 				>
 					{#if copied}
 						<Check size={16} />
