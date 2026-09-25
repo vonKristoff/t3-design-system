@@ -31,17 +31,20 @@
 </script>
 
 <fieldset class="block">
-	<span class="mb-1 flex items-center gap-2 text-sm font-medium text-neutral-800">
+	<div class="mb-1.5 grid grid-cols-[1fr_auto] items-center gap-2">
+		<span>
+			<span class="block text-sm font-medium text-neutral-800">{label}</span>
+			{#if hint}
+				<span class="block text-xs text-neutral-500">{hint}</span>
+			{/if}
+		</span>
 		<span
-			class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
+			class="inline-block h-9 w-14 rounded-md border border-black/20"
 			style:background={selectedHex}
+			title={`${value} · ${selectedHex}`}
 			aria-hidden="true"
 		></span>
-		{label}
-	</span>
-	{#if hint}
-		<span class="mb-1 block text-xs text-neutral-500">{hint}</span>
-	{/if}
+	</div>
 
 	<div role="radiogroup" aria-label={label + ' family'} class="mb-1.5 grid grid-cols-11 gap-1">
 		{#each PALETTE_FAMILIES as fam (fam)}
