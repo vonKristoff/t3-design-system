@@ -68,7 +68,10 @@ export function generateLayoutCss(): string {
 .content-grid > * { grid-column: content; min-width: 0; }
 .content-grid > .breakout { grid-column: breakout; }
 .content-grid > .full-width { grid-column: full; }
-.content-grid .breakout img, .content-grid .full-width img { width: 100%; }
+/* Replaced elements don't stretch to grid tracks by default — make images
+   fill whichever track routing assigns them. */
+.content-grid > img { display: block; width: 100%; height: auto; }
+.content-grid .breakout img, .content-grid .full-width img { display: block; width: 100%; height: auto; }
 @media (max-width: 40rem) {
   .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
 }`;
