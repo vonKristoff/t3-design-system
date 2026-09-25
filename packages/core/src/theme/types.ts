@@ -43,7 +43,6 @@ export type FontAssignments = Partial<Record<FontElement, FontRole>>;
 export type LayoutMode = "compact" | "minimal" | "wide";
 
 export const LAYOUT_MODES: LayoutMode[] = ["compact", "minimal", "wide"];
-
 /** Content measure for the document canvas. Article ≈ 60ch best practice. */
 export type ContentWidth = "article" | "comfortable" | "wide" | "full";
 
@@ -80,8 +79,6 @@ export interface ThemeOptions {
   /** Per-element weight overrides, e.g. h1 heavier than p. */
   elementWeights?: ElementWeights;
   fontAssignments?: FontAssignments;
-  /** Preview/CLI layout mode. Defaults to "compact" when omitted. */
-  layout?: LayoutMode;
   /** Document canvas measure. Defaults to "wide" when omitted. */
   width?: ContentWidth;
   /** Breakout extension beyond content. Defaults to "medium". */

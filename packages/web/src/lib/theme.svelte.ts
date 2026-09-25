@@ -21,9 +21,8 @@ import {
 	type BreakoutWidth,
 	type ContentWidth,
 	type FontElement,
-	type FontRole,
-	type LayoutMode,
-	type ThemeColors,
+		type FontRole,
+		type ThemeColors,
 	type ThemeOptions
 } from '@tsup-system/core';
 
@@ -70,7 +69,6 @@ function readTheme(): ThemeOptions {
 		weights: theme.weights ? { ...theme.weights } : undefined,
 		elementWeights: theme.elementWeights ? { ...theme.elementWeights } : undefined,
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
-		layout: theme.layout ?? 'compact',
 		width: theme.width ?? 'wide',
 		breakout: theme.breakout ?? 'medium',
 		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined
@@ -124,14 +122,6 @@ export function getWarnings(): ReturnType<typeof contrastWarnings> {
 
 export function getVarStyle(): string {
 	return _varStyle;
-}
-
-export function getLayout(): LayoutMode {
-	return theme.layout ?? 'compact';
-}
-
-export function setLayout(mode: LayoutMode): void {
-	theme.layout = mode;
 }
 
 export function getLayoutCss(): string {
@@ -234,7 +224,6 @@ export function resetTheme(): void {
 	theme.weights = fresh.weights;
 	theme.elementWeights = fresh.elementWeights;
 	theme.fontAssignments = fresh.fontAssignments;
-	theme.layout = fresh.layout;
 	theme.width = fresh.width;
 	theme.breakout = fresh.breakout;
 	theme.breakouts = fresh.breakouts;

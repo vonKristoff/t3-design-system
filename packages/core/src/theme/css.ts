@@ -60,16 +60,14 @@ const DEFAULT_ROLE: Record<FontElement, "primary" | "secondary" | "tertiary"> = 
  *   "full"             additionally, .full-width children span full
  */
 export function generateLayoutCss(): string {
-  return `/* Layout: content-grid breakout system. */
+  return `/* Layout: always-on content-grid. Routing decides what breaks out. */
 .content-grid { display: grid; width: 100%; grid-template-columns:
   [full-start] minmax(0, 1fr) [breakout-start] minmax(0, var(--breakout-pad, 5rem))
   [content-start] minmax(0, var(--content-max, 72rem)) [content-end]
   minmax(0, var(--breakout-pad, 5rem)) [breakout-end] minmax(0, 1fr) [full-end]; }
 .content-grid > * { grid-column: content; min-width: 0; }
-.content-grid[data-grid="breakout"] > .breakout, .content-grid[data-grid="full"] > .breakout {
-  grid-column: breakout;
-}
-.content-grid[data-grid="full"] > .full-width { grid-column: full; }
+.content-grid > .breakout { grid-column: breakout; }
+.content-grid > .full-width { grid-column: full; }
 .content-grid .breakout img, .content-grid .full-width img { width: 100%; }
 @media (max-width: 40rem) {
   .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
@@ -94,11 +92,8 @@ const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
 
 /**
  * Route markdown structures to grid tracks by element. Authors keep using
- * plain markdown (no wrapper divs required).
- *
- * The grid mode caps intent: `compact` disables routing entirely, `minimal`
- * allows breakout, `full` additionally allows full-bleed. So an element at
- * "full" level degrades to breakout in minimal mode.
+ * plain markdown (no wrapper divs required); the grid is always on, so this
+ * routing is the single source of truth for what breaks out.
  */
 export function generateRoutingCss(breakouts: Breakouts): string {
   const breakoutSel: string[] = [];
@@ -107,12 +102,10 @@ export function generateRoutingCss(breakouts: Breakouts): string {
     const level: BreakoutLevel = breakouts[el] ?? "content";
     const s = BREAKOUT_SELECTOR[el];
     if (level === "breakout") {
-      breakoutSel.push(`.content-grid[data-grid="breakout"] > ${s}`);
-      breakoutSel.push(`.content-grid[data-grid="full"] > ${s}`);
+      breakoutSel.push(`.content-grid > ${s}`);
     }
     if (level === "full") {
-      fullSel.push(`.content-grid[data-grid="full"] > ${s}`);
-      breakoutSel.push(`.content-grid[data-grid="breakout"] > ${s}`);
+      fullSel.push(`.content-grid > ${s}`);
     }
   }
   const lines: string[] = ["/* Element breakout routing. */"];
@@ -122,12 +115,6 @@ export function generateRoutingCss(breakouts: Breakouts): string {
 }
 
 /** data-grid feature level for a layout mode. */
-export function layoutToDataGrid(mode: LayoutMode): "" | "breakout" | "full" {
-  if (mode === "minimal") return "breakout";
-  if (mode === "wide") return "full";
-  return "";
-}
-
 /**
  * Class contract for the document shell. The grid must sit on the element
  * whose direct children are the content (breakout/full-width targets), so
@@ -145,9 +132,15 @@ export function generateWidthCss(width: ContentWidth, breakout: BreakoutWidth): 
   const max =
     width === "article" ? "60ch" :
     width === "comfortable" ? "48rem" :
-    width === "full" ? "none" : "72rem";
+    width === "wide" ? "72rem" : "100%";
+  // "full" has no room for gutters: collapse the grid to a single track
+  // (line names retained so routing selectors stay valid).
+  const fullOverride =
+    width === "full"
+      ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
+      : "";
   return `/* Content width: ${width}; breakout: ${breakout}. */
-.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }`;
+.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {

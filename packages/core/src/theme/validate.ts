@@ -120,13 +120,6 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  // --- layout (absent => compact) ---
-  const rawLayout = v["layout"];
-  if (rawLayout !== undefined && rawLayout !== "compact" && rawLayout !== "minimal" && rawLayout !== "wide") {
-    throw err(`Invalid layout mode: ${JSON.stringify(rawLayout)}.`);
-  }
-  const layout = (rawLayout ?? DEFAULT_THEME.layout ?? "compact") as ThemeOptions["layout"];
-
   // --- width (absent => wide) ---
   const rawWidth = v["width"];
   if (
@@ -187,5 +180,5 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, layout, width, breakout, breakouts, components };
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components };
 }

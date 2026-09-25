@@ -8,7 +8,6 @@ import { generateTheme } from "../src/theme/generate-theme.ts";
 import { generateThemeFiles } from "../src/theme/css.ts";
 import { fontWeightVars } from "../src/theme/css.ts";
 import { googleFontHref } from "../src/typography/fonts.ts";
-import { layoutToDataGrid } from "../src/theme/css.ts";
 import { docShellClasses } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
@@ -65,23 +64,21 @@ describe("serialization round-trip", () => {
       ...structuredClone(DEFAULT_THEME),
       colors: { ...DEFAULT_THEME.colors, accent: "purple-600", trafficOk: "teal-500" },
       fonts: { primary: "DM Sans" },
-      layout: "wide" as const,
       width: "article" as const,
+      breakout: "snug" as const,
     };
     const payload = encodeTheme(modified);
     expect(payload.length).toBeLessThan(300);
     expect(decodeTheme(payload)).toEqual(modified);
   });
-  test("layout.css carries grid, data-grid gates and content width", () => {
+  test("layout.css carries always-on grid, routing and content width", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(files["layout.css"]).toContain(".content-grid");
-    expect(files["layout.css"]).toContain('[data-grid="breakout"] > .breakout');
-    expect(files["layout.css"]).toContain('[data-grid="full"] > .full-width');
+    expect(files["layout.css"]).toContain(".content-grid > .breakout");
+    expect(files["layout.css"]).toContain(".content-grid > .full-width");
     expect(files["layout.css"]).toContain("--content-max: 72rem;");
-    expect(layoutToDataGrid("compact")).toBe("");
-    expect(layoutToDataGrid("minimal")).toBe("breakout");
-    expect(layoutToDataGrid("wide")).toBe("full");
+    expect(files["layout.css"]).not.toContain("data-grid");
     // Grid must be on the element holding the content items.
     expect(docShellClasses("wide")).toBe("tsb-doc content-grid tsb-width-wide");
     expect(files["layout.css"]).not.toContain(".tsb-doc { padding");
@@ -90,23 +87,28 @@ describe("serialization round-trip", () => {
   test("element breakout routing and breakout width", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
-    expect(files["layout.css"]).toContain('> blockquote,');
+    expect(files["layout.css"]).toContain("> blockquote,");
     expect(files["layout.css"]).toContain("grid-column: breakout;");
     expect(files["layout.css"]).toContain("--breakout-pad: 5rem;");
-    // Images default to full, capped to breakout inside minimal mode.
-    expect(files["layout.css"]).toContain('.content-grid[data-grid="breakout"] > img { grid-column: breakout; }');
-    expect(files["layout.css"]).toContain('.content-grid[data-grid="full"] > img { grid-column: full; }');
+    // Images default to full-bleed.
+    expect(files["layout.css"]).toContain("> img { grid-column: full; }");
     const routed = {
       ...structuredClone(DEFAULT_THEME),
       breakout: "wide" as const,
-      breakouts: { blockquote: "full" as const, table: "content" as const, img: "full" as const },
+      breakouts: { blockquote: "full" as const, table: "content" as const, img: "content" as const },
     };
     expect(decodeTheme(encodeTheme(routed))).toEqual(routed);
     const f2 = generateThemeFiles(routed, generateTheme(routed), "");
     expect(f2["layout.css"]).toContain("--breakout-pad: 10rem;");
-    expect(f2["layout.css"]).toContain('> blockquote,');
-    expect(f2["layout.css"]).toContain("grid-column: full;");
+    expect(f2["layout.css"]).toContain("> blockquote { grid-column: full; }");
     expect(f2["layout.css"]).not.toContain("> table");
+    expect(f2["layout.css"]).not.toContain("grid-column: full; }".repeat(2));
+  });
+  test("full content width collapses the grid to one track", () => {
+    const full = { ...structuredClone(DEFAULT_THEME), width: "full" as const };
+    const files = generateThemeFiles(full, generateTheme(full), "");
+    expect(files["layout.css"]).toContain("--content-max: 100%;");
+    expect(files["layout.css"]).toContain(".tsb-doc.content-grid { grid-template-columns:");
   });
   test("blockquote variants ship and round-trip", () => {
     const gen = generateTheme(DEFAULT_THEME);

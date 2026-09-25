@@ -2,7 +2,6 @@
 	import {
 		CURATED_FONTS,
 		FLUID_SIZES,
-		LAYOUT_MODES,
 		CONTENT_WIDTHS,
 		BREAKOUT_WIDTHS,
 		BREAKOUT_ELEMENTS,
@@ -10,7 +9,6 @@
 		PRESET_THEMES,
 		SCALE_STEPS,
 		fluidClamp,
-		layoutToDataGrid,
 		docShellClasses,
 		resolveTailwindHex,
 		type BlockquoteVariant,
@@ -20,7 +18,6 @@
 		type ContentWidth,
 		type FontElement,
 		type FontRole,
-		type LayoutMode,
 		type SemanticName
 	} from '@tsup-system/core';
 	import {
@@ -55,8 +52,6 @@
 		getGenerated,
 		getActivePreset,
 		applyPresetTheme,
-		getLayout,
-		setLayout,
 		getWidth,
 		setWidth,
 		getBreakoutWidth,
@@ -146,12 +141,6 @@
 
 	const ROLES: RoleKey[] = ['primary', 'secondary', 'tertiary'];
 
-	const LAYOUT_HINT: Record<LayoutMode, string> = {
-		compact: 'Single column · no grid',
-		minimal: 'Grid + breakouts',
-		wide: 'Grid + breakouts + full-bleed'
-	};
-
 	const WIDTH_HINT: Record<ContentWidth, string> = {
 		article: 'Article · 60ch measure',
 		comfortable: 'Comfortable · 48rem',
@@ -216,7 +205,7 @@
 			n: 3,
 			short: 'Layout',
 			title: 'Select your layout',
-			blurb: 'Breakout columns and page width',
+			blurb: 'Content measure, breakouts and routing',
 			activeCls: 'border-emerald-200 bg-emerald-100'
 		},
 		{
@@ -279,7 +268,6 @@
 		if (!el) return;
 		const css = getDocumentCss();
 		const font = getFontHref();
-		const layout = getLayout();
 		const width = getWidth();
 		const host = document.createElement('div');
 		const comp = mount(SampleDoc, { target: host });
@@ -291,7 +279,7 @@
 			(font ? `<link rel="stylesheet" href="${font}">` : '') +
 			`<style>${css}</style></head>` +
 			`<body class="markdown bq-${getBlockquote()}">` +
-			`<div class="${docShellClasses(width)}" data-grid="${layoutToDataGrid(layout)}">${html}${CHIPS_HTML}</div></body></html>`;
+			`<div class="${docShellClasses(width)}">${html}${CHIPS_HTML}</div></body></html>`;
 	});
 
 	function fitFrame(): void {
@@ -809,21 +797,7 @@
 				</div>
 				{#if openSections['step-layout']}
 					<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
-						<div class="grid gap-3 md:grid-cols-3">
-							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
-								<span class="mb-1 block text-sm font-medium text-neutral-800">Grid mode</span>
-								<select
-									value={getLayout()}
-									onchange={(e) =>
-										setLayout((e.currentTarget as HTMLSelectElement).value as LayoutMode)}
-									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-								>
-									{#each LAYOUT_MODES as mode (mode)}
-										<option value={mode}>{mode} — {LAYOUT_HINT[mode]}</option>
-									{/each}
-								</select>
-								<span class="mt-1 block text-xs text-neutral-500">Collapses to a single column on mobile.</span>
-							</label>
+						<div class="grid gap-3 md:grid-cols-2">
 							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
 								<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
 								<select
@@ -928,7 +902,7 @@
 			</div>
 		</main>
 
-		<section aria-label="Markdown preview" data-grid={layoutToDataGrid(getLayout())} style={getVarStyle()} class="w-full">
+		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
 			<div class="mx-auto mt-8 flex max-w-6xl items-center justify-between gap-2 bg-highlight px-4 py-3 sm:px-8">
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">
 					Markdown preview
@@ -957,7 +931,7 @@
 					{/each}
 				</div>
 				<p class="hidden font-mono text-[11px] sm:block" style="color:var(--prose-500)">
-					{getLayout()} · {getWidth()} · isolated document
+					{getWidth()} · content-grid · isolated document
 				</p>
 			</div>
 			<div class="px-2 pb-12 sm:px-4">
@@ -978,7 +952,7 @@
 						<span
 							class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block"
 						>
-							tsup-system.preview/{getLayout()}/{getWidth()}
+							tsup-system.preview/{getWidth()}
 						</span>
 						<span class="w-14 shrink-0" aria-hidden="true"></span>
 					</div>

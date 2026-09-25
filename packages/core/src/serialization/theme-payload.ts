@@ -70,8 +70,6 @@ export function encodeTheme(options: ThemeOptions): string {
   if (!same(options.fontAssignments ?? {}, DEFAULT_THEME.fontAssignments ?? {})) {
     out["fontAssignments"] = options.fontAssignments ?? {};
   }
-  const layout = options.layout ?? "compact";
-  if (layout !== "compact") out["layout"] = layout;
   const width = options.width ?? "wide";
   if (width !== "wide") out["width"] = width;
   const breakout = options.breakout ?? "medium";
