@@ -5,6 +5,7 @@
 		LAYOUT_MODES,
 		SCALE_STEPS,
 		fluidClamp,
+		resolveTailwindHex,
 		type FontRole,
 		type LayoutMode,
 		type SemanticName
@@ -107,6 +108,14 @@
 	function jumpTo(id: StepId): void {
 		openSections[id] = true;
 		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function cardBg(name: string): string {
+		try {
+			return `color-mix(in srgb, ${resolveTailwindHex(name)} 14%, white)`;
+		} catch {
+			return 'white';
+		}
 	}
 
 	function stepHeaderCls(id: StepId, top: string): string {
@@ -399,7 +408,7 @@
 				{#if openSections['step-colours']}
 					<div id="step-colours-body" data-step="step-colours" class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3">
 						{#each COLOR_FIELDS as field (field.key)}
-							<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<div class="rounded-lg border border-neutral-200 p-3" style:background={cardBg(theme.colors[field.key as ColorKey])}>
 								<ColorField label={field.label} hint={field.hint} bind:value={theme.colors[field.key as ColorKey]} />
 							</div>
 						{/each}
