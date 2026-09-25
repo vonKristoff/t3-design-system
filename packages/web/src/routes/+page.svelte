@@ -3,8 +3,10 @@
 		CURATED_FONTS,
 		FLUID_SIZES,
 		LAYOUT_MODES,
+		CONTENT_WIDTHS,
 		SCALE_STEPS,
 		fluidClamp,
+		type ContentWidth,
 		type FontRole,
 		type LayoutMode,
 		type SemanticName
@@ -13,15 +15,14 @@
 		Check,
 		ChevronDown,
 		Copy,
-		Expand,
 		LayoutGrid,
 		Palette,
 		PanelRight,
 		PanelRightClose,
 		RotateCcw,
-		Shrink,
 		Type
 	} from 'lucide-svelte';
+	import { mount, unmount } from 'svelte';
 	import ColorField from '$lib/components/ColorField.svelte';
 	import SampleDoc from '$lib/sample.svx';
 	import {
@@ -36,6 +37,9 @@
 		getGenerated,
 		getLayout,
 		setLayout,
+		getWidth,
+		setWidth,
+		getDocumentCss,
 		getLayoutCss,
 		setAssignment,
 		assignmentFor,
@@ -88,6 +92,13 @@
 		wide: 'Text | quotes & tables | images'
 	};
 
+	const WIDTH_HINT: Record<ContentWidth, string> = {
+		article: 'Article · 60ch measure',
+		comfortable: 'Comfortable · 48rem',
+		wide: 'Wide · 72rem',
+		full: 'Full width'
+	};
+
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout';
 
 	const STEPS: { id: StepId; n: number; short: string; title: string; blurb: string; activeCls: string }[] = [
@@ -105,7 +116,61 @@
 		'step-layout': true
 	});
 	let cssPanelOpen = $state(false);
-	let previewFull = $state(false);
+	let frame: HTMLIFrameElement | undefined = $state(undefined);
+
+	const CHIPS = [
+		['brand-primary · 600', 'var(--brand-primary-600)', 'white'],
+		['brand-secondary · 600', 'var(--brand-secondary-600)', 'white'],
+		['stop · 100', 'var(--traffic-stop-100)', 'var(--traffic-stop-900)'],
+		['warning · 100', 'var(--traffic-warning-100)', 'var(--traffic-warning-900)'],
+		['ok · 100', 'var(--traffic-ok-100)', 'var(--traffic-ok-900)']
+	]
+		.map(
+			([label, bg, fg]) =>
+				`<span style="border-radius:9999px;padding:0.25rem 0.75rem;font-size:0.75rem;font-weight:600;background:${bg};color:${fg}">${label}</span>`
+		)
+		.join('');
+	const CHIPS_HTML = `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:2rem;">${CHIPS}</div>`;
+
+	// Isolated document preview: render the same .svx offscreen, then embed
+	// its HTML with the generated CSS as an iframe srcdoc — its own <html>,
+	// unaffected by builder chrome (and vice versa).
+	$effect(() => {
+		const el = frame;
+		if (!el) return;
+		const css = getDocumentCss();
+		const font = getFontHref();
+		const layout = getLayout();
+		const width = getWidth();
+		const host = document.createElement('div');
+		const comp = mount(SampleDoc, { target: host });
+		const html = host.innerHTML;
+		unmount(comp);
+		el.srcdoc =
+			`<!DOCTYPE html><html><head><meta charset="utf-8">` +
+			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
+			(font ? `<link rel="stylesheet" href="${font}">` : '') +
+			`<style>${css}</style></head>` +
+			`<body class="markdown tsb-layout tsb-layout-${layout}">` +
+			`<div class="tsb-doc tsb-width-${width}">${html}${CHIPS_HTML}</div></body></html>`;
+	});
+
+	function fitFrame(): void {
+		const el = frame;
+		const doc = el?.contentDocument;
+		if (!el || !doc) return;
+		const fit = () => {
+			if (el.contentDocument === doc) {
+				el.style.height = Math.max(doc.documentElement.scrollHeight, 200) + 'px';
+			}
+		};
+		fit();
+		try {
+			doc.fonts.ready.then(fit);
+		} catch {
+			/* fonts API unavailable — initial fit stands */
+		}
+	}
 
 	function jumpTo(id: StepId): void {
 		openSections[id] = true;
@@ -425,7 +490,7 @@
 					</button>
 				</div>
 				{#if openSections['step-layout']}
-					<div id="step-layout-body" data-step="step-layout" class="pt-4">
+					<div id="step-layout-body" data-step="step-layout" class="grid gap-3 pt-4 md:grid-cols-2">
 						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
 							<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout columns</span>
 							<select
@@ -439,49 +504,40 @@
 							</select>
 							<span class="mt-1 block text-xs text-neutral-500">Collapses to a single column on mobile.</span>
 						</label>
+						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+							<span class="mb-1 block text-sm font-medium text-neutral-800">Page width</span>
+							<select
+								value={getWidth()}
+								onchange={(e) => setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
+								class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+							>
+								{#each CONTENT_WIDTHS as w (w)}
+									<option value={w}>{WIDTH_HINT[w]}</option>
+								{/each}
+							</select>
+							<span class="mt-1 block text-xs text-neutral-500">Article ≈ 60ch best practice; narrow measures collapse breakouts.</span>
+						</label>
 					</div>
 				{/if}
 			</div>
 
 		</main>
 
-		<section
-			aria-label="Markdown preview"
-			style={getVarStyle()}
-			class={'preview ' + (previewFull ? 'w-full' : 'mx-auto max-w-6xl px-4 pt-6 pb-8 sm:px-8')}
-		>
-			<div class={'flex items-center justify-between gap-2 py-3 ' + (previewFull ? 'mx-auto max-w-6xl px-4 sm:px-8' : '')}>
+		<section aria-label="Markdown preview" style={getVarStyle()} class="preview w-full">
+			<div class="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-8">
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">Markdown preview</h2>
-				<button
-					type="button"
-					onclick={() => (previewFull = !previewFull)}
-					aria-pressed={previewFull}
-					title={previewFull ? 'Exit fullscreen preview' : 'Fullscreen preview'}
-					class="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium"
-					style="border-color:var(--alt-300);background:var(--base-50);color:var(--prose-800)"
-				>
-					{#if previewFull}
-						<Shrink size={16} />
-					{:else}
-						<Expand size={16} />
-					{/if}
-					<span class="hidden sm:inline">{previewFull ? 'Exit fullscreen' : 'Fullscreen'}</span>
-				</button>
+				<p class="font-mono text-[11px]" style="color:var(--prose-500)">
+					{getLayout()} · {getWidth()} · isolated document
+				</p>
 			</div>
-			<div
-				class={previewFull ? 'px-4 pb-12 sm:px-10' : 'rounded-xl px-4 py-6 sm:px-8'}
-				style="background:var(--base-50);color:var(--prose-800)"
-			>
-				<div class={'markdown tsb-layout tsb-layout-' + getLayout()}>
-					<SampleDoc />
-				</div>
-				<div class="mt-8 flex flex-wrap gap-2">
-					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-primary-600);color:white">brand-primary</span>
-					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-secondary-600);color:white">brand-secondary</span>
-					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-stop-100);color:var(--traffic-stop-900)">stop</span>
-					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-warning-100);color:var(--traffic-warning-900)">warning</span>
-					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-ok-100);color:var(--traffic-ok-900)">ok</span>
-				</div>
+			<div class="px-2 pb-12 sm:px-4">
+				<iframe
+					bind:this={frame}
+					title="Theme preview document"
+					onload={fitFrame}
+					class="mx-auto block w-full"
+					style="border:1px solid var(--alt-300);border-radius:0.75rem;background:var(--base-50);height:900px"
+				></iframe>
 			</div>
 		</section>
 

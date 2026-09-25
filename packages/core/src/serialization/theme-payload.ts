@@ -68,6 +68,8 @@ export function encodeTheme(options: ThemeOptions): string {
   }
   const layout = options.layout ?? "compact";
   if (layout !== "compact") out["layout"] = layout;
+  const width = options.width ?? "wide";
+  if (width !== "wide") out["width"] = width;
 
   const json = JSON.stringify(out);
   return base64UrlEncode(deflateSync(strToU8(json)));

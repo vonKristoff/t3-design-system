@@ -61,10 +61,18 @@ describe("serialization round-trip", () => {
       colors: { ...DEFAULT_THEME.colors, accent: "violet-600", trafficOk: "emerald-500" },
       fonts: { primary: "DM Sans" },
       layout: "wide" as const,
+      width: "article" as const,
     };
     const payload = encodeTheme(modified);
-    expect(payload.length).toBeLessThan(250);
+    expect(payload.length).toBeLessThan(300);
     expect(decodeTheme(payload)).toEqual(modified);
+  });
+  test("layout.css carries grid, width and collapse rules", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    expect(files["layout.css"]).toContain(".tsb-layout-wide");
+    expect(files["layout.css"]).toContain(".tsb-width-article { max-width: 60ch; }");
+    expect(files["layout.css"]).toContain(".tsb-width-comfortable .tsb-layout-wide");
   });
 });
 

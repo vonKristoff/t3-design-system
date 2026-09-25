@@ -5,12 +5,14 @@ import {
 	DEFAULT_THEME,
 	generateTheme,
 	generateThemeFiles,
+	generateFontsCss,
 	generateLayoutCss,
 	fontRoleVars,
 	fontStacks,
 	buildBunxCommand,
 	contrastWarnings,
 	googleFontHref,
+	type ContentWidth,
 	type FontElement,
 	type FontRole,
 	type LayoutMode,
@@ -59,7 +61,8 @@ function readTheme(): ThemeOptions {
 		colors: { ...theme.colors },
 		fonts: { ...theme.fonts },
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
-		layout: theme.layout ?? 'compact'
+		layout: theme.layout ?? 'compact',
+		width: theme.width ?? 'wide'
 	};
 }
 
@@ -123,6 +126,22 @@ export function getLayoutCss(): string {
 	return _layoutCss;
 }
 
+export function getWidth(): ContentWidth {
+	return theme.width ?? 'wide';
+}
+
+export function setWidth(width: ContentWidth): void {
+	theme.width = width;
+}
+
+/** Full standalone document CSS for the iframe preview (same files the CLI ships). */
+export function getDocumentCss(): string {
+	const s = readTheme();
+	const gen = generateTheme(s);
+	const files = generateThemeFiles(s, gen, generateFontsCss(s));
+	return [files['root.css'], files['base.css'], files['typography.css'], files['markdown.css'], files['layout.css']].join('\n');
+}
+
 // Structural CSS (base / typography / markdown) only references variables, so
 // it is theme-independent: compute once from the shared generator.
 const _gen = generateTheme(DEFAULT_THEME);
@@ -145,4 +164,5 @@ export function resetTheme(): void {
 	theme.fonts = fresh.fonts;
 	theme.fontAssignments = fresh.fontAssignments;
 	theme.layout = fresh.layout;
+	theme.width = fresh.width;
 }
