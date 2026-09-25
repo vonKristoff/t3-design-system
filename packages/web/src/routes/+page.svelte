@@ -4,8 +4,10 @@
 		FLUID_SIZES,
 		LAYOUT_MODES,
 		CONTENT_WIDTHS,
+		BLOCKQUOTE_VARIANTS,
 		SCALE_STEPS,
 		fluidClamp,
+		type BlockquoteVariant,
 		type ContentWidth,
 		type FontRole,
 		type LayoutMode,
@@ -20,6 +22,7 @@
 		Palette,
 		PanelRight,
 		PanelRightClose,
+		Quote,
 		RotateCcw,
 		Smartphone,
 		Tablet,
@@ -44,6 +47,8 @@
 		setLayout,
 		getWidth,
 		setWidth,
+		getBlockquote,
+		setBlockquote,
 		getDocumentCss,
 		getLayoutCss,
 		setAssignment,
@@ -108,7 +113,7 @@
 		full: 'Full width'
 	};
 
-	type StepId = 'step-fonts' | 'step-colours' | 'step-layout';
+	type StepId = 'step-fonts' | 'step-colours' | 'step-layout' | 'step-components';
 
 	const STEPS: {
 		id: StepId;
@@ -139,18 +144,33 @@
 			n: 3,
 			short: 'Layout',
 			title: 'Select your layout',
-			blurb: 'Breakout columns, fluid type included',
+			blurb: 'Breakout columns and page width',
 			activeCls: 'border-emerald-200 bg-emerald-100'
+		},
+		{
+			id: 'step-components',
+			n: 4,
+			short: 'Components',
+			title: 'Style your components',
+			blurb: 'Blockquote variants, more to follow',
+			activeCls: 'border-rose-200 bg-rose-100'
 		}
 	];
 
-	const STEP_ICON = [Type, Palette, LayoutGrid];
+	const BLOCKQUOTE_BLURB: Record<BlockquoteVariant, string> = {
+		rule: 'Accent rule · current default',
+		pull: 'Large centered pull-quote',
+		minimal: 'Plain indent, no chrome'
+	};
+
+	const STEP_ICON = [Type, Palette, LayoutGrid, Quote];
 
 	let activeStep = $state<StepId>('step-fonts');
 	let openSections = $state<Record<StepId, boolean>>({
 		'step-fonts': true,
 		'step-colours': true,
-		'step-layout': true
+		'step-layout': true,
+		'step-components': true
 	});
 	let cssPanelOpen = $state(false);
 	let footerVisible = $state(false);
@@ -198,7 +218,7 @@
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
 			(font ? `<link rel="stylesheet" href="${font}">` : '') +
 			`<style>${css}</style></head>` +
-			`<body class="markdown tsb-layout tsb-layout-${layout}">` +
+			`<body class="markdown tsb-layout tsb-layout-${layout} bq-${getBlockquote()}">` +
 			`<div class="tsb-doc tsb-width-${width}">${html}${CHIPS_HTML}</div></body></html>`;
 	});
 
@@ -450,7 +470,7 @@
 				type, Markdown styles, breakout layout and a Tailwind bridge — from three steps, exported as
 				a single bunx command.
 			</p>
-			<ol class="mt-4 grid gap-2 sm:grid-cols-3">
+			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
 					<li>
@@ -564,7 +584,7 @@
 							<p class="mb-3 text-xs text-neutral-500">
 								Live sizes from your theme — fluid between 360–1280px viewports, no breakpoints.
 							</p>
-							<div class="markdown" style={getVarStyle()}>
+							<div class={'markdown bq-' + getBlockquote()} style={getVarStyle()}>
 								{#each SPECIMEN as row (row.el)}
 									{@const [minPx, maxPx] = FLUID_SIZES[row.el]}
 									<div
@@ -686,6 +706,39 @@
 						</label>
 					</div>
 				{/if}
+
+			<div id="step-components" class={stepHeaderCls('step-components')} style="top:{stackTops[3]}">
+				<button
+					type="button"
+					onclick={() => (openSections['step-components'] = !openSections['step-components'])}
+					aria-expanded={openSections['step-components']}
+					aria-controls="step-components-body"
+					class="flex w-full items-center justify-between py-2.5"
+				>
+					<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
+						<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">4</span>
+						Style your components
+					</h2>
+					<ChevronDown size={16} class="text-neutral-400 transition-transform {openSections['step-components'] ? '' : '-rotate-90'}" />
+				</button>
+			</div>
+			{#if openSections['step-components']}
+				<div id="step-components-body" data-step="step-components" class="grid gap-2 pt-4 sm:grid-cols-3">
+					{#each BLOCKQUOTE_VARIANTS as v (v)}
+						<button
+							type="button"
+							onclick={() => setBlockquote(v)}
+							aria-pressed={getBlockquote() === v}
+							class="rounded-lg border p-3 text-left {getBlockquote() === v
+								? 'border-neutral-900 bg-neutral-900 text-white'
+								: 'border-neutral-200 bg-white hover:border-neutral-400'}"
+						>
+							<span class="block text-sm font-semibold">Blockquote · {v}</span>
+							<span class="block text-xs {getBlockquote() === v ? 'text-neutral-300' : 'text-neutral-500'}">{BLOCKQUOTE_BLURB[v]}</span>
+						</button>
+					{/each}
+				</div>
+			{/if}
 			</div>
 		</main>
 

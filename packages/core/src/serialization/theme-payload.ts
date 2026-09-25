@@ -70,6 +70,9 @@ export function encodeTheme(options: ThemeOptions): string {
   if (layout !== "compact") out["layout"] = layout;
   const width = options.width ?? "wide";
   if (width !== "wide") out["width"] = width;
+  if (!same(options.components ?? {}, DEFAULT_THEME.components ?? {})) {
+    out["components"] = options.components ?? {};
+  }
 
   const json = JSON.stringify(out);
   return base64UrlEncode(deflateSync(strToU8(json)));

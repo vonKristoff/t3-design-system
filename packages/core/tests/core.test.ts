@@ -74,6 +74,14 @@ describe("serialization round-trip", () => {
     expect(files["layout.css"]).toContain(".tsb-width-article { max-width: 60ch; }");
     expect(files["layout.css"]).toContain(".tsb-width-comfortable .tsb-layout-wide");
   });
+  test("blockquote variants ship and round-trip", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    expect(files["markdown.css"]).toContain(".markdown.bq-pull blockquote");
+    expect(files["markdown.css"]).toContain(".markdown.bq-minimal blockquote");
+    const varied = { ...structuredClone(DEFAULT_THEME), components: { blockquote: "pull" as const } };
+    expect(decodeTheme(encodeTheme(varied))).toEqual(varied);
+  });
 });
 
 describe("theme consistency", () => {

@@ -12,6 +12,7 @@ import {
 	buildBunxCommand,
 	contrastWarnings,
 	googleFontHref,
+	type BlockquoteVariant,
 	type ContentWidth,
 	type FontElement,
 	type FontRole,
@@ -134,6 +135,15 @@ export function setWidth(width: ContentWidth): void {
 	theme.width = width;
 }
 
+export function getBlockquote(): BlockquoteVariant {
+	return theme.components?.blockquote ?? 'rule';
+}
+
+export function setBlockquote(variant: BlockquoteVariant): void {
+	if (!theme.components) theme.components = {};
+	theme.components.blockquote = variant;
+}
+
 /** Full standalone document CSS for the iframe preview (same files the CLI ships). */
 export function getDocumentCss(): string {
 	const s = readTheme();
@@ -165,4 +175,5 @@ export function resetTheme(): void {
 	theme.fontAssignments = fresh.fontAssignments;
 	theme.layout = fresh.layout;
 	theme.width = fresh.width;
+	theme.components = fresh.components;
 }
