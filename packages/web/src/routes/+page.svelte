@@ -531,13 +531,26 @@
 				</p>
 			</div>
 			<div class="px-2 pb-12 sm:px-4">
-				<iframe
-					bind:this={frame}
-					title="Theme preview document"
-					onload={fitFrame}
-					class="mx-auto block w-full"
-					style="border:1px solid var(--alt-300);border-radius:0.75rem;background:var(--base-50);height:900px"
-				></iframe>
+				<div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
+					<div class="flex items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-3 py-2">
+						<span class="flex gap-1.5" aria-hidden="true">
+							<span class="inline-block h-3 w-3 rounded-full bg-[#ff5f57]"></span>
+							<span class="inline-block h-3 w-3 rounded-full bg-[#febc2e]"></span>
+							<span class="inline-block h-3 w-3 rounded-full bg-[#28c840]"></span>
+						</span>
+						<span class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block">
+							tsup-system.preview/{getLayout()}/{getWidth()}
+						</span>
+						<span class="w-14 shrink-0" aria-hidden="true"></span>
+					</div>
+					<iframe
+						bind:this={frame}
+						title="Theme preview document"
+						onload={fitFrame}
+						class="block w-full"
+						style="border:0;background:var(--base-50);height:900px"
+					></iframe>
+				</div>
 			</div>
 		</section>
 
