@@ -6,4 +6,4 @@ build/
 *.log
 .DS_Store
 packages/web/.env
-theme/
+/theme/
