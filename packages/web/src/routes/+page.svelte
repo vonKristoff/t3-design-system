@@ -151,14 +151,24 @@
 
 	const BREAKOUT_LEVELS: BreakoutLevel[] = ['content', 'breakout', 'full'];
 
-	// Slider bounds per unit (value can exceed these; these are sensible ranges).
-	const SIZE_RANGE: Record<SizeUnit, { min: number; max: number; step: number }> = {
+	// Slider bounds per unit. Content has a floor; breakout is extra overhang
+	// and must be able to reach 0 (flush with content).
+	const CONTENT_RANGE: Record<SizeUnit, { min: number; max: number; step: number }> = {
 		'%': { min: 20, max: 100, step: 1 },
 		rem: { min: 10, max: 120, step: 1 },
 		em: { min: 10, max: 120, step: 1 },
 		ch: { min: 20, max: 120, step: 1 },
 		px: { min: 160, max: 1920, step: 10 }
 	};
+	const BREAKOUT_RANGE: Record<SizeUnit, { min: number; max: number; step: number }> = {
+		'%': { min: 0, max: 40, step: 1 },
+		rem: { min: 0, max: 20, step: 1 },
+		em: { min: 0, max: 20, step: 1 },
+		ch: { min: 0, max: 40, step: 1 },
+		px: { min: 0, max: 400, step: 10 }
+	};
+	const contentRange = $derived(CONTENT_RANGE[getWidth().unit]);
+	const breakoutRange = $derived(BREAKOUT_RANGE[getBreakoutWidth().unit]);
 
 	function sizePx(s: SizeValue, refPx = 1480): number {
 		if (s.unit === '%') return (s.value / 100) * refPx;
@@ -185,7 +195,7 @@
 		setBreakoutWidth({ value: clampForUnit(getBreakoutWidth().value, unit), unit });
 	}
 	function clampForUnit(value: number, unit: SizeUnit): number {
-		const r = SIZE_RANGE[unit];
+		const r = BREAKOUT_RANGE[unit];
 		return Math.min(r.max, Math.max(r.min, value));
 	}
 
@@ -831,9 +841,9 @@
 								<div class="flex items-center gap-2">
 									<input
 										type="range"
-										min={SIZE_RANGE[getWidth().unit].min}
-										max={SIZE_RANGE[getWidth().unit].max}
-										step={SIZE_RANGE[getWidth().unit].step}
+										min={contentRange.min}
+										max={contentRange.max}
+										step={contentRange.step}
 										value={getWidth().value}
 										oninput={(e) => setWidthValue(Number((e.currentTarget as HTMLInputElement).value))}
 										class="min-w-0 flex-1 accent-neutral-900"
@@ -858,9 +868,9 @@
 								<div class="flex items-center gap-2">
 									<input
 										type="range"
-										min={SIZE_RANGE[getBreakoutWidth().unit].min}
-										max={SIZE_RANGE[getBreakoutWidth().unit].max}
-										step={SIZE_RANGE[getBreakoutWidth().unit].step}
+										min={breakoutRange.min}
+										max={breakoutRange.max}
+										step={breakoutRange.step}
 										value={getBreakoutWidth().value}
 										oninput={(e) => setBreakoutValue(Number((e.currentTarget as HTMLInputElement).value))}
 										class="min-w-0 flex-1 accent-neutral-900"
