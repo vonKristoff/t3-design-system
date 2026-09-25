@@ -93,11 +93,30 @@
 		}
 		customOpen[role] = false;
 		theme.fonts[role] = v === '' || v === '__none' ? undefined : v;
+		const entry = CURATED_FONTS.find((f) => f.name === theme.fonts[role]);
+		const w = theme.weights?.[role];
+		if (entry?.variable && w !== undefined) onWeight(role, w, entry.weightMin, entry.weightMax);
 	}
 
 	function onCustomInput(role: RoleKey, v: string): void {
 		customName[role] = v;
 		theme.fonts[role] = v.trim() ? v.trim() : undefined;
+	}
+
+	function weightRange(role: RoleKey): [number, number] | null {
+		const entry = CURATED_FONTS.find((f) => f.name === theme.fonts[role]);
+		if (!entry || !entry.variable) return null;
+		return [entry.weightMin, entry.weightMax];
+	}
+
+	function roleWeight(role: RoleKey): number {
+		return theme.weights?.[role] ?? 400;
+	}
+
+	function onWeight(role: RoleKey, v: number, min: number, max: number): void {
+		const clamped = Math.min(max, Math.max(min, Math.round(v)));
+		if (!theme.weights) theme.weights = {};
+		theme.weights[role] = clamped;
 	}
 
 	const ROLES: RoleKey[] = ['primary', 'secondary', 'tertiary'];
@@ -559,6 +578,29 @@
 											class="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
 										/>
 									{/if}
+									{#if weightRange(role)}
+										{@const range = weightRange(role)!}
+										<span class="mt-2 flex items-center gap-2">
+											<span class="shrink-0 text-xs text-neutral-500">Weight</span>
+											<input
+												type="range"
+												min={range[0]}
+												max={range[1]}
+												step="10"
+												value={roleWeight(role)}
+												oninput={(e) =>
+													onWeight(
+														role,
+														Number((e.currentTarget as HTMLInputElement).value),
+														range[0],
+														range[1]
+													)}
+												class="min-w-0 flex-1 accent-neutral-900"
+												aria-label={`${ROLE_LABEL[role]} variable weight`}
+											/>
+											<output class="w-10 shrink-0 text-right font-mono text-xs">{roleWeight(role)}</output>
+										</span>
+									{/if}
 								</label>
 							{/each}
 						</div>
@@ -896,7 +938,7 @@
 						</p>
 					{/each}
 				{/each}
-				<p>{'}'}</p>
+				<p>&#125;</p>
 				<p class="mt-4 text-emerald-400">/* typography.css — fluid, no breakpoints */</p>
 				<pre>{`.markdown h1 {\n  font-family: var(--font-h1);\n  font-size: ${fluidClamp(FLUID_SIZES.h1[0], FLUID_SIZES.h1[1])};\n}`}</pre>
 				<p class="mt-4 text-emerald-400">/* tailwind.css — utilities read your system */</p>

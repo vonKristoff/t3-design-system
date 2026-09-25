@@ -5,6 +5,8 @@ import { isValidCssColor, hexToOklch } from "../src/colors/oklch.ts";
 import { DEFAULT_THEME } from "../src/theme/defaults.ts";
 import { generateTheme } from "../src/theme/generate-theme.ts";
 import { generateThemeFiles } from "../src/theme/css.ts";
+import { fontWeightVars } from "../src/theme/css.ts";
+import { googleFontHref } from "../src/typography/fonts.ts";
 import { layoutToDataGrid } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
@@ -86,6 +88,22 @@ describe("serialization round-trip", () => {
     expect(files["markdown.css"]).toContain(".markdown.bq-minimal blockquote");
     const varied = { ...structuredClone(DEFAULT_THEME), components: { blockquote: "pull" as const } };
     expect(decodeTheme(encodeTheme(varied))).toEqual(varied);
+  });
+  test("variable weights flow into fonts URL, vars and CSS", () => {
+    const weighted = {
+      ...structuredClone(DEFAULT_THEME),
+      fonts: { primary: "Inter", secondary: "Merriweather" },
+      weights: { primary: 650 },
+    };
+    expect(decodeTheme(encodeTheme(weighted))).toEqual(weighted);
+    expect(googleFontHref(weighted)).toContain("family=Inter:opsz,wght@14..32,100..900");
+    expect(googleFontHref(weighted)).toContain("family=Merriweather:wght@400;500;600;700");
+    expect(fontWeightVars(weighted)["--font-h1-weight"]).toBe(650);
+    expect(fontWeightVars(weighted)["--font-blockquote-weight"]).toBe(400);
+    const gen = generateTheme(weighted);
+    const files = generateThemeFiles(weighted, gen, "");
+    expect(files["root.css"]).toContain("--font-h1-weight: 650;");
+    expect(files["typography.css"]).toContain("font-weight: var(--font-h1-weight, 400);");
   });
 });
 

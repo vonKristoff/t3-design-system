@@ -23,7 +23,14 @@ export function googleFontHref(options: ThemeOptions): string | null {
   );
   if (names.length === 0) return null;
   const uniq = [...new Set(names)];
-  const families = uniq.map((n) => `family=${encodeURIComponent(n).replace(/%20/g, "+")}:wght@400;500;600;700`).join("&");
+  const families = uniq
+    .map((n) => {
+      const slug = encodeURIComponent(n).replace(/%20/g, "+");
+      const curated = CURATED_FONTS.find((f) => f.name === n);
+      if (curated?.variable && curated.axis) return `family=${slug}:${curated.axis}`;
+      return `family=${slug}:wght@400;500;600;700`;
+    })
+    .join("&");
   return `https://fonts.googleapis.com/css2?${families}&display=swap`;
 }
 

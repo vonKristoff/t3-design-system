@@ -8,6 +8,7 @@ import {
 	generateFontsCss,
 	generateLayoutCss,
 	fontRoleVars,
+	fontWeightVars,
 	fontStacks,
 	buildBunxCommand,
 	contrastWarnings,
@@ -61,6 +62,7 @@ function readTheme(): ThemeOptions {
 		version: theme.version,
 		colors: { ...theme.colors },
 		fonts: { ...theme.fonts },
+		weights: theme.weights ? { ...theme.weights } : undefined,
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
 		layout: theme.layout ?? 'compact',
 		width: theme.width ?? 'wide'
@@ -87,7 +89,8 @@ const _varStyle = $derived.by(() => {
 		..._generated.variables,
 		'--font-primary': stacks.primary,
 		'--font-secondary': stacks.secondary,
-		...fontRoleVars(s)
+		...fontRoleVars(s),
+		...Object.fromEntries(Object.entries(fontWeightVars(s)).map(([k, v]) => [k, String(v)]))
 	};
 	if (stacks.tertiary) vars['--font-tertiary'] = stacks.tertiary;
 	return Object.entries(vars)

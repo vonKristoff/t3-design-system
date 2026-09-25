@@ -63,6 +63,7 @@ export function encodeTheme(options: ThemeOptions): string {
   if (Object.keys(colors).length > 0) out["colors"] = colors;
 
   if (!same(options.fonts ?? {}, DEFAULT_THEME.fonts)) out["fonts"] = options.fonts ?? {};
+  if (!same(options.weights ?? {}, DEFAULT_THEME.weights ?? {})) out["weights"] = options.weights ?? {};
   if (!same(options.fontAssignments ?? {}, DEFAULT_THEME.fontAssignments ?? {})) {
     out["fontAssignments"] = options.fontAssignments ?? {};
   }
