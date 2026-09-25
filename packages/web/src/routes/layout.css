@@ -3,3 +3,9 @@
 @theme {
 	--color-highlight: #ffffdd;
 }
+
+/* Keep page width stable so the preview measure can't oscillate with the
+   scrollbar appearing/disappearing. */
+html {
+	scrollbar-gutter: stable;
+}

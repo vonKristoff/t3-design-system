@@ -34,7 +34,7 @@
 		Tablet,
 		Type
 	} from 'lucide-svelte';
-	import { mount, unmount } from 'svelte';
+	import { mount, unmount, untrack } from 'svelte';
 	import ColorField from '$lib/components/ColorField.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import Icon from '$lib/components/Icon.svelte';
@@ -292,26 +292,74 @@
 		.join('');
 	const CHIPS_HTML = `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:2rem;">${CHIPS}</div>`;
 
-	// Isolated document preview: render the same .svx offscreen, then embed
-	// its HTML with the generated CSS as an iframe srcdoc — its own <html>,
-	// unaffected by builder chrome (and vice versa).
+	// Isolated document preview. The sample markup never changes with theme, so
+	// it is rendered once; theme updates are applied to the live iframe document
+	// in place (style + classes) — no remount, no reload, no page-height jumps.
+	let sampleHtml = $state('');
+
 	$effect(() => {
-		const el = frame;
-		if (!el) return;
-		const css = getDocumentCss();
-		const font = getFontHref();
-		const width = getWidth();
+		if (sampleHtml) return;
 		const host = document.createElement('div');
 		const comp = mount(SampleDoc, { target: host });
-		const html = host.innerHTML;
+		sampleHtml = host.innerHTML;
 		unmount(comp);
+	});
+
+	$effect(() => {
+		const el = frame;
+		if (!el || !sampleHtml) return;
+		// Seed with the current CSS (non-reactive) to avoid a first-paint flash.
+		const css = untrack(() => getDocumentCss());
 		el.srcdoc =
 			`<!DOCTYPE html><html><head><meta charset="utf-8">` +
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
-			(font ? `<link rel="stylesheet" href="${font}">` : '') +
-			`<style>${css}</style></head>` +
-			`<body class="markdown bq-${getBlockquote()}">` +
-			`<div class="${docShellClasses(width)}">${html}${CHIPS_HTML}</div></body></html>`;
+			`<style id="tsb-theme">${css}</style></head>` +
+			`<body class="markdown">` +
+			`<div class="tsb-doc content-grid">${sampleHtml}${CHIPS_HTML}</div></body></html>`;
+	});
+
+	function applyToFrame(): void {
+		const doc = frame?.contentDocument;
+		if (!doc || !doc.body) return;
+		const css = getDocumentCss();
+		let style = doc.getElementById('tsb-theme') as HTMLStyleElement | null;
+		if (!style) {
+			style = doc.createElement('style');
+			style.id = 'tsb-theme';
+			doc.head.appendChild(style);
+		}
+		if (style.textContent !== css) style.textContent = css;
+
+		const href = getFontHref();
+		let link = doc.getElementById('tsb-fonts') as HTMLLinkElement | null;
+		if (href) {
+			if (!link) {
+				link = doc.createElement('link');
+				link.id = 'tsb-fonts';
+				link.rel = 'stylesheet';
+				doc.head.appendChild(link);
+			}
+			if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+		} else if (link) {
+			link.remove();
+		}
+
+		const bodyCls = `markdown bq-${getBlockquote()}`;
+		if (doc.body.className !== bodyCls) doc.body.className = bodyCls;
+		const shell = doc.body.firstElementChild as HTMLElement | null;
+		if (shell) {
+			const cls = docShellClasses(getWidth());
+			if (shell.className !== cls) shell.className = cls;
+		}
+	}
+
+	$effect(() => {
+		// Subscribe to every theme input, then patch the live document.
+		getDocumentCss();
+		getFontHref();
+		getBlockquote();
+		getWidth();
+		applyToFrame();
 	});
 
 	function fitFrame(): void {
@@ -1020,7 +1068,10 @@
 						bind:this={frame}
 						title="Theme preview document"
 						scrolling="no"
-						onload={fitFrame}
+						onload={() => {
+						applyToFrame();
+						fitFrame();
+					}}
 						class="block w-full"
 						style="border:0;background:var(--base-50);height:900px;overflow:hidden"
 					></iframe>
