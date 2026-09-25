@@ -38,7 +38,7 @@
 		{/if}
 	</span>
 
-	<div class="grid grid-cols-2 items-stretch gap-2">
+	<div class="grid grid-cols-1 items-stretch gap-2">
 		<div class="min-w-0 space-y-1.5">
 			<label class="block">
 				<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
@@ -57,7 +57,7 @@
 			<StrengthSelect {family} {step} onpick={pickStep} />
 		</div>
 		<span
-			class="inline-block min-h-28 rounded-md border border-black/20"
+			class="inline-block h-16 w-full rounded-md border border-black/20"
 			style:background={selectedHex}
 			title={`${value} · ${selectedHex}`}
 			aria-hidden="true"
