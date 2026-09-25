@@ -45,7 +45,7 @@
 			style:background={currentHex}
 			aria-hidden="true"
 		></span>
-		<span class="flex-1 text-left">{family}</span>
+		<span class="min-w-0 flex-1 truncate text-left text-xs">{family}</span>
 		<span aria-hidden="true" class="text-neutral-400">{open ? '▲' : '▼'}</span>
 	</button>
 
