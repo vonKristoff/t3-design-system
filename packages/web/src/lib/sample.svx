@@ -77,8 +77,6 @@ The end of the document. If the theme looks right here, it will look right every
 >
 > — *Ancient proverb of the build pipeline*
 
-<div class="breakout">
-
 ## Data in tables
 
 | Token              | Role        | Example            |
@@ -88,8 +86,6 @@ The end of the document. If the theme looks right here, it will look right every
 | `--prose-800`      | Text        | Paragraphs         |
 | `--accent-600`     | Interaction | Links, highlights  |
 | `--traffic-ok-600` | Success     | Confirmations      |
-
-</div>
 
 ## Status callouts
 

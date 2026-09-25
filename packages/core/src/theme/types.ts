@@ -49,6 +49,20 @@ export type ContentWidth = "article" | "comfortable" | "wide" | "full";
 
 export const CONTENT_WIDTHS: ContentWidth[] = ["article", "comfortable", "wide", "full"];
 
+/** How far breakouts extend beyond the content measure. */
+export type BreakoutWidth = "none" | "snug" | "medium" | "wide";
+
+export const BREAKOUT_WIDTHS: BreakoutWidth[] = ["none", "snug", "medium", "wide"];
+
+/** Markdown structures that can be routed to a grid track. */
+export const BREAKOUT_ELEMENTS = ["blockquote", "table", "pre", "img", "callout", "hr"] as const;
+
+export type BreakoutElement = (typeof BREAKOUT_ELEMENTS)[number];
+
+export type BreakoutLevel = "content" | "breakout" | "full";
+
+export type Breakouts = Partial<Record<BreakoutElement, BreakoutLevel>>;
+
 /** First component-style dimension; cards/accordions/dialogs can follow. */
 export type BlockquoteVariant = "rule" | "pull" | "minimal";
 
@@ -70,6 +84,10 @@ export interface ThemeOptions {
   layout?: LayoutMode;
   /** Document canvas measure. Defaults to "wide" when omitted. */
   width?: ContentWidth;
+  /** Breakout extension beyond content. Defaults to "medium". */
+  breakout?: BreakoutWidth;
+  /** Per-element grid track routing. Defaults applied when omitted. */
+  breakouts?: Breakouts;
   /** Component styles. Defaults to { blockquote: "rule" } when omitted. */
   components?: ComponentStyles;
 }

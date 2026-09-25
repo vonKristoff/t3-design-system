@@ -16,6 +16,9 @@ import {
 	contrastWarnings,
 	googleFontHref,
 	type BlockquoteVariant,
+	type BreakoutElement,
+	type BreakoutLevel,
+	type BreakoutWidth,
 	type ContentWidth,
 	type FontElement,
 	type FontRole,
@@ -68,7 +71,9 @@ function readTheme(): ThemeOptions {
 		elementWeights: theme.elementWeights ? { ...theme.elementWeights } : undefined,
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
 		layout: theme.layout ?? 'compact',
-		width: theme.width ?? 'wide'
+		width: theme.width ?? 'wide',
+		breakout: theme.breakout ?? 'medium',
+		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined
 	};
 }
 
@@ -139,6 +144,23 @@ export function getWidth(): ContentWidth {
 
 export function setWidth(width: ContentWidth): void {
 	theme.width = width;
+}
+
+export function getBreakoutWidth(): BreakoutWidth {
+	return theme.breakout ?? 'medium';
+}
+
+export function setBreakoutWidth(breakout: BreakoutWidth): void {
+	theme.breakout = breakout;
+}
+
+export function getBreakoutRoute(el: BreakoutElement): BreakoutLevel {
+	return theme.breakouts?.[el] ?? DEFAULT_THEME.breakouts?.[el] ?? 'content';
+}
+
+export function setBreakoutRoute(el: BreakoutElement, level: BreakoutLevel): void {
+	if (!theme.breakouts) theme.breakouts = {};
+	theme.breakouts[el] = level;
 }
 
 export function getBlockquote(): BlockquoteVariant {
@@ -214,5 +236,7 @@ export function resetTheme(): void {
 	theme.fontAssignments = fresh.fontAssignments;
 	theme.layout = fresh.layout;
 	theme.width = fresh.width;
+	theme.breakout = fresh.breakout;
+	theme.breakouts = fresh.breakouts;
 	theme.components = fresh.components;
 }

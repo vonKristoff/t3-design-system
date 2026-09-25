@@ -1,7 +1,16 @@
 import type { GeneratedTheme } from "./generate-theme.ts";
 import { fontStacks } from "../typography/fonts.ts";
 import { fluidClamp, FLUID_SIZES } from "../typography/fluid.ts";
-import type { ContentWidth, FontElement, LayoutMode, ThemeOptions } from "./types.ts";
+import type {
+  BreakoutElement,
+  BreakoutLevel,
+  BreakoutWidth,
+  Breakouts,
+  ContentWidth,
+  FontElement,
+  LayoutMode,
+  ThemeOptions,
+} from "./types.ts";
 
 export interface ThemeFiles {
   "root.css": string;
@@ -53,20 +62,53 @@ const DEFAULT_ROLE: Record<FontElement, "primary" | "secondary" | "tertiary"> = 
 export function generateLayoutCss(): string {
   return `/* Layout: content-grid breakout system. */
 .content-grid { display: grid; width: 100%; grid-template-columns:
-  [full-start] minmax(0, 2fr) [breakout-start] minmax(0, 1fr)
-  [content-start] minmax(0, var(--content-max, 65ch)) [content-end]
-  minmax(0, 1fr) [breakout-end] minmax(0, 2fr) [full-end]; }
+  [full-start] minmax(0, 1fr) [breakout-start] minmax(0, var(--breakout-pad, 5rem))
+  [content-start] minmax(0, var(--content-max, 72rem)) [content-end]
+  minmax(0, var(--breakout-pad, 5rem)) [breakout-end] minmax(0, 1fr) [full-end]; }
 .content-grid > * { grid-column: content; min-width: 0; }
 .content-grid[data-grid="breakout"] > .breakout, .content-grid[data-grid="full"] > .breakout {
-  grid-column: breakout; padding-inline: 2rem;
+  grid-column: breakout;
 }
 .content-grid[data-grid="full"] > .full-width { grid-column: full; }
 .content-grid .breakout img, .content-grid .full-width img { width: 100%; }
 @media (max-width: 40rem) {
   .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
-  .content-grid[data-grid="breakout"] > .breakout, .content-grid[data-grid="full"] > .breakout,
-  .content-grid[data-grid="full"] > .full-width { padding-inline: 0; }
 }`;
+}
+
+const BREAKOUT_PAD: Record<BreakoutWidth, string> = {
+  none: "0rem",
+  snug: "2rem",
+  medium: "5rem",
+  wide: "10rem",
+};
+
+const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
+  blockquote: "blockquote",
+  table: "table",
+  pre: "pre",
+  img: "img",
+  callout: ".callout",
+  hr: "hr",
+};
+
+/**
+ * Route markdown structures to grid tracks by element. Authors keep using
+ * plain markdown (no wrapper divs required). Only emitted when a grid level
+ * is active, so single-column mode stays untouched.
+ */
+export function generateRoutingCss(breakouts: Breakouts): string {
+  const breakoutSel: string[] = [];
+  const fullSel: string[] = [];
+  for (const el of Object.keys(BREAKOUT_SELECTOR) as BreakoutElement[]) {
+    const level: BreakoutLevel = breakouts[el] ?? "content";
+    if (level === "breakout") breakoutSel.push(`.content-grid[data-grid="breakout"] > ${BREAKOUT_SELECTOR[el]}, .content-grid[data-grid="full"] > ${BREAKOUT_SELECTOR[el]}`);
+    if (level === "full") fullSel.push(`.content-grid[data-grid="full"] > ${BREAKOUT_SELECTOR[el]}`);
+  }
+  const lines: string[] = ["/* Element breakout routing. */"];
+  if (breakoutSel.length) lines.push(`${breakoutSel.join(",\n")} { grid-column: breakout; }`);
+  if (fullSel.length) lines.push(`${fullSel.join(",\n")} { grid-column: full; }`);
+  return lines.join("\n");
 }
 
 /** data-grid feature level for a layout mode. */
@@ -89,13 +131,13 @@ export function docShellClasses(width: ContentWidth): string {
  * Document canvas measure, expressed as the grid's content track so the
  * measure rule ships with the system. Article ≈ 60ch best practice.
  */
-export function generateWidthCss(width: ContentWidth): string {
+export function generateWidthCss(width: ContentWidth, breakout: BreakoutWidth): string {
   const max =
     width === "article" ? "60ch" :
     width === "comfortable" ? "48rem" :
     width === "full" ? "none" : "72rem";
-  return `/* Content width: ${width}. */
-.tsb-doc { --content-max: ${max}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }`;
+  return `/* Content width: ${width}; breakout: ${breakout}. */
+.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; background: var(--base-50); color: var(--prose-800); }`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
@@ -260,7 +302,11 @@ img { max-width: 100%; border-radius: 0.5rem; }
 `;
 
   const layoutCss =
-    generateLayoutCss() + "\n" + generateWidthCss(options.width ?? "wide");
+    generateLayoutCss() +
+    "\n" +
+    generateWidthCss(options.width ?? "wide", options.breakout ?? "medium") +
+    "\n" +
+    generateRoutingCss(options.breakouts ?? {});
 
   const indexCss = `@import "./root.css";
 @import "./fonts.css";

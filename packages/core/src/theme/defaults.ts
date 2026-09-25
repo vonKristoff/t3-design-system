@@ -32,6 +32,15 @@ export const DEFAULT_THEME: ThemeOptions = {
   },
   layout: "compact",
   width: "wide",
+  breakout: "medium",
+  breakouts: {
+    blockquote: "breakout",
+    table: "breakout",
+    pre: "breakout",
+    img: "content",
+    callout: "content",
+    hr: "content",
+  },
   components: {
     blockquote: "rule",
   },

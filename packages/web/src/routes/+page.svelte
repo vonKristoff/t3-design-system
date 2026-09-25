@@ -4,6 +4,8 @@
 		FLUID_SIZES,
 		LAYOUT_MODES,
 		CONTENT_WIDTHS,
+		BREAKOUT_WIDTHS,
+		BREAKOUT_ELEMENTS,
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
@@ -12,6 +14,9 @@
 		docShellClasses,
 		resolveTailwindHex,
 		type BlockquoteVariant,
+		type BreakoutElement,
+		type BreakoutLevel,
+		type BreakoutWidth,
 		type ContentWidth,
 		type FontElement,
 		type FontRole,
@@ -54,6 +59,10 @@
 		setLayout,
 		getWidth,
 		setWidth,
+		getBreakoutWidth,
+		setBreakoutWidth,
+		getBreakoutRoute,
+		setBreakoutRoute,
 		getBlockquote,
 		setBlockquote,
 		getDocumentCss,
@@ -149,6 +158,32 @@
 		wide: 'Wide · 72rem',
 		full: 'Full width'
 	};
+
+	const BREAKOUT_HINT: Record<BreakoutWidth, string> = {
+		none: 'None · flush with content',
+		snug: 'Snug · 2rem each side',
+		medium: 'Medium · 5rem each side',
+		wide: 'Wide · 10rem each side'
+	};
+
+	const BREAKOUT_ELEMENT_LABEL: Record<BreakoutElement, string> = {
+		blockquote: 'Blockquote',
+		table: 'Table',
+		pre: 'Code block',
+		img: 'Images',
+		callout: 'Callouts',
+		hr: 'Rules'
+	};
+
+	const BREAKOUT_LEVELS: BreakoutLevel[] = ['content', 'breakout', 'full'];
+
+	// Approximate rem widths for the measure diagram (visual aid only).
+	const CONTENT_REM: Record<ContentWidth, number> = { article: 42, comfortable: 48, wide: 72, full: 90 };
+	const PAD_REM: Record<BreakoutWidth, number> = { none: 0, snug: 2, medium: 5, wide: 10 };
+	const GRID_FULL_REM = 90;
+	const pct = (rem: number) => `${Math.min(100, Math.round((rem / GRID_FULL_REM) * 100))}%`;
+	const contentPct = $derived(pct(CONTENT_REM[getWidth()]));
+	const breakoutPct = $derived(pct(Math.min(GRID_FULL_REM, CONTENT_REM[getWidth()] + PAD_REM[getBreakoutWidth()] * 2)));
 
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout' | 'step-components';
 
@@ -773,39 +808,88 @@
 					</button>
 				</div>
 				{#if openSections['step-layout']}
-					<div id="step-layout-body" data-step="step-layout" class="grid gap-3 pt-4 md:grid-cols-2">
-						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
-							<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout columns</span>
-							<select
-								value={getLayout()}
-								onchange={(e) =>
-									setLayout((e.currentTarget as HTMLSelectElement).value as LayoutMode)}
-								class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-							>
-								{#each LAYOUT_MODES as mode (mode)}
-									<option value={mode}>{mode} — {LAYOUT_HINT[mode]}</option>
+					<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
+						<div class="grid gap-3 md:grid-cols-3">
+							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+								<span class="mb-1 block text-sm font-medium text-neutral-800">Grid mode</span>
+								<select
+									value={getLayout()}
+									onchange={(e) =>
+										setLayout((e.currentTarget as HTMLSelectElement).value as LayoutMode)}
+									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								>
+									{#each LAYOUT_MODES as mode (mode)}
+										<option value={mode}>{mode} — {LAYOUT_HINT[mode]}</option>
+									{/each}
+								</select>
+								<span class="mt-1 block text-xs text-neutral-500">Collapses to a single column on mobile.</span>
+							</label>
+							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+								<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
+								<select
+									value={getWidth()}
+									onchange={(e) =>
+										setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
+									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								>
+									{#each CONTENT_WIDTHS as w (w)}
+										<option value={w}>{WIDTH_HINT[w]}</option>
+									{/each}
+								</select>
+								<span class="mt-1 block text-xs text-neutral-500">Article ≈ 60ch best practice.</span>
+							</label>
+							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+								<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout width</span>
+								<select
+									value={getBreakoutWidth()}
+									onchange={(e) =>
+										setBreakoutWidth((e.currentTarget as HTMLSelectElement).value as BreakoutWidth)}
+									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								>
+									{#each BREAKOUT_WIDTHS as bw (bw)}
+										<option value={bw}>{BREAKOUT_HINT[bw]}</option>
+									{/each}
+								</select>
+								<span class="mt-1 block text-xs text-neutral-500">How far breakouts extend past content.</span>
+							</label>
+						</div>
+
+						<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Measure</h3>
+							<div class="space-y-1">
+								<div class="rounded-sm bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">full viewport</div>
+								<div class="mx-auto rounded-sm bg-sky-100 px-2 py-1 text-[10px] text-sky-800" style:width={breakoutPct}>breakout</div>
+								<div class="mx-auto rounded-sm bg-neutral-900 px-2 py-1 text-[10px] text-white" style:width={contentPct}>content</div>
+							</div>
+						</div>
+
+						<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Breakout elements</h3>
+							<p class="mb-2 text-xs text-neutral-500">
+								Route plain Markdown structures to a track — no wrapper divs needed.
+							</p>
+							<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+								{#each BREAKOUT_ELEMENTS as el (el)}
+									<div class="flex items-center justify-between gap-2">
+										<span class="text-sm text-neutral-700">{BREAKOUT_ELEMENT_LABEL[el]}</span>
+										<div class="flex rounded-md border border-neutral-200 p-0.5" role="group" aria-label={`${BREAKOUT_ELEMENT_LABEL[el]} track`}>
+											{#each BREAKOUT_LEVELS as level (level)}
+												<button
+													type="button"
+													onclick={() => setBreakoutRoute(el, level)}
+													aria-pressed={getBreakoutRoute(el) === level}
+													class="rounded px-2 py-1 text-[11px] font-medium {getBreakoutRoute(el) === level
+														? 'bg-neutral-900 text-white'
+														: 'text-neutral-500 hover:bg-neutral-100'}"
+												>
+													{level === 'content' ? 'Content' : level === 'breakout' ? 'Breakout' : 'Full'}
+												</button>
+											{/each}
+										</div>
+									</div>
 								{/each}
-							</select>
-							<span class="mt-1 block text-xs text-neutral-500"
-								>Collapses to a single column on mobile.</span
-							>
-						</label>
-						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
-							<span class="mb-1 block text-sm font-medium text-neutral-800">Page width</span>
-							<select
-								value={getWidth()}
-								onchange={(e) =>
-									setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
-								class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-							>
-								{#each CONTENT_WIDTHS as w (w)}
-									<option value={w}>{WIDTH_HINT[w]}</option>
-								{/each}
-							</select>
-							<span class="mt-1 block text-xs text-neutral-500"
-								>Article ≈ 60ch best practice; narrow measures collapse breakouts.</span
-							>
-						</label>
+							</div>
+						</div>
 					</div>
 				{/if}
 

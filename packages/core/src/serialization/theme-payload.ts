@@ -74,6 +74,11 @@ export function encodeTheme(options: ThemeOptions): string {
   if (layout !== "compact") out["layout"] = layout;
   const width = options.width ?? "wide";
   if (width !== "wide") out["width"] = width;
+  const breakout = options.breakout ?? "medium";
+  if (breakout !== "medium") out["breakout"] = breakout;
+  if (!same(options.breakouts ?? {}, DEFAULT_THEME.breakouts ?? {})) {
+    out["breakouts"] = options.breakouts ?? {};
+  }
   if (!same(options.components ?? {}, DEFAULT_THEME.components ?? {})) {
     out["components"] = options.components ?? {};
   }

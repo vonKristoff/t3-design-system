@@ -1,7 +1,7 @@
 import { isValidTailwindName } from "../colors/tailwind-palette.ts";
 import { DEFAULT_THEME } from "./defaults.ts";
-import type { FontElement, FontRole, ThemeOptions } from "./types.ts";
-import { PAYLOAD_VERSION } from "./types.ts";
+import type { BreakoutElement, FontElement, FontRole, ThemeOptions } from "./types.ts";
+import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION } from "./types.ts";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "accent",
@@ -140,6 +140,36 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
   }
   const width = (rawWidth ?? DEFAULT_THEME.width ?? "wide") as ThemeOptions["width"];
 
+  // --- breakout width (absent => medium) ---
+  const rawBreakout = v["breakout"];
+  if (
+    rawBreakout !== undefined &&
+    rawBreakout !== "none" &&
+    rawBreakout !== "snug" &&
+    rawBreakout !== "medium" &&
+    rawBreakout !== "wide"
+  ) {
+    throw err(`Invalid breakout width: ${JSON.stringify(rawBreakout)}.`);
+  }
+  const breakout = (rawBreakout ?? DEFAULT_THEME.breakout ?? "medium") as ThemeOptions["breakout"];
+
+  // --- per-element breakout routing (absent => defaults) ---
+  let breakouts: ThemeOptions["breakouts"];
+  if (v["breakouts"] === undefined) {
+    breakouts = { ...DEFAULT_THEME.breakouts };
+  } else {
+    const rb = v["breakouts"];
+    if (typeof rb !== "object" || rb === null) throw err('Invalid "breakouts" object.');
+    breakouts = {};
+    for (const [el, level] of Object.entries(rb as Record<string, unknown>)) {
+      if (!BREAKOUT_ELEMENTS.includes(el as BreakoutElement)) throw err(`Invalid breakouts element: "${el}".`);
+      if (level !== "content" && level !== "breakout" && level !== "full") {
+        throw err(`Invalid breakout level for "${el}": ${JSON.stringify(level)}.`);
+      }
+      breakouts[el as BreakoutElement] = level;
+    }
+  }
+
   // --- components (absent => defaults; present used as-is) ---
   let components: ThemeOptions["components"];
   if (v["components"] === undefined) {
@@ -157,5 +187,5 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, layout, width, components };
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, layout, width, breakout, breakouts, components };
 }

@@ -87,6 +87,24 @@ describe("serialization round-trip", () => {
     expect(files["layout.css"]).not.toContain(".tsb-doc { padding");
     expect(files["typography.css"]).toContain("line-height: normal");
   });
+  test("element breakout routing and breakout width", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    expect(files["layout.css"]).toContain('> blockquote,');
+    expect(files["layout.css"]).toContain("grid-column: breakout;");
+    expect(files["layout.css"]).toContain("--breakout-pad: 5rem;");
+    const routed = {
+      ...structuredClone(DEFAULT_THEME),
+      breakout: "wide" as const,
+      breakouts: { blockquote: "full" as const, table: "content" as const, img: "full" as const },
+    };
+    expect(decodeTheme(encodeTheme(routed))).toEqual(routed);
+    const f2 = generateThemeFiles(routed, generateTheme(routed), "");
+    expect(f2["layout.css"]).toContain("--breakout-pad: 10rem;");
+    expect(f2["layout.css"]).toContain('> blockquote,');
+    expect(f2["layout.css"]).toContain("grid-column: full;");
+    expect(f2["layout.css"]).not.toContain("> table");
+  });
   test("blockquote variants ship and round-trip", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
