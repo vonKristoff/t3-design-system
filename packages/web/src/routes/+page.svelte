@@ -106,18 +106,18 @@
 	}
 
 	$effect(() => {
-		const sections = STEPS.map((s) => document.getElementById(s.id)).filter(
-			(el): el is HTMLElement => el !== null
-		);
+		const bodies = Array.from(document.querySelectorAll('[data-step]'));
 		const observer = new IntersectionObserver(
 			(entries) => {
 				for (const e of entries) {
-					if (e.isIntersecting) activeStep = e.target.id as StepId;
+					if (e.isIntersecting && e.target instanceof HTMLElement) {
+						activeStep = e.target.dataset.step as StepId;
+					}
 				}
 			},
 			{ rootMargin: '-30% 0px -60% 0px' }
 		);
-		for (const s of sections) observer.observe(s);
+		for (const b of bodies) observer.observe(b);
 		return () => observer.disconnect();
 	});
 
@@ -283,8 +283,8 @@
 		</section>
 
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
-			<section id="step-fonts" class="scroll-mt-24 pt-6">
-				<div class="sticky top-14 z-10 -mx-1 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div class="space-y-6 pt-6">
+			<div id="step-fonts" class="sticky top-14 z-10 -mx-1 scroll-mt-24 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
 					<button
 						type="button"
 						onclick={() => (openSections['step-fonts'] = !openSections['step-fonts'])}
@@ -300,7 +300,7 @@
 					</button>
 				</div>
 				{#if openSections['step-fonts']}
-					<div id="step-fonts-body" class="space-y-4 pt-4">
+					<div id="step-fonts-body" data-step="step-fonts" class="space-y-4 pt-4">
 						<div class="grid gap-3 md:grid-cols-3">
 							{#each ROLES as role (role)}
 								<label class="block rounded-lg border border-neutral-200 bg-white p-3">
@@ -371,10 +371,8 @@
 						</div>
 					</div>
 				{/if}
-			</section>
 
-			<section id="step-colours" class="scroll-mt-24 pt-6">
-				<div class="sticky top-[6.75rem] z-10 -mx-1 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div id="step-colours" class="sticky top-[7.375rem] z-10 -mx-1 scroll-mt-32 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
 					<button
 						type="button"
 						onclick={() => (openSections['step-colours'] = !openSections['step-colours'])}
@@ -390,7 +388,7 @@
 					</button>
 				</div>
 				{#if openSections['step-colours']}
-					<div id="step-colours-body" class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3">
+					<div id="step-colours-body" data-step="step-colours" class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3">
 						{#each COLOR_FIELDS as field (field.key)}
 							<div class="rounded-lg border border-neutral-200 bg-white p-3">
 								<ColorField label={field.label} hint={field.hint} bind:value={theme.colors[field.key as ColorKey]} />
@@ -398,10 +396,8 @@
 						{/each}
 					</div>
 				{/if}
-			</section>
 
-			<section id="step-layout" class="scroll-mt-24 pt-6">
-				<div class="sticky top-[10rem] z-10 -mx-1 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div id="step-layout" class="sticky top-[11.25rem] z-10 -mx-1 scroll-mt-44 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
 					<button
 						type="button"
 						onclick={() => (openSections['step-layout'] = !openSections['step-layout'])}
@@ -417,7 +413,7 @@
 					</button>
 				</div>
 				{#if openSections['step-layout']}
-					<div id="step-layout-body" class="pt-4">
+					<div id="step-layout-body" data-step="step-layout" class="pt-4">
 						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
 							<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout columns</span>
 							<select
@@ -433,7 +429,7 @@
 						</label>
 					</div>
 				{/if}
-			</section>
+			</div>
 
 			<section aria-label="Markdown preview" class="pt-6 pb-8">
 				<div style={getVarStyle() + ';background:var(--base-50);color:var(--prose-800)'} class="rounded-xl px-4 py-6 sm:px-8">
