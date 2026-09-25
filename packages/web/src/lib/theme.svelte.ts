@@ -77,7 +77,7 @@ const _bunxCommand = $derived.by(() => buildBunxCommand(readTheme()));
 
 const _warnings = $derived.by(() => contrastWarnings(readTheme()));
 
-const _layoutCss = $derived.by(() => generateLayoutCss(readTheme().layout ?? 'compact'));
+const _layoutCss = $derived.by(() => generateLayoutCss());
 
 /** Reactive inline-style string with every generated variable for the preview scope. */
 const _varStyle = $derived.by(() => {

@@ -7,6 +7,7 @@
 		BLOCKQUOTE_VARIANTS,
 		SCALE_STEPS,
 		fluidClamp,
+		layoutToDataGrid,
 		type BlockquoteVariant,
 		type ContentWidth,
 		type FontRole,
@@ -101,9 +102,9 @@
 	const ROLES: RoleKey[] = ['primary', 'secondary', 'tertiary'];
 
 	const LAYOUT_HINT: Record<LayoutMode, string> = {
-		compact: 'Single column',
-		minimal: 'Text | quotes & images',
-		wide: 'Text | quotes & tables | images'
+		compact: 'Single column · no grid',
+		minimal: 'Grid + breakouts',
+		wide: 'Grid + breakouts + full-bleed'
 	};
 
 	const WIDTH_HINT: Record<ContentWidth, string> = {
@@ -218,7 +219,7 @@
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
 			(font ? `<link rel="stylesheet" href="${font}">` : '') +
 			`<style>${css}</style></head>` +
-			`<body class="markdown tsb-layout tsb-layout-${layout} bq-${getBlockquote()}">` +
+			`<body class="markdown content-grid bq-${getBlockquote()}" data-grid="${layoutToDataGrid(layout)}">` +
 			`<div class="tsb-doc tsb-width-${width}">${html}${CHIPS_HTML}</div></body></html>`;
 	});
 
@@ -742,7 +743,7 @@
 			</div>
 		</main>
 
-		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
+		<section aria-label="Markdown preview" data-grid={layoutToDataGrid(getLayout())} style={getVarStyle()} class="w-full">
 			<div class="mx-auto mt-8 flex max-w-6xl items-center justify-between gap-2 bg-highlight px-4 py-3 sm:px-8">
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">
 					Markdown preview

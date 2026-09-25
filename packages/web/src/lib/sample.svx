@@ -1,5 +1,3 @@
-<div class="zone-text">
-
 # Designing with a Semantic Theme
 
 A **design system** is only as good as its *consistency*. This document exercises every Markdown element against the live theme, so what you see here is exactly what the CLI will generate — same engine, same variables, no approximations.
@@ -73,15 +71,13 @@ Even `H4` deserves a font role. And `H5`. And H6, quietly holding the hierarchy 
 
 The end of the document. If the theme looks right here, it will look right everywhere.
 
-</div>
-
-<div class="zone-aside">
-
 ## Voices in the margin
 
 > Simplicity is the soul of efficiency. A theme with nine colours and three fonts beats a palette with nine hundred options.
 >
 > — *Ancient proverb of the build pipeline*
+
+<div class="breakout">
 
 ## Data in tables
 
@@ -93,6 +89,8 @@ The end of the document. If the theme looks right here, it will look right every
 | `--accent-600`     | Interaction | Links, highlights  |
 | `--traffic-ok-600` | Success     | Confirmations      |
 
+</div>
+
 ## Status callouts
 
 <div class="callout callout-stop">Something failed. The destructive action was rolled back safely.</div>
@@ -101,9 +99,7 @@ The end of the document. If the theme looks right here, it will look right every
 
 <div class="callout callout-ok">All checks passed. The theme is ready to generate.</div>
 
-</div>
-
-<div class="zone-media">
+<div class="full-width">
 
 ## A picture break
 

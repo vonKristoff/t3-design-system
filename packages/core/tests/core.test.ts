@@ -5,6 +5,7 @@ import { isValidCssColor, hexToOklch } from "../src/colors/oklch.ts";
 import { DEFAULT_THEME } from "../src/theme/defaults.ts";
 import { generateTheme } from "../src/theme/generate-theme.ts";
 import { generateThemeFiles } from "../src/theme/css.ts";
+import { layoutToDataGrid } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
 
@@ -67,12 +68,16 @@ describe("serialization round-trip", () => {
     expect(payload.length).toBeLessThan(300);
     expect(decodeTheme(payload)).toEqual(modified);
   });
-  test("layout.css carries grid, width and collapse rules", () => {
+  test("layout.css carries grid, data-grid gates and content width", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
-    expect(files["layout.css"]).toContain(".tsb-layout-wide");
-    expect(files["layout.css"]).toContain(".tsb-width-article { max-width: 60ch; }");
-    expect(files["layout.css"]).toContain(".tsb-width-comfortable .tsb-layout-wide");
+    expect(files["layout.css"]).toContain(".content-grid");
+    expect(files["layout.css"]).toContain('[data-grid="breakout"] > .breakout');
+    expect(files["layout.css"]).toContain('[data-grid="full"] > .full-width');
+    expect(files["layout.css"]).toContain("--content-max: 72rem;");
+    expect(layoutToDataGrid("compact")).toBe("");
+    expect(layoutToDataGrid("minimal")).toBe("breakout");
+    expect(layoutToDataGrid("wide")).toBe("full");
   });
   test("blockquote variants ship and round-trip", () => {
     const gen = generateTheme(DEFAULT_THEME);
