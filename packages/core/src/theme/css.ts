@@ -163,8 +163,8 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown p { margin-bottom: 1.3rem; }
 .markdown ul, .markdown ol { font-family: var(--font-list); font-weight: var(--font-list-weight, 400); }
 .markdown li { margin-left: 0.5rem; }
-.markdown strong { color: var(--prose-950); }
-.markdown em { color: var(--prose-700); }
+.markdown strong { color: inherit; font-weight: 700; }
+.markdown em { color: inherit; font-style: italic; }
 .markdown small { font-size: 0.707em; }
 `;
 
