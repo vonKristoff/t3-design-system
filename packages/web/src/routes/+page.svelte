@@ -3,8 +3,11 @@
 		CURATED_FONTS,
 		FLUID_SIZES,
 		LAYOUT_MODES,
+		SCALE_STEPS,
+		fluidClamp,
 		type FontRole,
-		type LayoutMode
+		type LayoutMode,
+		type SemanticName
 	} from '@tsup-system/core';
 	import {
 		Check,
@@ -28,6 +31,7 @@
 		getFontHref,
 		getBunxCommand,
 		getWarnings,
+		getGenerated,
 		getLayout,
 		setLayout,
 		getLayoutCss,
@@ -147,39 +151,38 @@
 		{ el: 'blockquote', tag: 'blockquote', sample: 'Simplicity is the soul of efficiency.' }
 	];
 
-	const EXAMPLE_CSS = `theme/
-├── root.css          semantic colour scales
+	const SCALE_GROUPS: { sem: SemanticName; label: string; anchor: ColorKey }[] = [
+		{ sem: 'base', label: 'Base', anchor: 'base' },
+		{ sem: 'alt', label: 'Alt', anchor: 'alt' },
+		{ sem: 'prose', label: 'Prose', anchor: 'prose' },
+		{ sem: 'accent', label: 'Accent', anchor: 'accent' },
+		{ sem: 'brand-primary', label: 'Brand Primary', anchor: 'brandPrimary' },
+		{ sem: 'brand-secondary', label: 'Brand Secondary', anchor: 'brandSecondary' },
+		{ sem: 'traffic-stop', label: 'Stop', anchor: 'trafficStop' },
+		{ sem: 'traffic-warning', label: 'Warning', anchor: 'trafficWarning' },
+		{ sem: 'traffic-ok', label: 'OK', anchor: 'trafficOk' }
+	];
+
+	const TREE = `theme/
+├── root.css          semantic scales
 ├── fonts.css         Google Fonts + stacks
 ├── base.css          html / body / links
-├── typography.css    fluid Splendor type
+├── typography.css    fluid type
 ├── markdown.css      quotes / tables / code
 ├── layout.css        breakout grid
 ├── tailwind.css      @theme bridge
-└── index.css         imports all
+└── index.css         imports all`;
 
-/* root.css — your anchors, generated */
-:root {
-  --brand-primary-500: #3b82f6;
-  --brand-primary-600: #2563eb;
-  --traffic-ok-100: #dcfce7;
-  --prose-800: #27272a;
-}
-
-/* typography.css — fluid, no breakpoints */
-.markdown h1 {
-  font-family: var(--font-h1);
-  font-size: clamp(2.125rem, 1.431rem + 3.2609vi, 4rem);
-}
-
-/* tailwind.css — utilities read your system */
-@import "tailwindcss";
+	const TAILWIND_EXCERPT = `@import "tailwindcss";
 @theme inline {
   --color-brand-primary: var(--brand-primary-600);
+  --color-traffic-ok: var(--traffic-ok-600);
   --font-primary: var(--font-primary);
-}
+}`;
 
-<!-- use it -->
-<div class="bg-brand-primary font-primary">`;
+	const USAGE_EXCERPT = `<div class="bg-brand-primary font-primary">
+  Ships with your system
+</div>`;
 </script>
 
 <svelte:head>
@@ -474,9 +477,30 @@
 		<div class="flex h-full flex-col">
 			<div class="border-b border-neutral-200 px-4 py-3">
 				<h2 class="text-sm font-semibold">CSS preview</h2>
-				<p class="text-xs text-neutral-500">Example scaffold output — your values ship via the bunx command.</p>
+				<p class="text-xs text-neutral-500">Live values from your theme — this is what the CLI ships.</p>
 			</div>
-			<pre class="min-h-0 flex-1 overflow-auto bg-neutral-950 p-4 font-mono text-xs leading-relaxed text-neutral-100"><code>{EXAMPLE_CSS}</code></pre>
+			<div class="min-h-0 flex-1 overflow-y-auto bg-neutral-950 p-4 font-mono text-[11px] leading-relaxed text-neutral-200">
+				<pre class="text-neutral-400">{TREE}</pre>
+				<p class="mt-4 text-emerald-400">/* root.css — live */</p>
+				<p>{':root {'}</p>
+				{#each SCALE_GROUPS as g (g.sem)}
+					<p class="mt-2 text-emerald-400">/* {g.label} · anchor {theme.colors[g.anchor]} */</p>
+					{#each SCALE_STEPS as step (step)}
+						{@const v = getGenerated().scales[g.sem][step]}
+						<p class="flex items-center gap-1.5 pl-2">
+							<span class="inline-block h-3 w-3 shrink-0 rounded-sm border border-white/20" style:background={v}></span>
+							<span class="text-sky-300">--{g.sem}-{step}</span><span>: {v};</span>
+						</p>
+					{/each}
+				{/each}
+				<p>{'}'}</p>
+				<p class="mt-4 text-emerald-400">/* typography.css — fluid, no breakpoints */</p>
+				<pre>{`.markdown h1 {\n  font-family: var(--font-h1);\n  font-size: ${fluidClamp(FLUID_SIZES.h1[0], FLUID_SIZES.h1[1])};\n}`}</pre>
+				<p class="mt-4 text-emerald-400">/* tailwind.css — utilities read your system */</p>
+				<pre>{TAILWIND_EXCERPT}</pre>
+				<p class="mt-4 text-emerald-400">&lt;!-- use it --&gt;</p>
+				<pre>{USAGE_EXCERPT}</pre>
+			</div>
 		</div>
 	</aside>
 </div>
