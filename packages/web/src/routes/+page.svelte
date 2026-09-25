@@ -360,6 +360,10 @@
 		getBlockquote();
 		getWidth();
 		applyToFrame();
+		// Re-measure now and next frame (layout of the patched styles).
+		fitFrame();
+		const raf = requestAnimationFrame(fitFrame);
+		return () => cancelAnimationFrame(raf);
 	});
 
 	function fitFrame(): void {
@@ -368,7 +372,8 @@
 		if (!el || !doc) return;
 		const fit = () => {
 			const h = Math.max(doc.documentElement.scrollHeight, doc.body?.scrollHeight ?? 0, 200);
-			el.style.height = h + 'px';
+			const next = h + 'px';
+			if (el.style.height !== next) el.style.height = next;
 		};
 		fit();
 		try {
@@ -378,10 +383,9 @@
 		}
 		try {
 			frameRO?.disconnect();
-			if (doc.body) {
-				frameRO = new ResizeObserver(fit);
-				frameRO.observe(doc.body);
-			}
+			frameRO = new ResizeObserver(fit);
+			if (doc.documentElement) frameRO.observe(doc.documentElement);
+			if (doc.body) frameRO.observe(doc.body);
 		} catch {
 			/* ResizeObserver unavailable — onload fit stands */
 		}
