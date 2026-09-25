@@ -119,6 +119,7 @@
 	let cssPanelOpen = $state(false);
 	let footerVisible = $state(false);
 	let frame: HTMLIFrameElement | undefined = $state(undefined);
+	let frameRO: ResizeObserver | undefined = undefined;
 
 	const CHIPS = [
 		['brand-primary · 600', 'var(--brand-primary-600)', 'white'],
@@ -162,15 +163,23 @@
 		const doc = el?.contentDocument;
 		if (!el || !doc) return;
 		const fit = () => {
-			if (el.contentDocument === doc) {
-				el.style.height = Math.max(doc.documentElement.scrollHeight, 200) + 'px';
-			}
+			const h = Math.max(doc.documentElement.scrollHeight, doc.body?.scrollHeight ?? 0, 200);
+			el.style.height = h + 'px';
 		};
 		fit();
 		try {
 			doc.fonts.ready.then(fit);
 		} catch {
 			/* fonts API unavailable — initial fit stands */
+		}
+		try {
+			frameRO?.disconnect();
+			if (doc.body) {
+				frameRO = new ResizeObserver(fit);
+				frameRO.observe(doc.body);
+			}
+		} catch {
+			/* ResizeObserver unavailable — onload fit stands */
 		}
 	}
 
@@ -283,6 +292,8 @@
 </svelte:head>
 
 {@html '<style>' + STRUCTURAL_CSS + getLayoutCss() + '</style>'}
+
+<svelte:window onresize={fitFrame} />
 
 <div class="flex min-h-screen flex-col bg-neutral-100 text-neutral-900">
 	<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -559,13 +570,14 @@
 						</span>
 						<span class="w-14 shrink-0" aria-hidden="true"></span>
 					</div>
-					<iframe
-						bind:this={frame}
-						title="Theme preview document"
-						onload={fitFrame}
-						class="block w-full"
-						style="border:0;background:var(--base-50);height:900px"
-					></iframe>
+				<iframe
+					bind:this={frame}
+					title="Theme preview document"
+					scrolling="no"
+					onload={fitFrame}
+					class="block w-full"
+					style="border:0;background:var(--base-50);height:900px;overflow:hidden"
+				></iframe>
 				</div>
 			</div>
 		</section>
