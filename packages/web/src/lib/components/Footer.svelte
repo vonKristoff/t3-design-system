@@ -2,15 +2,6 @@
 	import Icon from './Icon.svelte';
 </script>
 
-<svelte:head>
-	<link rel="preconnect" href="https://fonts.googleapis.com" />
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link
-		rel="stylesheet"
-		href="https://fonts.googleapis.com/css2?family=Chewy&display=swap"
-	/>
-</svelte:head>
-
 <footer class="bg-amber-300 px-8 py-16">
 	<div class="flex items-center justify-between gap-2">
 		<Icon src="shapes" ctx="hand-1" size="5em" />

@@ -28,6 +28,7 @@
 	import { mount, unmount } from 'svelte';
 	import ColorField from '$lib/components/ColorField.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import Icon from '$lib/components/Icon.svelte';
 	import SampleDoc from '$lib/sample.svx';
 	import {
 		theme,
@@ -309,7 +310,11 @@
 <div class="flex min-h-screen flex-col bg-neutral-100 text-neutral-900">
 	<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white">
 		<div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-8">
-			<p class="text-sm font-semibold whitespace-nowrap">Design System Builder</p>
+			<p class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
+				<Icon src="shapes" ctx="hand-1" size="1.5em" />
+				Design System Builder
+				<span class="text-base font-normal" style="font-family:'Chewy', system-ui, sans-serif;">threejjjs</span>
+			</p>
 			<nav aria-label="Builder steps" class="mx-auto hidden items-center gap-1 md:flex">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
