@@ -60,7 +60,11 @@
 		tertiary: 'Tertiary (optional)'
 	};
 
-	let customOpen = $state<Record<RoleKey, boolean>>({ primary: false, secondary: false, tertiary: false });
+	let customOpen = $state<Record<RoleKey, boolean>>({
+		primary: false,
+		secondary: false,
+		tertiary: false
+	});
 	let customName = $state<Record<RoleKey, string>>({ primary: '', secondary: '', tertiary: '' });
 
 	const isCurated = (name: string | undefined): boolean =>
@@ -106,10 +110,38 @@
 
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout';
 
-	const STEPS: { id: StepId; n: number; short: string; title: string; blurb: string; activeCls: string }[] = [
-		{ id: 'step-fonts', n: 1, short: 'Font', title: 'Select your font', blurb: 'Pick Google Fonts, assign roles to elements', activeCls: 'border-sky-200 bg-sky-100' },
-		{ id: 'step-colours', n: 2, short: 'Colours', title: 'Choose your theme colours', blurb: 'Nine semantic anchors, Tailwind palette', activeCls: 'border-violet-200 bg-violet-100' },
-		{ id: 'step-layout', n: 3, short: 'Layout', title: 'Select your layout', blurb: 'Breakout columns, fluid type included', activeCls: 'border-emerald-200 bg-emerald-100' }
+	const STEPS: {
+		id: StepId;
+		n: number;
+		short: string;
+		title: string;
+		blurb: string;
+		activeCls: string;
+	}[] = [
+		{
+			id: 'step-fonts',
+			n: 1,
+			short: 'Font',
+			title: 'Select your font',
+			blurb: 'Pick Google Fonts, assign roles to elements',
+			activeCls: 'border-sky-200 bg-sky-100'
+		},
+		{
+			id: 'step-colours',
+			n: 2,
+			short: 'Colours',
+			title: 'Choose your theme colours',
+			blurb: 'Nine semantic anchors, Tailwind palette',
+			activeCls: 'border-violet-200 bg-violet-100'
+		},
+		{
+			id: 'step-layout',
+			n: 3,
+			short: 'Layout',
+			title: 'Select your layout',
+			blurb: 'Breakout columns, fluid type included',
+			activeCls: 'border-emerald-200 bg-emerald-100'
+		}
 	];
 
 	const STEP_ICON = [Type, Palette, LayoutGrid];
@@ -200,11 +232,42 @@
 		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
 
-	function stepHeaderCls(id: StepId, top: string): string {
+	function stepHeaderCls(id: StepId): string {
 		const s = STEPS.find((x) => x.id === id);
+		const idx = STEPS.findIndex((x) => x.id === id);
 		const tint = s && activeStep === id ? s.activeCls : 'border-neutral-200 bg-white/95';
-		return `sticky ${top} z-10 -mx-1 scroll-mt-44 rounded-lg border px-3 shadow-sm backdrop-blur ${tint}`;
+		return `sticky z-10 -mx-1 scroll-mt-44 rounded-lg border px-3 shadow-sm backdrop-blur ${tint}`;
 	}
+
+	// Sticky pitch measured at runtime so the headers always land flush,
+	// whatever the nav height or font loading does.
+	let stackTops = $state(['56px', '98px', '140px']);
+
+	function measureStack(): void {
+		const nav = document.querySelector('header')?.getBoundingClientRect().height ?? 56;
+		const heights = STEPS.map((s) => document.getElementById(s.id)?.getBoundingClientRect().height ?? 42);
+		let top = nav;
+		stackTops = heights.map((h) => {
+			const t = `${Math.round(top)}px`;
+			top += h;
+			return t;
+		});
+	}
+
+	$effect(() => {
+		measureStack();
+		const raf = requestAnimationFrame(() => measureStack());
+		try {
+			document.fonts.ready.then(() => measureStack());
+		} catch {
+			/* fonts API unavailable */
+		}
+		window.addEventListener('resize', measureStack);
+		return () => {
+			cancelAnimationFrame(raf);
+			window.removeEventListener('resize', measureStack);
+		};
+	});
 
 	$effect(() => {
 		const bodies = Array.from(document.querySelectorAll('[data-step]'));
@@ -311,9 +374,11 @@
 	<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white">
 		<div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-8">
 			<p class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-				<Icon src="shapes" ctx="hand-1" size="1.5em" />
+				<Icon src="shapes" ctx="hand-1" size="3em" />
+				<span class="text-base font-normal" style="font-family:'Chewy', system-ui, sans-serif;"
+					>three<span class="opacity-55">jjj</span>s</span
+				>
 				Design System Builder
-				<span class="text-base font-normal" style="font-family:'Chewy', system-ui, sans-serif;">threejjjs</span>
 			</p>
 			<nav aria-label="Builder steps" class="mx-auto hidden items-center gap-1 md:flex">
 				{#each STEPS as s, i (s.id)}
@@ -322,7 +387,8 @@
 						type="button"
 						onclick={() => jumpTo(s.id)}
 						aria-current={activeStep === s.id ? 'step' : undefined}
-						class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium {activeStep === s.id
+						class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium {activeStep ===
+						s.id
 							? 'bg-neutral-900 text-white'
 							: 'text-neutral-600 hover:bg-neutral-100'}"
 					>
@@ -371,7 +437,9 @@
 		</div>
 	{/if}
 
-	<div class="min-w-0 flex-1 transition-[margin] duration-300 {cssPanelOpen ? 'lg:mr-[26rem]' : ''}">
+	<div
+		class="min-w-0 flex-1 transition-[margin] duration-300 {cssPanelOpen ? 'lg:mr-[26rem]' : ''}"
+	>
 		<section class="mx-auto max-w-6xl px-4 pt-8 pb-2 sm:px-8">
 			<p class="w-fit rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
 				Tailwind-compatible · scaffold CSS generator
@@ -379,8 +447,8 @@
 			<h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Ship your design system</h1>
 			<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
 				This generator produces your design-system scaffold CSS — semantic colour scales, fluid
-				type, Markdown styles, breakout layout and a Tailwind bridge — from three steps, exported
-				as a single bunx command.
+				type, Markdown styles, breakout layout and a Tailwind bridge — from three steps, exported as
+				a single bunx command.
 			</p>
 			<ol class="mt-4 grid gap-2 sm:grid-cols-3">
 				{#each STEPS as s, i (s.id)}
@@ -404,7 +472,7 @@
 
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
 			<div class="space-y-6 pt-6">
-			<div id="step-fonts" class={stepHeaderCls('step-fonts', 'top-14')}>
+				<div id="step-fonts" class={stepHeaderCls('step-fonts')} style="top:{stackTops[0]}">
 					<button
 						type="button"
 						onclick={() => (openSections['step-fonts'] = !openSections['step-fonts'])}
@@ -413,10 +481,18 @@
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">1</span>
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
+								>1</span
+							>
 							Select your font
 						</h2>
-						<ChevronDown size={16} class="text-neutral-400 transition-transform {openSections['step-fonts'] ? '' : '-rotate-90'}" />
+						<ChevronDown
+							size={16}
+							class="text-neutral-400 transition-transform {openSections['step-fonts']
+								? ''
+								: '-rotate-90'}"
+						/>
 					</button>
 				</div>
 				{#if openSections['step-fonts']}
@@ -424,10 +500,13 @@
 						<div class="grid gap-3 md:grid-cols-3">
 							{#each ROLES as role (role)}
 								<label class="block rounded-lg border border-neutral-200 bg-white p-3">
-									<span class="mb-1 block text-sm font-medium text-neutral-800">{ROLE_LABEL[role]}</span>
+									<span class="mb-1 block text-sm font-medium text-neutral-800"
+										>{ROLE_LABEL[role]}</span
+									>
 									<select
 										value={fontSelectValue(role)}
-										onchange={(e) => onFontSelect(role, (e.currentTarget as HTMLSelectElement).value)}
+										onchange={(e) =>
+											onFontSelect(role, (e.currentTarget as HTMLSelectElement).value)}
 										class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
 									>
 										{#if role === 'tertiary'}
@@ -445,7 +524,8 @@
 											type="text"
 											placeholder="e.g. Space Grotesk"
 											value={customName[role]}
-											oninput={(e) => onCustomInput(role, (e.currentTarget as HTMLInputElement).value)}
+											oninput={(e) =>
+												onCustomInput(role, (e.currentTarget as HTMLInputElement).value)}
 											class="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
 										/>
 									{/if}
@@ -453,7 +533,9 @@
 							{/each}
 						</div>
 						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Font assignments</h3>
+							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+								Font assignments
+							</h3>
 							<div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
 								{#each ASSIGNMENT_ELEMENTS as el (el.key)}
 									<label class="block">
@@ -461,7 +543,10 @@
 										<select
 											value={assignmentFor(el.key)}
 											onchange={(e) =>
-												setAssignment(el.key, (e.currentTarget as HTMLSelectElement).value as FontRole)}
+												setAssignment(
+													el.key,
+													(e.currentTarget as HTMLSelectElement).value as FontRole
+												)}
 											class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
 										>
 											<option value="primary">Primary</option>
@@ -473,17 +558,26 @@
 							</div>
 						</div>
 						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Fluid type scale</h3>
-							<p class="mb-3 text-xs text-neutral-500">Live sizes from your theme — fluid between 360–1280px viewports, no breakpoints.</p>
+							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+								Fluid type scale
+							</h3>
+							<p class="mb-3 text-xs text-neutral-500">
+								Live sizes from your theme — fluid between 360–1280px viewports, no breakpoints.
+							</p>
 							<div class="markdown" style={getVarStyle()}>
 								{#each SPECIMEN as row (row.el)}
 									{@const [minPx, maxPx] = FLUID_SIZES[row.el]}
-									<div class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4">
-										<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500">{row.el} · {minPx}→{maxPx}px</span>
+									<div
+										class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4"
+									>
+										<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500"
+											>{row.el} · {minPx}→{maxPx}px</span
+										>
 										{#if row.el === 'blockquote'}
 											<blockquote><p>{row.sample}</p></blockquote>
 										{:else}
-											<svelte:element this={row.tag} style="margin: 0;">{row.sample}</svelte:element>
+											<svelte:element this={row.tag} style="margin: 0;">{row.sample}</svelte:element
+											>
 										{/if}
 									</div>
 								{/each}
@@ -492,7 +586,7 @@
 					</div>
 				{/if}
 
-			<div id="step-colours" class={stepHeaderCls('step-colours', 'top-[6.125rem]')}>
+				<div id="step-colours" class={stepHeaderCls('step-colours')} style="top:{stackTops[1]}">
 					<button
 						type="button"
 						onclick={() => (openSections['step-colours'] = !openSections['step-colours'])}
@@ -501,23 +595,39 @@
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">2</span>
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
+								>2</span
+							>
 							Choose your theme colours
 						</h2>
-						<ChevronDown size={16} class="text-neutral-400 transition-transform {openSections['step-colours'] ? '' : '-rotate-90'}" />
+						<ChevronDown
+							size={16}
+							class="text-neutral-400 transition-transform {openSections['step-colours']
+								? ''
+								: '-rotate-90'}"
+						/>
 					</button>
 				</div>
 				{#if openSections['step-colours']}
-					<div id="step-colours-body" data-step="step-colours" class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3">
+					<div
+						id="step-colours-body"
+						data-step="step-colours"
+						class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3"
+					>
 						{#each COLOR_FIELDS as field (field.key)}
 							<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-								<ColorField label={field.label} hint={field.hint} bind:value={theme.colors[field.key as ColorKey]} />
+								<ColorField
+									label={field.label}
+									hint={field.hint}
+									bind:value={theme.colors[field.key as ColorKey]}
+								/>
 							</div>
 						{/each}
 					</div>
 				{/if}
 
-			<div id="step-layout" class={stepHeaderCls('step-layout', 'top-[8.75rem]')}>
+				<div id="step-layout" class={stepHeaderCls('step-layout')} style="top:{stackTops[2]}">
 					<button
 						type="button"
 						onclick={() => (openSections['step-layout'] = !openSections['step-layout'])}
@@ -526,10 +636,18 @@
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">3</span>
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
+								>3</span
+							>
 							Select your layout
 						</h2>
-						<ChevronDown size={16} class="text-neutral-400 transition-transform {openSections['step-layout'] ? '' : '-rotate-90'}" />
+						<ChevronDown
+							size={16}
+							class="text-neutral-400 transition-transform {openSections['step-layout']
+								? ''
+								: '-rotate-90'}"
+						/>
 					</button>
 				</div>
 				{#if openSections['step-layout']}
@@ -538,38 +656,49 @@
 							<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout columns</span>
 							<select
 								value={getLayout()}
-								onchange={(e) => setLayout((e.currentTarget as HTMLSelectElement).value as LayoutMode)}
+								onchange={(e) =>
+									setLayout((e.currentTarget as HTMLSelectElement).value as LayoutMode)}
 								class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
 							>
 								{#each LAYOUT_MODES as mode (mode)}
 									<option value={mode}>{mode} — {LAYOUT_HINT[mode]}</option>
 								{/each}
 							</select>
-							<span class="mt-1 block text-xs text-neutral-500">Collapses to a single column on mobile.</span>
+							<span class="mt-1 block text-xs text-neutral-500"
+								>Collapses to a single column on mobile.</span
+							>
 						</label>
 						<label class="block rounded-lg border border-neutral-200 bg-white p-3">
 							<span class="mb-1 block text-sm font-medium text-neutral-800">Page width</span>
 							<select
 								value={getWidth()}
-								onchange={(e) => setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
+								onchange={(e) =>
+									setWidth((e.currentTarget as HTMLSelectElement).value as ContentWidth)}
 								class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
 							>
 								{#each CONTENT_WIDTHS as w (w)}
 									<option value={w}>{WIDTH_HINT[w]}</option>
 								{/each}
 							</select>
-							<span class="mt-1 block text-xs text-neutral-500">Article ≈ 60ch best practice; narrow measures collapse breakouts.</span>
+							<span class="mt-1 block text-xs text-neutral-500"
+								>Article ≈ 60ch best practice; narrow measures collapse breakouts.</span
+							>
 						</label>
 					</div>
 				{/if}
 			</div>
-
 		</main>
 
 		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
 			<div class="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-8">
-				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">Markdown preview</h2>
-				<div class="flex items-center gap-1 rounded-md border border-neutral-200 bg-white p-0.5" role="group" aria-label="Preview viewport width">
+				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">
+					Markdown preview
+				</h2>
+				<div
+					class="flex items-center gap-1 rounded-md border border-neutral-200 bg-white p-0.5"
+					role="group"
+					aria-label="Preview viewport width"
+				>
 					{#each VIEWPORTS as v (v.id)}
 						{@const Icon = v.id === 'full' ? Monitor : v.id === 'tablet' ? Tablet : Smartphone}
 						<button
@@ -580,7 +709,9 @@
 							}}
 							title={v.label}
 							aria-pressed={previewViewport === v.id}
-							class="rounded p-1.5 {previewViewport === v.id ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:bg-neutral-100'}"
+							class="rounded p-1.5 {previewViewport === v.id
+								? 'bg-neutral-900 text-white'
+								: 'text-neutral-500 hover:bg-neutral-100'}"
 						>
 							<Icon size={15} />
 						</button>
@@ -593,7 +724,11 @@
 			<div class="px-2 pb-12 sm:px-4">
 				<div
 					class="mx-auto w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl transition-[max-width] duration-300"
-					style="max-width:{previewViewport === 'full' ? 'none' : previewViewport === 'tablet' ? '768px' : '390px'}"
+					style="max-width:{previewViewport === 'full'
+						? 'none'
+						: previewViewport === 'tablet'
+							? '768px'
+							: '390px'}"
 				>
 					<div class="flex items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-3 py-2">
 						<span class="flex gap-1.5" aria-hidden="true">
@@ -601,26 +736,35 @@
 							<span class="inline-block h-3 w-3 rounded-full bg-[#febc2e]"></span>
 							<span class="inline-block h-3 w-3 rounded-full bg-[#28c840]"></span>
 						</span>
-						<span class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block">
+						<span
+							class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block"
+						>
 							tsup-system.preview/{getLayout()}/{getWidth()}
 						</span>
 						<span class="w-14 shrink-0" aria-hidden="true"></span>
 					</div>
-				<iframe
-					bind:this={frame}
-					title="Theme preview document"
-					scrolling="no"
-					onload={fitFrame}
-					class="block w-full"
-					style="border:0;background:var(--base-50);height:900px;overflow:hidden"
-				></iframe>
+					<iframe
+						bind:this={frame}
+						title="Theme preview document"
+						scrolling="no"
+						onload={fitFrame}
+						class="block w-full"
+						style="border:0;background:var(--base-50);height:900px;overflow:hidden"
+					></iframe>
 				</div>
 			</div>
 		</section>
 
-		<footer class="{footerVisible ? 'relative' : 'sticky bottom-0'} z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
+		<footer
+			class="{footerVisible
+				? 'relative'
+				: 'sticky bottom-0'} z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur"
+		>
 			<div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:px-8">
-				<code class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100">{getBunxCommand()}</code>
+				<code
+					class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100"
+					>{getBunxCommand()}</code
+				>
 				<button
 					type="button"
 					onclick={copyCommand}
@@ -645,14 +789,21 @@
 	<aside
 		aria-label="CSS preview"
 		aria-hidden={!cssPanelOpen}
-		class="fixed top-14 right-0 bottom-0 z-20 w-[26rem] max-w-[92vw] border-l border-neutral-200 bg-white transition-transform duration-300 {cssPanelOpen ? 'translate-x-0 shadow-2xl' : 'translate-x-full'}"
+		class="fixed right-0 bottom-0 z-20 w-[26rem] max-w-[92vw] border-l border-neutral-200 bg-white transition-transform duration-300 {cssPanelOpen
+			? 'translate-x-0 shadow-2xl'
+			: 'translate-x-full'}"
+		style="top:{stackTops[0]}"
 	>
 		<div class="flex h-full flex-col">
 			<div class="border-b border-neutral-200 px-4 py-3">
 				<h2 class="text-sm font-semibold">CSS preview</h2>
-				<p class="text-xs text-neutral-500">Live values from your theme — this is what the CLI ships.</p>
+				<p class="text-xs text-neutral-500">
+					Live values from your theme — this is what the CLI ships.
+				</p>
 			</div>
-			<div class="min-h-0 flex-1 overflow-y-auto bg-neutral-950 p-4 font-mono text-[11px] leading-relaxed text-neutral-200">
+			<div
+				class="min-h-0 flex-1 overflow-y-auto bg-neutral-950 p-4 font-mono text-[11px] leading-relaxed text-neutral-200"
+			>
 				<pre class="text-neutral-400">{TREE}</pre>
 				<p class="mt-4 text-emerald-400">/* root.css — live */</p>
 				<p>{':root {'}</p>
@@ -661,7 +812,10 @@
 					{#each SCALE_STEPS as step (step)}
 						{@const v = getGenerated().scales[g.sem][step]}
 						<p class="flex items-center gap-1.5 pl-2">
-							<span class="inline-block h-3 w-3 shrink-0 rounded-sm border border-white/20" style:background={v}></span>
+							<span
+								class="inline-block h-3 w-3 shrink-0 rounded-sm border border-white/20"
+								style:background={v}
+							></span>
 							<span class="text-sky-300">--{g.sem}-{step}</span><span>: {v};</span>
 						</p>
 					{/each}
