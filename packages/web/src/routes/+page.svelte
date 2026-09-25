@@ -246,6 +246,13 @@
 	];
 	let previewViewport = $state<PreviewViewport>('full');
 
+	// Desktop preview measure: 1280px, or 1480px once the browser is wide enough.
+	let windowWidth = $state(1280);
+	const desktopMax = $derived(windowWidth < 1480 ? '1280px' : '1480px');
+	const previewMax = $derived(
+		previewViewport === 'tablet' ? '768px' : previewViewport === 'mobile' ? '390px' : desktopMax
+	);
+
 	const CHIPS = [
 		['brand-primary', 'var(--brand-primary)', 'var(--base-50)'],
 		['brand-secondary', 'var(--brand-secondary)', 'var(--base-50)'],
@@ -335,6 +342,7 @@
 	}
 
 	$effect(() => {
+		windowWidth = window.innerWidth;
 		measureStack();
 		const raf = requestAnimationFrame(() => measureStack());
 		try {
@@ -456,7 +464,12 @@
 
 {@html '<style>' + STRUCTURAL_CSS + getLayoutCss() + '</style>'}
 
-<svelte:window onresize={fitFrame} />
+<svelte:window
+	onresize={() => {
+		windowWidth = window.innerWidth;
+		fitFrame();
+	}}
+/>
 
 <div class="flex min-h-screen flex-col bg-neutral-100 text-neutral-900">
 	<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white">
@@ -937,11 +950,7 @@
 			<div class="px-2 pb-12 sm:px-4">
 				<div
 					class="mx-auto w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl transition-[max-width] duration-300"
-					style="max-width:{previewViewport === 'full'
-						? 'none'
-						: previewViewport === 'tablet'
-							? '768px'
-							: '390px'}"
+					style="max-width:{previewMax}"
 				>
 					<div class="flex items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-3 py-2">
 						<span class="flex gap-1.5" aria-hidden="true">
