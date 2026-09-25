@@ -30,8 +30,8 @@
 	}
 </script>
 
-<fieldset class="block">
-	<div class="mb-1.5 grid grid-cols-2 items-center gap-2">
+<fieldset class="flex flex-col gap-3">
+	<div class="grid grid-cols-2 items-center gap-2">
 		<span>
 			<span class="block text-sm font-medium text-neutral-800">{label}</span>
 			{#if hint}
@@ -46,7 +46,7 @@
 		></span>
 	</div>
 
-	<div role="radiogroup" aria-label={label + ' family'} class="mb-1.5 grid grid-cols-11 gap-1">
+	<div role="radiogroup" aria-label={label + ' family'} class="grid grid-cols-11 gap-1">
 		{#each PALETTE_FAMILIES as fam (fam)}
 			{@const hex = TAILWIND_PALETTE[fam]['500']}
 			<button
