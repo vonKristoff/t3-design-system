@@ -12,6 +12,7 @@
 		resolveTailwindHex,
 		type BlockquoteVariant,
 		type ContentWidth,
+		type FontElement,
 		type FontRole,
 		type LayoutMode,
 		type SemanticName
@@ -353,6 +354,11 @@
 		}
 	}
 
+	/** Live variable weight for an element, resolved through its font role. */
+	function specimenWeight(el: FontElement): number {
+		return theme.weights?.[assignmentFor(el)] ?? 400;
+	}
+
 	async function copyCommand(): Promise<void> {
 		try {
 			await navigator.clipboard.writeText(getBunxCommand());
@@ -646,7 +652,7 @@
 										class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4"
 									>
 										<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500"
-											>{row.el} · {minPx}→{maxPx}px</span
+											>{row.el} · {minPx}→{maxPx}px · w{specimenWeight(row.el as FontElement)}</span
 										>
 										{#if row.el === 'blockquote'}
 											<blockquote><p>{row.sample}</p></blockquote>

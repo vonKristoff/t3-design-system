@@ -27,9 +27,9 @@ import {
 export type ColorKey = keyof ThemeColors;
 
 export const COLOR_FIELDS: { key: ColorKey; label: string; hint: string }[] = [
+	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings' },
 	{ key: 'base', label: 'Base', hint: 'Page background' },
 	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables' },
-	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings' },
 	{ key: 'accent', label: 'Accent', hint: 'Links, highlights' },
 	{ key: 'brandPrimary', label: 'Brand Primary', hint: 'Primary brand' },
 	{ key: 'brandSecondary', label: 'Brand Secondary', hint: 'Secondary brand' },

@@ -175,6 +175,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
   font-family: var(--font-blockquote);
   margin: 1rem 0;
 }
+.markdown blockquote p { margin-bottom: 0; }
 .markdown.bq-rule blockquote {
   color: var(--prose-700);
   background: var(--alt-100);
