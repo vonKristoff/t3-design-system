@@ -24,6 +24,7 @@
 	} from 'lucide-svelte';
 	import { mount, unmount } from 'svelte';
 	import ColorField from '$lib/components/ColorField.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import SampleDoc from '$lib/sample.svx';
 	import {
 		theme,
@@ -116,6 +117,7 @@
 		'step-layout': true
 	});
 	let cssPanelOpen = $state(false);
+	let footerVisible = $state(false);
 	let frame: HTMLIFrameElement | undefined = $state(undefined);
 
 	const CHIPS = [
@@ -196,6 +198,20 @@
 			{ rootMargin: '-30% 0px -60% 0px' }
 		);
 		for (const b of bodies) observer.observe(b);
+		return () => observer.disconnect();
+	});
+
+	// Unstick the bunx command bar once the site footer scrolls into view.
+	$effect(() => {
+		const el = document.getElementById('site-footer');
+		if (!el) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				footerVisible = entries.some((e) => e.isIntersecting);
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(el);
 		return () => observer.disconnect();
 	});
 
@@ -554,7 +570,7 @@
 			</div>
 		</section>
 
-		<footer class="sticky bottom-0 z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
+		<footer class="{footerVisible ? 'relative' : 'sticky bottom-0'} z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
 			<div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:px-8">
 				<code class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100">{getBunxCommand()}</code>
 				<button
@@ -573,6 +589,9 @@
 				</button>
 			</div>
 		</footer>
+		<div id="site-footer">
+			<Footer />
+		</div>
 	</div>
 
 	<aside
