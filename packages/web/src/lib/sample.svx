@@ -1,0 +1,102 @@
+<div class="zone-text">
+
+# Designing with a Semantic Theme
+
+A **design system** is only as good as its *consistency*. This document exercises every Markdown element against the live theme, so what you see here is exactly what the CLI will generate — same engine, same variables, no approximations.
+
+## Getting started
+
+Pick colours and fonts on the left. The preview updates [immediately](#live-preview), including the page background, links like this one, and every paragraph of prose.
+
+### Why semantic colours?
+
+Instead of thinking in `blue-600`, the theme author thinks in roles: `base` for the canvas, `alt` for raised surfaces, `prose` for readable text, and `accent` for interaction. Brand and traffic-light states — <span class="brand">primary</span>, <span class="brand-secondary">secondary</span> — complete the system.
+
+---
+
+## Lists and structure
+
+Shopping, in no particular order:
+
+- Fresh croissants
+- Strong coffee
+  - Espresso beans
+  - Oat milk
+- A quiet morning to enjoy them
+
+Ordered work, strictly in order:
+
+1. Choose semantic colours
+2. Assign font roles
+3. Preview against this document
+4. Generate the `bunx` command
+5. Ship the theme
+
+## Code, inline and in blocks
+
+Use `var(--accent-600)` for links, never a hardcoded hex. A full example:
+
+```js
+import { generateTheme } from '@tsup-system/core';
+
+const theme = generateTheme(options);
+console.log(theme.variables['--brand-primary-500']);
+```
+
+## Live preview
+
+The quick brown fox jumps over the lazy dog — packing boxes with five dozen liquor jugs tests every glyph. Small print: <small>terms apply, contrast warnings are advisory only</small>.
+
+### The long tail
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+
+#### A fourth-level thought
+
+Even `H4` deserves a font role. And `H5`. And H6, quietly holding the hierarchy together.
+
+##### Penultimate notes
+
+###### The very bottom
+
+The end of the document. If the theme looks right here, it will look right everywhere.
+
+</div>
+
+<div class="zone-aside">
+
+## Voices in the margin
+
+> Simplicity is the soul of efficiency. A theme with nine colours and three fonts beats a palette with nine hundred options.
+>
+> — *Ancient proverb of the build pipeline*
+
+## Data in tables
+
+| Token              | Role        | Example            |
+| ------------------ | ----------- | ------------------ |
+| `--base-50`        | Background  | Page canvas        |
+| `--alt-100`        | Surface     | Code, tables       |
+| `--prose-800`      | Text        | Paragraphs         |
+| `--accent-600`     | Interaction | Links, highlights  |
+| `--traffic-ok-600` | Success     | Confirmations      |
+
+## Status callouts
+
+<div class="callout callout-stop">Something failed. The destructive action was rolled back safely.</div>
+
+<div class="callout callout-warning">Heads up: this step is pending review before Thursday.</div>
+
+<div class="callout callout-ok">All checks passed. The theme is ready to generate.</div>
+
+</div>
+
+<div class="zone-media">
+
+## A picture break
+
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='280'%3E%3Crect width='800' height='280' fill='%23d4d4d8'/%3E%3Ctext x='400' y='150' font-family='sans-serif' font-size='28' text-anchor='middle' fill='%2352525b'%3EPlaceholder image%3C/text%3E%3C/svg%3E" alt="Placeholder" />
+
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='280'%3E%3Crect width='800' height='280' fill='%233f3f46'/%3E%3Ctext x='400' y='150' font-family='sans-serif' font-size='28' text-anchor='middle' fill='%23fafafa'%3ESecondary visual%3C/text%3E%3C/svg%3E" alt="Secondary visual" />
+
+</div>

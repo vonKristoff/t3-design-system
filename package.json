@@ -1,0 +1,16 @@
+{
+  "name": "design-system-builder",
+  "version": "0.0.1",
+  "private": true,
+  "packageManager": "bun@1.3.2",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "test:core": "bun test packages/core",
+    "cli": "bun run packages/cli/src/index.ts",
+    "web:dev": "bun --cwd packages/web dev",
+    "web:build": "bun --cwd packages/web build"
+  }
+}
