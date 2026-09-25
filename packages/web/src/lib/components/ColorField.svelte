@@ -31,35 +31,36 @@
 </script>
 
 <fieldset class="block">
-	<div class="mb-1.5 grid grid-cols-2 items-center gap-2">
-		<span>
-			<span class="block text-sm font-medium text-neutral-800">{label}</span>
-			{#if hint}
-				<span class="block text-xs text-neutral-500">{hint}</span>
-			{/if}
-		</span>
+	<span class="mb-1.5 block">
+		<span class="block text-sm font-medium text-neutral-800">{label}</span>
+		{#if hint}
+			<span class="block text-xs text-neutral-500">{hint}</span>
+		{/if}
+	</span>
+
+	<div class="grid grid-cols-2 items-stretch gap-2">
+		<div class="min-w-0 space-y-1.5">
+			<label class="block">
+				<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
+				<select
+					value={family}
+					onchange={(e) => pickFamily((e.currentTarget as HTMLSelectElement).value)}
+					class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+				>
+					{#each PALETTE_FAMILIES as fam (fam)}
+						<option value={fam} selected={fam === family}>
+							{fam} · {TAILWIND_PALETTE[fam]['500']}
+						</option>
+					{/each}
+				</select>
+			</label>
+			<StrengthSelect {family} {step} onpick={pickStep} />
+		</div>
 		<span
-			class="inline-block h-9 w-full rounded-md border border-black/20"
+			class="inline-block min-h-28 rounded-md border border-black/20"
 			style:background={selectedHex}
 			title={`${value} · ${selectedHex}`}
 			aria-hidden="true"
 		></span>
 	</div>
-
-	<label class="mb-1.5 block">
-		<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
-		<select
-			value={family}
-			onchange={(e) => pickFamily((e.currentTarget as HTMLSelectElement).value)}
-			class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-		>
-			{#each PALETTE_FAMILIES as fam (fam)}
-				<option value={fam} selected={fam === family}>
-					{fam} · {TAILWIND_PALETTE[fam]['500']}
-				</option>
-			{/each}
-		</select>
-	</label>
-
-	<StrengthSelect {family} {step} onpick={pickStep} />
 </fieldset>
