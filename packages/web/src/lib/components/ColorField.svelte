@@ -31,7 +31,7 @@
 </script>
 
 <fieldset class="block">
-	<div class="mb-1.5 grid grid-cols-[1fr_auto] items-center gap-2">
+	<div class="mb-1.5 grid grid-cols-2 items-center gap-2">
 		<span>
 			<span class="block text-sm font-medium text-neutral-800">{label}</span>
 			{#if hint}
@@ -39,7 +39,7 @@
 			{/if}
 		</span>
 		<span
-			class="inline-block h-9 w-14 rounded-md border border-black/20"
+			class="inline-block h-9 w-full rounded-md border border-black/20"
 			style:background={selectedHex}
 			title={`${value} · ${selectedHex}`}
 			aria-hidden="true"
