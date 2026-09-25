@@ -88,10 +88,10 @@
 
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout';
 
-	const STEPS: { id: StepId; n: number; short: string; title: string; blurb: string }[] = [
-		{ id: 'step-fonts', n: 1, short: 'Font', title: 'Select your font', blurb: 'Pick Google Fonts, assign roles to elements' },
-		{ id: 'step-colours', n: 2, short: 'Colours', title: 'Choose your theme colours', blurb: 'Nine semantic anchors, Tailwind palette' },
-		{ id: 'step-layout', n: 3, short: 'Layout', title: 'Select your layout', blurb: 'Breakout columns, fluid type included' }
+	const STEPS: { id: StepId; n: number; short: string; title: string; blurb: string; activeCls: string }[] = [
+		{ id: 'step-fonts', n: 1, short: 'Font', title: 'Select your font', blurb: 'Pick Google Fonts, assign roles to elements', activeCls: 'border-sky-200 bg-sky-100' },
+		{ id: 'step-colours', n: 2, short: 'Colours', title: 'Choose your theme colours', blurb: 'Nine semantic anchors, Tailwind palette', activeCls: 'border-violet-200 bg-violet-100' },
+		{ id: 'step-layout', n: 3, short: 'Layout', title: 'Select your layout', blurb: 'Breakout columns, fluid type included', activeCls: 'border-emerald-200 bg-emerald-100' }
 	];
 
 	const STEP_ICON = [Type, Palette, LayoutGrid];
@@ -107,6 +107,12 @@
 	function jumpTo(id: StepId): void {
 		openSections[id] = true;
 		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function stepHeaderCls(id: StepId, top: string): string {
+		const s = STEPS.find((x) => x.id === id);
+		const tint = s && activeStep === id ? s.activeCls : 'border-neutral-200 bg-white/95';
+		return `sticky ${top} z-10 -mx-1 scroll-mt-44 rounded-lg border px-3 shadow-sm backdrop-blur ${tint}`;
 	}
 
 	$effect(() => {
@@ -287,7 +293,7 @@
 
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
 			<div class="space-y-6 pt-6">
-			<div id="step-fonts" class="sticky top-14 z-10 -mx-1 scroll-mt-24 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div id="step-fonts" class={stepHeaderCls('step-fonts', 'top-14')}>
 					<button
 						type="button"
 						onclick={() => (openSections['step-fonts'] = !openSections['step-fonts'])}
@@ -295,7 +301,7 @@
 						aria-controls="step-fonts-body"
 						class="flex w-full items-center justify-between py-2.5"
 					>
-						<h2 class="flex items-center gap-2 text-sm font-semibold">
+						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">1</span>
 							Select your font
 						</h2>
@@ -375,7 +381,7 @@
 					</div>
 				{/if}
 
-			<div id="step-colours" class="sticky top-[7.375rem] z-10 -mx-1 scroll-mt-32 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div id="step-colours" class={stepHeaderCls('step-colours', 'top-[6.125rem]')}>
 					<button
 						type="button"
 						onclick={() => (openSections['step-colours'] = !openSections['step-colours'])}
@@ -383,7 +389,7 @@
 						aria-controls="step-colours-body"
 						class="flex w-full items-center justify-between py-2.5"
 					>
-						<h2 class="flex items-center gap-2 text-sm font-semibold">
+						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">2</span>
 							Choose your theme colours
 						</h2>
@@ -400,7 +406,7 @@
 					</div>
 				{/if}
 
-			<div id="step-layout" class="sticky top-[11.25rem] z-10 -mx-1 scroll-mt-44 rounded-lg border border-neutral-200 bg-white/95 px-3 shadow-sm backdrop-blur">
+			<div id="step-layout" class={stepHeaderCls('step-layout', 'top-[8.75rem]')}>
 					<button
 						type="button"
 						onclick={() => (openSections['step-layout'] = !openSections['step-layout'])}
@@ -408,7 +414,7 @@
 						aria-controls="step-layout-body"
 						class="flex w-full items-center justify-between py-2.5"
 					>
-						<h2 class="flex items-center gap-2 text-sm font-semibold">
+						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">3</span>
 							Select your layout
 						</h2>
