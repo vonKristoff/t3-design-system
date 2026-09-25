@@ -47,6 +47,18 @@ console.log(theme.variables['--brand-primary-500']);
 
 The quick brown fox jumps over the lazy dog — packing boxes with five dozen liquor jugs tests every glyph. Small print: <small>terms apply, contrast warnings are advisory only</small>.
 
+## Glyph test
+
+# The quick brown fox jumps over the lazy dog.
+
+## The quick brown fox jumps over the lazy dog.
+
+### The quick brown fox jumps over the lazy dog.
+
+#### The quick brown fox jumps over the lazy dog.
+
+##### The quick brown fox jumps over the lazy dog.
+
 ### The long tail
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.

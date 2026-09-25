@@ -13,11 +13,13 @@
 		Check,
 		ChevronDown,
 		Copy,
+		Expand,
 		LayoutGrid,
 		Palette,
 		PanelRight,
 		PanelRightClose,
 		RotateCcw,
+		Shrink,
 		Type
 	} from 'lucide-svelte';
 	import ColorField from '$lib/components/ColorField.svelte';
@@ -103,6 +105,7 @@
 		'step-layout': true
 	});
 	let cssPanelOpen = $state(false);
+	let previewFull = $state(false);
 
 	function jumpTo(id: StepId): void {
 		openSections[id] = true;
@@ -440,21 +443,47 @@
 				{/if}
 			</div>
 
-			<section aria-label="Markdown preview" class="pt-6 pb-8">
-				<div style={getVarStyle() + ';background:var(--base-50);color:var(--prose-800)'} class="rounded-xl px-4 py-6 sm:px-8">
-					<div class={'markdown tsb-layout tsb-layout-' + getLayout()}>
-						<SampleDoc />
-					</div>
-					<div class="mt-8 flex flex-wrap gap-2">
-						<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-primary-600);color:white">brand-primary</span>
-						<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-secondary-600);color:white">brand-secondary</span>
-						<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-stop-100);color:var(--traffic-stop-900)">stop</span>
-						<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-warning-100);color:var(--traffic-warning-900)">warning</span>
-						<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-ok-100);color:var(--traffic-ok-900)">ok</span>
-					</div>
-				</div>
-			</section>
 		</main>
+
+		<section
+			aria-label="Markdown preview"
+			style={getVarStyle()}
+			class={'preview ' + (previewFull ? 'w-full' : 'mx-auto max-w-6xl px-4 pt-6 pb-8 sm:px-8')}
+		>
+			<div class={'flex items-center justify-between gap-2 py-3 ' + (previewFull ? 'mx-auto max-w-6xl px-4 sm:px-8' : '')}>
+				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">Markdown preview</h2>
+				<button
+					type="button"
+					onclick={() => (previewFull = !previewFull)}
+					aria-pressed={previewFull}
+					title={previewFull ? 'Exit fullscreen preview' : 'Fullscreen preview'}
+					class="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium"
+					style="border-color:var(--alt-300);background:var(--base-50);color:var(--prose-800)"
+				>
+					{#if previewFull}
+						<Shrink size={16} />
+					{:else}
+						<Expand size={16} />
+					{/if}
+					<span class="hidden sm:inline">{previewFull ? 'Exit fullscreen' : 'Fullscreen'}</span>
+				</button>
+			</div>
+			<div
+				class={previewFull ? 'px-4 pb-12 sm:px-10' : 'rounded-xl px-4 py-6 sm:px-8'}
+				style="background:var(--base-50);color:var(--prose-800)"
+			>
+				<div class={'markdown tsb-layout tsb-layout-' + getLayout()}>
+					<SampleDoc />
+				</div>
+				<div class="mt-8 flex flex-wrap gap-2">
+					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-primary-600);color:white">brand-primary</span>
+					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--brand-secondary-600);color:white">brand-secondary</span>
+					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-stop-100);color:var(--traffic-stop-900)">stop</span>
+					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-warning-100);color:var(--traffic-warning-900)">warning</span>
+					<span class="rounded-full px-3 py-1 text-xs font-semibold" style="background:var(--traffic-ok-100);color:var(--traffic-ok-900)">ok</span>
+				</div>
+			</div>
+		</section>
 
 		<footer class="sticky bottom-0 z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur">
 			<div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:px-8">
