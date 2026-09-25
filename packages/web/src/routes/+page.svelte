@@ -261,7 +261,7 @@
 
 	// Sticky pitch measured at runtime so the headers always land flush,
 	// whatever the nav height or font loading does.
-	let stackTops = $state(['56px', '98px', '140px']);
+	let stackTops = $state(['56px', '98px', '140px', '182px']);
 
 	function measureStack(): void {
 		const nav = document.querySelector('header')?.getBoundingClientRect().height ?? 56;
