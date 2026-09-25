@@ -371,8 +371,15 @@
 		const doc = el?.contentDocument;
 		if (!el || !doc) return;
 		const fit = () => {
-			const h = Math.max(doc.documentElement.scrollHeight, doc.body?.scrollHeight ?? 0, 200);
-			const next = h + 'px';
+			// Measure the body only. documentElement.scrollHeight reports the
+			// iframe's own viewport when content is shorter, which would stop
+			// the frame from ever shrinking.
+			const body = doc.body;
+			const contentH = Math.max(
+				body ? body.getBoundingClientRect().height : 0,
+				body ? body.scrollHeight : 0
+			);
+			const next = `${Math.max(Math.ceil(contentH), 200)}px`;
 			if (el.style.height !== next) el.style.height = next;
 		};
 		fit();
