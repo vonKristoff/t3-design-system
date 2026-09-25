@@ -36,11 +36,11 @@ describe("oklch generation", () => {
     expect(Object.values(scale)).toContain("#2563eb");
   });
   test("light/dark extremes stay valid", () => {
-    for (const name of ["yellow-50", "zinc-950"]) {
+    for (const name of ["yellow-50", "slate-950"]) {
       const s = generateScale(name);
       for (const v of Object.values(s)) expect(isValidCssColor(v)).toBe(true);
     }
-    const dark = generateScale("zinc-950");
+    const dark = generateScale("slate-950");
     for (const v of Object.values(dark)) expect(isValidCssColor(v)).toBe(true);
   });
 });
