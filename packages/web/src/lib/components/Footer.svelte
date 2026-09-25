@@ -2,14 +2,17 @@
 	import Icon from './Icon.svelte';
 </script>
 
-<footer class="bg-amber-300 px-8 py-16">
+<footer class="bg-highlight px-8 py-16">
 	<div class="flex items-center justify-between gap-2">
 		<Icon src="shapes" ctx="hand-1" size="5em" />
-		<span class="">&copy; {new Date().getFullYear()} whatarewebuilding. All rights reserved.</span>
+		<span class="">&copy; {new Date().getFullYear()} DSB. All rights reserved.</span>
 		<aside class="flex flex-col justify-end text-right text-sm text-neutral-700">
 			<span>Built by humans</span>
 			<a href="https://threejjjs.xyz">
-				<h5 class="m-0 text-right text-xl md:text-3xl" style="font-family:'Chewy', system-ui, sans-serif;">
+				<h5
+					class="m-0 text-right text-xl md:text-3xl"
+					style="font-family:'Chewy', system-ui, sans-serif;"
+				>
 					three<span class="opacity-55">jjj</span>s
 					<br />
 				</h5>

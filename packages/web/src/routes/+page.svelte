@@ -743,7 +743,7 @@
 		</main>
 
 		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
-			<div class="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-8">
+			<div class="mx-auto mt-8 flex max-w-6xl items-center justify-between gap-2 bg-highlight px-4 py-3 sm:px-8">
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">
 					Markdown preview
 				</h2>
