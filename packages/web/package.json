@@ -14,7 +14,8 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@tsup-system/core": "workspace:*"
+		"@tsup-system/core": "workspace:*",
+		"lucide-svelte": "^1.0.1"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.1",

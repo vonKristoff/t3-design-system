@@ -43,7 +43,7 @@
 		<span class="mb-1 block text-xs text-neutral-500">{hint}</span>
 	{/if}
 
-	<div role="radiogroup" aria-label={label} class="mb-1.5 grid grid-cols-5 gap-1">
+	<div role="radiogroup" aria-label={label + ' family'} class="mb-1.5 grid grid-cols-11 gap-1">
 		{#each PALETTE_FAMILIES as fam (fam)}
 			{@const hex = TAILWIND_PALETTE[fam]['500']}
 			<button
@@ -52,7 +52,7 @@
 				aria-checked={fam === family}
 				title={fam}
 				onclick={() => pickFamily(fam)}
-				class="flex flex-col items-center gap-0.5 rounded-md border p-1 {fam === family
+				class="flex items-center justify-center rounded-md border p-1 {fam === family
 					? 'border-neutral-900 ring-2 ring-neutral-900 ring-offset-1'
 					: 'border-neutral-200 hover:border-neutral-400'}"
 			>
@@ -61,7 +61,6 @@
 					style:background={hex}
 					aria-hidden="true"
 				></span>
-				<span class="max-w-full truncate text-[10px] leading-tight text-neutral-600">{fam}</span>
 			</button>
 		{/each}
 	</div>
