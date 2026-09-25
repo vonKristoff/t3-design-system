@@ -8,6 +8,7 @@
 		SCALE_STEPS,
 		fluidClamp,
 		layoutToDataGrid,
+		resolveTailwindHex,
 		type BlockquoteVariant,
 		type ContentWidth,
 		type FontRole,
@@ -321,6 +322,14 @@
 	});
 
 	let copied = $state(false);
+
+	function swatch(name: string): string {
+		try {
+			return resolveTailwindHex(name);
+		} catch {
+			return 'transparent';
+		}
+	}
 
 	async function copyCommand(): Promise<void> {
 		try {
@@ -814,7 +823,19 @@
 				? 'relative'
 				: 'sticky bottom-0'} z-10 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] backdrop-blur"
 		>
-			<div class="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:px-8">
+			<div class="mx-auto max-w-6xl sm:px-8">
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+					<div class="flex flex-row items-center gap-1.5" aria-label="Chosen theme colours">
+						{#each COLOR_FIELDS as field (field.key)}
+							{@const chosen = theme.colors[field.key as ColorKey]}
+							<span
+								class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
+								style:background={swatch(chosen)}
+								title={`${field.label}: ${chosen} · ${swatch(chosen)}`}
+								aria-hidden="true"
+							></span>
+						{/each}
+					</div>
 				<code
 					class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100"
 					>{getBunxCommand()}</code
@@ -833,6 +854,7 @@
 					{/if}
 					{copied ? 'Copied!' : 'Copy'}
 				</button>
+				</div>
 			</div>
 		</footer>
 		<div id="site-footer">
