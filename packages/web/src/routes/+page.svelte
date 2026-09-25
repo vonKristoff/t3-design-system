@@ -59,6 +59,10 @@
 		getLayoutCss,
 		setAssignment,
 		assignmentFor,
+		roleWeight,
+		setRoleWeight,
+		elementWeight,
+		setElementWeight,
 		resetTheme,
 		type ColorKey
 	} from '$lib/theme.svelte.js';
@@ -99,7 +103,7 @@
 		theme.fonts[role] = v === '' || v === '__none' ? undefined : v;
 		const entry = CURATED_FONTS.find((f) => f.name === theme.fonts[role]);
 		const w = theme.weights?.[role];
-		if (entry?.variable && w !== undefined) onWeight(role, w, entry.weightMin, entry.weightMax);
+		if (entry?.variable && w !== undefined) onWeight(role, w);
 	}
 
 	function onCustomInput(role: RoleKey, v: string): void {
@@ -113,14 +117,21 @@
 		return [entry.weightMin, entry.weightMax];
 	}
 
-	function roleWeight(role: RoleKey): number {
-		return theme.weights?.[role] ?? 400;
+	/** Range of the variable font serving an element's role, or null if static. */
+	function elementWeightRange(el: FontElement): [number, number] | null {
+		return weightRange(assignmentFor(el) as RoleKey);
 	}
 
-	function onWeight(role: RoleKey, v: number, min: number, max: number): void {
-		const clamped = Math.min(max, Math.max(min, Math.round(v)));
-		if (!theme.weights) theme.weights = {};
-		theme.weights[role] = clamped;
+	function onWeight(role: RoleKey, v: number): void {
+		const range = weightRange(role);
+		if (!range) return;
+		setRoleWeight(role, Math.min(range[1], Math.max(range[0], Math.round(v))));
+	}
+
+	function onElementWeight(el: FontElement, v: number): void {
+		const range = elementWeightRange(el);
+		if (!range) return;
+		setElementWeight(el, Math.min(range[1], Math.max(range[0], Math.round(v))));
 	}
 
 	const ROLES: RoleKey[] = ['primary', 'secondary', 'tertiary'];
@@ -352,11 +363,6 @@
 		} catch {
 			return 'transparent';
 		}
-	}
-
-	/** Live variable weight for an element, resolved through its font role. */
-	function specimenWeight(el: FontElement): number {
-		return theme.weights?.[assignmentFor(el)] ?? 400;
 	}
 
 	async function copyCommand(): Promise<void> {
@@ -598,12 +604,7 @@
 												step="10"
 												value={roleWeight(role)}
 												oninput={(e) =>
-													onWeight(
-														role,
-														Number((e.currentTarget as HTMLInputElement).value),
-														range[0],
-														range[1]
-													)}
+													onWeight(role, Number((e.currentTarget as HTMLInputElement).value))}
 												class="min-w-0 flex-1 accent-neutral-900"
 												aria-label={`${ROLE_LABEL[role]} variable weight`}
 											/>
@@ -648,17 +649,37 @@
 							<div class={'markdown bq-' + getBlockquote()} style={getVarStyle()}>
 								{#each SPECIMEN as row (row.el)}
 									{@const [minPx, maxPx] = FLUID_SIZES[row.el]}
+									{@const range = elementWeightRange(row.el as FontElement)}
 									<div
 										class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4"
 									>
 										<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500"
-											>{row.el} · {minPx}→{maxPx}px · w{specimenWeight(row.el as FontElement)}</span
+											>{row.el} · {minPx}→{maxPx}px</span
 										>
 										{#if row.el === 'blockquote'}
 											<blockquote><p>{row.sample}</p></blockquote>
 										{:else}
 											<svelte:element this={row.tag} style="margin: 0;">{row.sample}</svelte:element
 											>
+										{/if}
+										{#if range}
+											<span class="ml-auto flex shrink-0 items-center gap-2">
+												<span class="text-[11px] text-neutral-500">w</span>
+												<input
+													type="range"
+													min={range[0]}
+													max={range[1]}
+													step="10"
+													value={elementWeight(row.el as FontElement)}
+													oninput={(e) =>
+														onElementWeight(row.el as FontElement, Number((e.currentTarget as HTMLInputElement).value))}
+													class="w-28 accent-neutral-900"
+													aria-label={`${row.el} variable weight`}
+												/>
+												<output class="w-9 shrink-0 text-right font-mono text-[11px] text-neutral-600"
+													>{elementWeight(row.el as FontElement)}</output
+												>
+											</span>
 										{/if}
 									</div>
 								{/each}

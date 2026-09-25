@@ -65,6 +65,7 @@ function readTheme(): ThemeOptions {
 		colors: { ...theme.colors },
 		fonts: { ...theme.fonts },
 		weights: theme.weights ? { ...theme.weights } : undefined,
+		elementWeights: theme.elementWeights ? { ...theme.elementWeights } : undefined,
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
 		layout: theme.layout ?? 'compact',
 		width: theme.width ?? 'wide'
@@ -172,6 +173,26 @@ export function assignmentFor(el: FontElement): FontRole {
 	return theme.fontAssignments?.[el] ?? 'primary';
 }
 
+/** Base (role) variable weight. */
+export function roleWeight(role: FontRole): number {
+	return theme.weights?.[role] ?? 400;
+}
+
+export function setRoleWeight(role: FontRole, weight: number): void {
+	if (!theme.weights) theme.weights = {};
+	theme.weights[role] = weight;
+}
+
+/** Effective variable weight for an element: element override wins. */
+export function elementWeight(el: FontElement): number {
+	return theme.elementWeights?.[el] ?? roleWeight(assignmentFor(el));
+}
+
+export function setElementWeight(el: FontElement, weight: number): void {
+	if (!theme.elementWeights) theme.elementWeights = {};
+	theme.elementWeights[el] = weight;
+}
+
 export function getActivePreset(): string | null {
 	return matchPreset(theme.colors);
 }
@@ -183,10 +204,13 @@ export function applyPresetTheme(name: string): void {
 	theme.colors = { ...preset.colors };
 }
 
-export function resetTheme(): void {	const fresh = structuredClone(DEFAULT_THEME);
+export function resetTheme(): void {
+	const fresh = structuredClone(DEFAULT_THEME);
 	theme.version = fresh.version;
 	theme.colors = fresh.colors;
 	theme.fonts = fresh.fonts;
+	theme.weights = fresh.weights;
+	theme.elementWeights = fresh.elementWeights;
 	theme.fontAssignments = fresh.fontAssignments;
 	theme.layout = fresh.layout;
 	theme.width = fresh.width;

@@ -103,13 +103,14 @@ export function fontRoleVars(options: ThemeOptions): Record<string, string> {
   return out;
 }
 
-/** Concrete variable-font weight per element, resolved from role weights. */
+/** Concrete variable-font weight per element: element override > role > 400. */
 export function fontWeightVars(options: ThemeOptions): Record<string, number> {
   const out: Record<string, number> = {};
   const els: FontElement[] = ["h1","h2","h3","h4","h5","h6","p","list","blockquote","code"];
   for (const el of els) {
     const role = options.fontAssignments?.[el] ?? DEFAULT_ROLE[el];
-    out[`${ELEMENT_VAR[el]}-weight`] = options.weights?.[role] ?? 400;
+    out[`${ELEMENT_VAR[el]}-weight`] =
+      options.elementWeights?.[el] ?? options.weights?.[role] ?? 400;
   }
   return out;
 }

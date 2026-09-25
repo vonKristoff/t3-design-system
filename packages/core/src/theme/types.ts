@@ -35,6 +35,9 @@ export interface ThemeFonts {
 /** Variable-font weight per role (100–1000). Absent means 400. */
 export type FontWeights = Partial<Record<FontRole, number>>;
 
+/** Per-element weight override (100–1000). Wins over the role weight. */
+export type ElementWeights = Partial<Record<FontElement, number>>;
+
 export type FontAssignments = Partial<Record<FontElement, FontRole>>;
 
 export type LayoutMode = "compact" | "minimal" | "wide";
@@ -60,6 +63,8 @@ export interface ThemeOptions {
   colors: ThemeColors;
   fonts: ThemeFonts;
   weights?: FontWeights;
+  /** Per-element weight overrides, e.g. h1 heavier than p. */
+  elementWeights?: ElementWeights;
   fontAssignments?: FontAssignments;
   /** Preview/CLI layout mode. Defaults to "compact" when omitted. */
   layout?: LayoutMode;

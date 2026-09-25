@@ -101,6 +101,14 @@ describe("serialization round-trip", () => {
     expect(googleFontHref(weighted)).toContain("family=Merriweather:wght@400;500;600;700");
     expect(fontWeightVars(weighted)["--font-h1-weight"]).toBe(650);
     expect(fontWeightVars(weighted)["--font-blockquote-weight"]).toBe(400);
+    const perElement = {
+      ...weighted,
+      elementWeights: { h1: 900, p: 300 },
+    };
+    expect(decodeTheme(encodeTheme(perElement))).toEqual(perElement);
+    expect(fontWeightVars(perElement)["--font-h1-weight"]).toBe(900);
+    expect(fontWeightVars(perElement)["--font-p-weight"]).toBe(300);
+    expect(fontWeightVars(perElement)["--font-h2-weight"]).toBe(650);
     const gen = generateTheme(weighted);
     const files = generateThemeFiles(weighted, gen, "");
     expect(files["root.css"]).toContain("--font-h1-weight: 650;");

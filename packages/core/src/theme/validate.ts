@@ -86,6 +86,23 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
+  // --- elementWeights (per-element overrides) ---
+  let elementWeights: ThemeOptions["elementWeights"];
+  if (v["elementWeights"] === undefined) {
+    elementWeights = undefined;
+  } else {
+    const re = v["elementWeights"];
+    if (typeof re !== "object" || re === null) throw err('Invalid "elementWeights" object.');
+    elementWeights = {};
+    for (const [el, w] of Object.entries(re as Record<string, unknown>)) {
+      if (!VALID_ELEMENTS.includes(el as FontElement)) throw err(`Invalid elementWeights element: "${el}".`);
+      if (typeof w !== "number" || !Number.isInteger(w) || w < 100 || w > 1000) {
+        throw err(`Invalid font weight for elementWeights.${el}: ${JSON.stringify(w)}. Expected 100–1000.`);
+      }
+      elementWeights[el as FontElement] = w;
+    }
+  }
+
   // --- fontAssignments (absent => defaults; present used as-is) ---
   let fontAssignments: ThemeOptions["fontAssignments"];
   if (v["fontAssignments"] === undefined) {
@@ -140,5 +157,5 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, fontAssignments, layout, width, components };
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, layout, width, components };
 }
