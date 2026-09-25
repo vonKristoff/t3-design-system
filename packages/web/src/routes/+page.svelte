@@ -222,8 +222,8 @@
 	let previewViewport = $state<PreviewViewport>('full');
 
 	const CHIPS = [
-		['brand-primary · 600', 'var(--brand-primary-600)', 'white'],
-		['brand-secondary · 600', 'var(--brand-secondary-600)', 'white'],
+		['brand-primary', 'var(--brand-primary)', 'var(--base-50)'],
+		['brand-secondary', 'var(--brand-secondary)', 'var(--base-50)'],
 		['stop · 100', 'var(--traffic-stop-100)', 'var(--traffic-stop-900)'],
 		['warning · 100', 'var(--traffic-warning-100)', 'var(--traffic-warning-900)'],
 		['ok · 100', 'var(--traffic-ok-100)', 'var(--traffic-ok-900)']
@@ -976,6 +976,13 @@
 				<p>{':root {'}</p>
 				{#each SCALE_GROUPS as g (g.sem)}
 					<p class="mt-2 text-emerald-400">/* {g.label} · anchor {theme.colors[g.anchor]} */</p>
+					<p class="flex items-center gap-1.5 pl-2">
+						<span
+							class="inline-block h-3 w-3 shrink-0 rounded-sm border border-white/20"
+							style:background={getGenerated().anchors[g.sem]}
+						></span>
+						<span class="text-sky-300">--{g.sem}</span><span>: {getGenerated().anchors[g.sem]};</span>
+					</p>
 					{#each SCALE_STEPS as step (step)}
 						{@const v = getGenerated().scales[g.sem][step]}
 						<p class="flex items-center gap-1.5 pl-2">

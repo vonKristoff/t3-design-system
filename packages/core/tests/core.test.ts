@@ -122,6 +122,19 @@ describe("theme consistency", () => {
     expect(gen.variables["--accent-600"]).toBeDefined();
     expect(gen.rootCss).toContain("--brand-primary-");
   });
+  test("raw anchor var equals the exact chosen colour", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    expect(gen.anchors["brand-primary"]).toBe("#2563eb");
+    expect(gen.variables["--brand-primary"]).toBe("#2563eb");
+    // Light anchor: the anchor is exact even though generated steps go muddy.
+    const light = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, brandPrimary: "yellow-100" },
+    };
+    const g2 = generateTheme(light);
+    expect(g2.anchors["brand-primary"]).toBe("#fef9c3");
+    expect(g2.variables["--brand-primary"]).toBe("#fef9c3");
+  });
 });
 
 describe("presets", () => {

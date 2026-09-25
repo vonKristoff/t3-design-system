@@ -226,8 +226,8 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-900); }
 .markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-900); }
 .markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-900); }
-.markdown .brand { color: var(--brand-primary-600); }
-.markdown .brand-secondary { color: var(--brand-secondary-600); }
+.markdown .brand { color: var(--brand-primary); }
+.markdown .brand-secondary { color: var(--brand-secondary); }
 `;
 
   const tailwindCss = `/* Tailwind v4 semantic bridge — utilities consume generated variables. */
