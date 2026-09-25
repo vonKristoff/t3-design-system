@@ -60,11 +60,16 @@ const DEFAULT_ROLE: Record<FontElement, "primary" | "secondary" | "tertiary"> = 
  *   "full"             additionally, .full-width children span full
  */
 export function generateLayoutCss(): string {
-  return `/* Layout: always-on content-grid. Routing decides what breaks out. */
+  return `/* Layout: always-on content-grid. Routing decides what breaks out.
+   Tracks are proportional to the container (with the rem measure as a cap),
+   so bands stay distinct at any viewport and the grid drops into any parent. */
 .content-grid { display: grid; width: 100%; grid-template-columns:
-  [full-start] minmax(0, 1fr) [breakout-start] minmax(0, var(--breakout-pad, 5rem))
-  [content-start] minmax(0, var(--content-max, 72rem)) [content-end]
-  minmax(0, var(--breakout-pad, 5rem)) [breakout-end] minmax(0, 1fr) [full-end]; }
+  [full-start] minmax(0, 1fr)
+  [breakout-start] minmax(0, var(--breakout-pct, 6%))
+  [content-start] minmax(0, min(var(--content-max, 72rem), var(--content-pct, 70%)))
+  [content-end]
+  minmax(0, var(--breakout-pct, 6%))
+  [breakout-end] minmax(0, 1fr) [full-end]; }
 .content-grid > * { grid-column: content; min-width: 0; }
 .content-grid > .breakout { grid-column: breakout; }
 .content-grid > .full-width { grid-column: full; }
@@ -77,11 +82,18 @@ export function generateLayoutCss(): string {
 }`;
 }
 
-const BREAKOUT_PAD: Record<BreakoutWidth, string> = {
-  none: "0rem",
-  snug: "2rem",
-  medium: "5rem",
-  wide: "10rem",
+const BREAKOUT_PCT: Record<BreakoutWidth, string> = {
+  none: "0%",
+  snug: "3%",
+  medium: "6%",
+  wide: "10%",
+};
+
+const CONTENT_PCT: Record<ContentWidth, string> = {
+  article: "55%",
+  comfortable: "62%",
+  wide: "70%",
+  full: "100%",
 };
 
 const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
@@ -143,7 +155,7 @@ export function generateWidthCss(width: ContentWidth, breakout: BreakoutWidth): 
       ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
       : "";
   return `/* Content width: ${width}; breakout: ${breakout}. */
-.tsb-doc { --content-max: ${max}; --breakout-pad: ${BREAKOUT_PAD[breakout]}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
+.tsb-doc { --content-max: ${max}; --content-pct: ${CONTENT_PCT[width]}; --breakout-pct: ${BREAKOUT_PCT[breakout]}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {

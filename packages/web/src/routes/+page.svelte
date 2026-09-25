@@ -166,13 +166,13 @@
 
 	const BREAKOUT_LEVELS: BreakoutLevel[] = ['content', 'breakout', 'full'];
 
-	// Approximate rem widths for the measure diagram (visual aid only).
-	const CONTENT_REM: Record<ContentWidth, number> = { article: 42, comfortable: 48, wide: 72, full: 90 };
-	const PAD_REM: Record<BreakoutWidth, number> = { none: 0, snug: 2, medium: 5, wide: 10 };
-	const GRID_FULL_REM = 90;
-	const pct = (rem: number) => `${Math.min(100, Math.round((rem / GRID_FULL_REM) * 100))}%`;
-	const contentPct = $derived(pct(CONTENT_REM[getWidth()]));
-	const breakoutPct = $derived(pct(Math.min(GRID_FULL_REM, CONTENT_REM[getWidth()] + PAD_REM[getBreakoutWidth()] * 2)));
+	// Container-relative band widths for the measure diagram (matches core).
+	const CONTENT_PCT: Record<ContentWidth, number> = { article: 55, comfortable: 62, wide: 70, full: 90 };
+	const BREAKOUT_PCT: Record<BreakoutWidth, number> = { none: 0, snug: 3, medium: 6, wide: 10 };
+	const contentPct = $derived(`${CONTENT_PCT[getWidth()]}%`);
+	const breakoutPct = $derived(
+		`${Math.min(96, CONTENT_PCT[getWidth()] + BREAKOUT_PCT[getBreakoutWidth()] * 2)}%`
+	);
 
 	type StepId = 'step-fonts' | 'step-colours' | 'step-layout' | 'step-components';
 

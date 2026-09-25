@@ -89,7 +89,7 @@ describe("serialization round-trip", () => {
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(files["layout.css"]).toContain("> blockquote,");
     expect(files["layout.css"]).toContain("grid-column: breakout;");
-    expect(files["layout.css"]).toContain("--breakout-pad: 5rem;");
+    expect(files["layout.css"]).toContain("--breakout-pct: 6%;");
     // Images default to full-bleed.
     expect(files["layout.css"]).toContain("> img { grid-column: full; }");
     const routed = {
@@ -99,7 +99,7 @@ describe("serialization round-trip", () => {
     };
     expect(decodeTheme(encodeTheme(routed))).toEqual(routed);
     const f2 = generateThemeFiles(routed, generateTheme(routed), "");
-    expect(f2["layout.css"]).toContain("--breakout-pad: 10rem;");
+    expect(f2["layout.css"]).toContain("--breakout-pct: 10%;");
     expect(f2["layout.css"]).toContain("> blockquote { grid-column: full; }");
     expect(f2["layout.css"]).not.toContain("> table");
     expect(f2["layout.css"]).not.toContain("grid-column: full; }".repeat(2));
