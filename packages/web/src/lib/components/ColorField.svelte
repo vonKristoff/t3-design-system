@@ -32,7 +32,7 @@
 </script>
 
 <fieldset class="block">
-	<div class="grid grid-cols-2 items-stretch gap-2">
+	<div class="grid grid-cols-[3fr_2fr] items-stretch gap-2">
 		<span class="min-w-0 space-y-1.5">
 			<span class="block">
 				<span class="block text-sm font-medium text-neutral-800">{label}</span>
