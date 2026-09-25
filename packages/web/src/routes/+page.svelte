@@ -16,10 +16,13 @@
 		ChevronDown,
 		Copy,
 		LayoutGrid,
+		Monitor,
 		Palette,
 		PanelRight,
 		PanelRightClose,
 		RotateCcw,
+		Smartphone,
+		Tablet,
 		Type
 	} from 'lucide-svelte';
 	import { mount, unmount } from 'svelte';
@@ -120,6 +123,14 @@
 	let footerVisible = $state(false);
 	let frame: HTMLIFrameElement | undefined = $state(undefined);
 	let frameRO: ResizeObserver | undefined = undefined;
+
+	type PreviewViewport = 'full' | 'tablet' | 'mobile';
+	const VIEWPORTS: { id: PreviewViewport; label: string; px: string }[] = [
+		{ id: 'full', label: 'Desktop full width', px: 'none' },
+		{ id: 'tablet', label: 'Tablet · 768px', px: '768px' },
+		{ id: 'mobile', label: 'Mobile · 390px', px: '390px' }
+	];
+	let previewViewport = $state<PreviewViewport>('full');
 
 	const CHIPS = [
 		['brand-primary · 600', 'var(--brand-primary-600)', 'white'],
@@ -553,12 +564,32 @@
 		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
 			<div class="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:px-8">
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">Markdown preview</h2>
-				<p class="font-mono text-[11px]" style="color:var(--prose-500)">
+				<div class="flex items-center gap-1 rounded-md border border-neutral-200 bg-white p-0.5" role="group" aria-label="Preview viewport width">
+					{#each VIEWPORTS as v (v.id)}
+						{@const Icon = v.id === 'full' ? Monitor : v.id === 'tablet' ? Tablet : Smartphone}
+						<button
+							type="button"
+							onclick={() => {
+								previewViewport = v.id;
+								fitFrame();
+							}}
+							title={v.label}
+							aria-pressed={previewViewport === v.id}
+							class="rounded p-1.5 {previewViewport === v.id ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:bg-neutral-100'}"
+						>
+							<Icon size={15} />
+						</button>
+					{/each}
+				</div>
+				<p class="hidden font-mono text-[11px] sm:block" style="color:var(--prose-500)">
 					{getLayout()} · {getWidth()} · isolated document
 				</p>
 			</div>
 			<div class="px-2 pb-12 sm:px-4">
-				<div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl">
+				<div
+					class="mx-auto w-full overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-xl transition-[max-width] duration-300"
+					style="max-width:{previewViewport === 'full' ? 'none' : previewViewport === 'tablet' ? '768px' : '390px'}"
+				>
 					<div class="flex items-center gap-2 border-b border-neutral-200 bg-neutral-100 px-3 py-2">
 						<span class="flex gap-1.5" aria-hidden="true">
 							<span class="inline-block h-3 w-3 rounded-full bg-[#ff5f57]"></span>
