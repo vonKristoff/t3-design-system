@@ -31,15 +31,14 @@
 </script>
 
 <fieldset class="block">
-	<span class="mb-1.5 block">
-		<span class="block text-sm font-medium text-neutral-800">{label}</span>
-		{#if hint}
-			<span class="block text-xs text-neutral-500">{hint}</span>
-		{/if}
-	</span>
-
-	<div class="grid grid-cols-1 items-stretch gap-2">
-		<div class="min-w-0 space-y-1.5">
+	<div class="grid grid-cols-2 items-stretch gap-2">
+		<span class="min-w-0 space-y-1.5">
+			<span class="block">
+				<span class="block text-sm font-medium text-neutral-800">{label}</span>
+				{#if hint}
+					<span class="block text-xs text-neutral-500">{hint}</span>
+				{/if}
+			</span>
 			<label class="block">
 				<span class="mb-1 block text-xs font-medium text-neutral-600">Family</span>
 				<select
@@ -55,9 +54,9 @@
 				</select>
 			</label>
 			<StrengthSelect {family} {step} onpick={pickStep} />
-		</div>
+		</span>
 		<span
-			class="inline-block h-16 w-full rounded-md border border-black/20"
+			class="inline-block min-h-28 rounded-md border border-black/20"
 			style:background={selectedHex}
 			title={`${value} · ${selectedHex}`}
 			aria-hidden="true"
