@@ -3,6 +3,8 @@
 // so the preview can never diverge from generated output.
 import {
 	DEFAULT_THEME,
+	PRESET_THEMES,
+	matchPreset,
 	generateTheme,
 	generateThemeFiles,
 	generateFontsCss,
@@ -170,8 +172,18 @@ export function assignmentFor(el: FontElement): FontRole {
 	return theme.fontAssignments?.[el] ?? 'primary';
 }
 
-export function resetTheme(): void {
-	const fresh = structuredClone(DEFAULT_THEME);
+export function getActivePreset(): string | null {
+	return matchPreset(theme.colors);
+}
+
+/** Apply a preset's colours only — fonts, layout and assignments are kept. */
+export function applyPresetTheme(name: string): void {
+	const preset = PRESET_THEMES.find((p) => p.name === name);
+	if (!preset) return;
+	theme.colors = { ...preset.colors };
+}
+
+export function resetTheme(): void {	const fresh = structuredClone(DEFAULT_THEME);
 	theme.version = fresh.version;
 	theme.colors = fresh.colors;
 	theme.fonts = fresh.fonts;

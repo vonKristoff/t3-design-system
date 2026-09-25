@@ -5,6 +5,7 @@
 		LAYOUT_MODES,
 		CONTENT_WIDTHS,
 		BLOCKQUOTE_VARIANTS,
+		PRESET_THEMES,
 		SCALE_STEPS,
 		fluidClamp,
 		layoutToDataGrid,
@@ -45,6 +46,8 @@
 		getBunxCommand,
 		getWarnings,
 		getGenerated,
+		getActivePreset,
+		applyPresetTheme,
 		getLayout,
 		setLayout,
 		getWidth,
@@ -682,6 +685,25 @@
 					</button>
 				</div>
 				{#if openSections['step-colours']}
+					<div class="mb-4 flex flex-wrap gap-x-5 gap-y-2" role="radiogroup" aria-label="Preset themes">
+						{#each PRESET_THEMES as p (p.name)}
+							<label class="flex cursor-pointer items-center gap-1.5 text-sm" title={p.blurb}>
+								<input
+									type="radio"
+									name="preset-theme"
+									checked={getActivePreset() === p.name}
+									onchange={() => applyPresetTheme(p.name)}
+									class="accent-neutral-900"
+								/>
+								<span class="font-medium">{p.label}</span>
+								<span class="flex" aria-hidden="true">
+									<span class="inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.base)}></span>
+									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.accent)}></span>
+									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.brandPrimary)}></span>
+								</span>
+							</label>
+						{/each}
+					</div>
 					<div
 						id="step-colours-body"
 						data-step="step-colours"

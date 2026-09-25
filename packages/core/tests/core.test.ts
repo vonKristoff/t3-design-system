@@ -3,6 +3,7 @@ import { resolveTailwindHex } from "../src/colors/tailwind-palette.ts";
 import { generateScale } from "../src/colors/generate-scale.ts";
 import { isValidCssColor, hexToOklch } from "../src/colors/oklch.ts";
 import { DEFAULT_THEME } from "../src/theme/defaults.ts";
+import { PRESET_THEMES, assertPresetsValid, matchPreset } from "../src/theme/presets.ts";
 import { generateTheme } from "../src/theme/generate-theme.ts";
 import { generateThemeFiles } from "../src/theme/css.ts";
 import { fontWeightVars } from "../src/theme/css.ts";
@@ -115,8 +116,20 @@ describe("theme consistency", () => {
   });
 });
 
-describe("fluid type", () => {
-  test("clamp hits min/max at range edges and interpolates", () => {
+describe("presets", () => {
+  test("five named presets with valid colours", () => {
+    expect(PRESET_THEMES.map((p) => p.name)).toEqual(["ocean", "sand", "night", "cyber", "jungle"]);
+    assertPresetsValid();
+  });
+  test("matchPreset identifies presets and null when customized", () => {
+    for (const p of PRESET_THEMES) {
+      expect(matchPreset(p.colors)).toBe(p.name);
+    }
+    expect(matchPreset({ ...PRESET_THEMES[0].colors, accent: "pink-600" })).toBe(null);
+  });
+});
+
+describe("fluid type", () => {  test("clamp hits min/max at range edges and interpolates", () => {
     expect(fluidPreferred(34, 64, 360)).toBeCloseTo(34, 6);
     expect(fluidPreferred(34, 64, 1280)).toBeCloseTo(64, 6);
     expect(fluidPreferred(34, 64, 820)).toBeCloseTo(49, 6);
