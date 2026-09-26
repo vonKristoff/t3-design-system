@@ -129,6 +129,7 @@ describe("serialization round-trip", () => {
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(files["markdown.css"]).toContain(".markdown.bq-pull blockquote");
     expect(files["markdown.css"]).toContain(".markdown.bq-minimal blockquote");
+    expect(files["markdown.css"]).toContain(".markdown img + img");
     const varied = { ...structuredClone(DEFAULT_THEME), components: { blockquote: "pull" as const } };
     expect(decodeTheme(encodeTheme(varied))).toEqual(varied);
   });

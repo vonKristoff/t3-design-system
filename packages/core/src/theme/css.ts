@@ -268,8 +268,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
 }
 .markdown code { font-family: var(--font-code); background: var(--alt-200); color: var(--prose-900); padding: 0.1em 0.35em; border-radius: 0.3rem; }
 .markdown pre code { background: transparent; color: inherit; padding: 0; }
-.markdown table { width: 100%; border-collapse: collapse; font-family: var(--font-p); }
-.markdown th { background: var(--alt-200); color: var(--prose-900); text-align: left; }
+.markdown table { width: 100%; border-collapse: collapse; font-family: var(--font-p); }.markdown th { background: var(--alt-200); color: var(--prose-900); text-align: left; }
 .markdown th, .markdown td { border: 1px solid var(--alt-300); padding: 0.5rem 0.75rem; }
 .markdown tbody tr:nth-child(even) { background: var(--alt-100); }
 .markdown ul { list-style: disc; padding-left: 1.5rem; }
@@ -284,6 +283,8 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-900); }
 .markdown .brand { color: var(--brand-primary); }
 .markdown .brand-secondary { color: var(--brand-secondary); }
+/* Stacked images keep breathing room, in and out of the grid. */
+.markdown img + img { margin-top: 1.5rem; }
 `;
 
   const tailwindCss = `/* Tailwind v4 semantic bridge — utilities consume generated variables. */

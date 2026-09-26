@@ -573,7 +573,7 @@
 							? 'bg-neutral-900 text-white'
 							: 'text-neutral-600 hover:bg-neutral-100'}"
 					>
-						<Icon size={14} class="hidden sm:inline" />
+						<Icon size={14} class="hidden lg:inline" />
 						{s.n} · {s.short}
 					</button>
 				{/each}
