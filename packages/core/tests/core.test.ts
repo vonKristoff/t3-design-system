@@ -72,16 +72,16 @@ describe("serialization round-trip", () => {
     expect(payload.length).toBeLessThan(300);
     expect(decodeTheme(payload)).toEqual(modified);
   });
-  test("layout.css carries always-on grid, routing and content width", () => {
+  test("layout.css carries data-grid hook, routing and content width", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
-    expect(files["layout.css"]).toContain(".content-grid");
-    expect(files["layout.css"]).toContain(".content-grid > .breakout");
-    expect(files["layout.css"]).toContain(".content-grid > .full-width");
+    expect(files["layout.css"]).toContain("[data-grid]");
+    expect(files["layout.css"]).toContain("[data-grid] > .breakout");
+    expect(files["layout.css"]).toContain("[data-grid] > .full-width");
+    expect(files["layout.css"]).not.toContain(".content-grid");
     expect(files["layout.css"]).toContain("--content-size: 70%;");
-    expect(files["layout.css"]).not.toContain("data-grid");
     // Grid must be on the element holding the content items.
-    expect(docShellClasses({ value: 72, unit: "rem" })).toBe("tsb-doc content-grid tsb-width-72rem");
+    expect(docShellClasses()).toBe("tsb-doc");
     expect(files["layout.css"]).not.toContain(".tsb-doc { padding");
     expect(files["typography.css"]).toContain("line-height: normal");
   });

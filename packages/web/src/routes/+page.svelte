@@ -21,7 +21,6 @@
 	} from '@tsup-system/core';
 	import {
 		Check,
-		ChevronDown,
 		Copy,
 		LayoutGrid,
 		Monitor,
@@ -252,12 +251,6 @@
 	const STEP_ICON = [Type, Palette, LayoutGrid, Quote];
 
 	let activeStep = $state<StepId>('step-fonts');
-	let openSections = $state<Record<StepId, boolean>>({
-		'step-fonts': true,
-		'step-colours': true,
-		'step-layout': true,
-		'step-components': true
-	});
 	let cssPanelOpen = $state(false);
 	let footerVisible = $state(false);
 	let frame: HTMLIFrameElement | undefined = $state(undefined);
@@ -315,7 +308,7 @@
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
 			`<style id="tsb-theme">${css}</style></head>` +
 			`<body class="markdown">` +
-			`<div class="tsb-doc content-grid">${sampleHtml}${CHIPS_HTML}</div></body></html>`;
+			`<div class="${docShellClasses()}" data-grid="">${sampleHtml}${CHIPS_HTML}</div></body></html>`;
 	});
 
 	function applyToFrame(): void {
@@ -348,7 +341,7 @@
 		if (doc.body.className !== bodyCls) doc.body.className = bodyCls;
 		const shell = doc.body.firstElementChild as HTMLElement | null;
 		if (shell) {
-			const cls = docShellClasses(getWidth());
+			const cls = docShellClasses();
 			if (shell.className !== cls) shell.className = cls;
 		}
 	}
@@ -399,7 +392,6 @@
 	}
 
 	function jumpTo(id: StepId): void {
-		openSections[id] = true;
 		document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
 
@@ -481,6 +473,10 @@
 		}
 	}
 
+	function fmtSize(s: SizeValue): string {
+		return `${s.value}${s.unit}`;
+	}
+
 	async function copyCommand(): Promise<void> {
 		try {
 			await navigator.clipboard.writeText(getBunxCommand());
@@ -559,8 +555,8 @@
 	<header class="sticky top-0 z-30 border-b border-neutral-200 bg-white">
 		<div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-8">
 			<p class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-				<Icon src="shapes" ctx="hand-1" size="3em" />
-				<span class="text-base font-normal" style="font-family:'Chewy', system-ui, sans-serif;"
+				<Icon src="shapes" ctx="hand-1" size="1.75em" />
+				<span class="hidden text-base font-normal sm:inline" style="font-family:'Chewy', system-ui, sans-serif;"
 					>three<span class="opacity-55">jjj</span>s</span
 				>
 				Design System Builder
@@ -577,7 +573,7 @@
 							? 'bg-neutral-900 text-white'
 							: 'text-neutral-600 hover:bg-neutral-100'}"
 					>
-						<Icon size={14} />
+						<Icon size={14} class="hidden sm:inline" />
 						{s.n} · {s.short}
 					</button>
 				{/each}
@@ -588,7 +584,7 @@
 					onclick={() => (cssPanelOpen = !cssPanelOpen)}
 					aria-expanded={cssPanelOpen}
 					title="Toggle CSS preview panel"
-					class="flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium {cssPanelOpen
+					class="hidden items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium md:flex {cssPanelOpen
 						? 'border-neutral-900 bg-neutral-900 text-white'
 						: 'border-neutral-300 hover:bg-neutral-50'}"
 				>
@@ -658,11 +654,8 @@
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
 			<div class="space-y-6 pt-6">
 				<div id="step-fonts" class={stepHeaderCls('step-fonts')} style="top:{stackTops[0]}">
-					<button
-						type="button"
-						onclick={() => (openSections['step-fonts'] = !openSections['step-fonts'])}
-						aria-expanded={openSections['step-fonts']}
-						aria-controls="step-fonts-body"
+					<a
+						href="#step-fonts"
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
@@ -672,16 +665,9 @@
 							>
 							Select your font
 						</h2>
-						<ChevronDown
-							size={16}
-							class="text-neutral-400 transition-transform {openSections['step-fonts']
-								? ''
-								: '-rotate-90'}"
-						/>
-					</button>
+					</a>
 				</div>
-				{#if openSections['step-fonts']}
-					<div id="step-fonts-body" data-step="step-fonts" class="space-y-4 pt-4">
+				<div id="step-fonts-body" data-step="step-fonts" class="space-y-4 pt-4">
 						<div class="grid gap-3 md:grid-cols-3">
 							{#each ROLES as role (role)}
 								<label class="block rounded-lg border border-neutral-200 bg-white p-3">
@@ -807,14 +793,10 @@
 							</div>
 						</div>
 					</div>
-				{/if}
 
 				<div id="step-colours" class={stepHeaderCls('step-colours')} style="top:{stackTops[1]}">
-					<button
-						type="button"
-						onclick={() => (openSections['step-colours'] = !openSections['step-colours'])}
-						aria-expanded={openSections['step-colours']}
-						aria-controls="step-colours-body"
+					<a
+						href="#step-colours"
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
@@ -824,15 +806,10 @@
 							>
 							Choose your theme colours
 						</h2>
-						<ChevronDown
-							size={16}
-							class="text-neutral-400 transition-transform {openSections['step-colours']
-								? ''
-								: '-rotate-90'}"
-						/>
-					</button>
+					</a>
 				</div>
-				{#if openSections['step-colours']}
+				<div>
+					<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Preset themes</h3>
 					<div class="mb-4 flex flex-wrap gap-x-5 gap-y-2" role="radiogroup" aria-label="Preset themes">
 						{#each PRESET_THEMES as p (p.name)}
 							<label class="flex cursor-pointer items-center gap-1.5 text-sm" title={p.blurb}>
@@ -867,14 +844,11 @@
 							</div>
 						{/each}
 					</div>
-				{/if}
+				</div>
 
 				<div id="step-layout" class={stepHeaderCls('step-layout')} style="top:{stackTops[2]}">
-					<button
-						type="button"
-						onclick={() => (openSections['step-layout'] = !openSections['step-layout'])}
-						aria-expanded={openSections['step-layout']}
-						aria-controls="step-layout-body"
+					<a
+						href="#step-layout"
 						class="flex w-full items-center justify-between py-2.5"
 					>
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
@@ -884,16 +858,18 @@
 							>
 							Select your layout
 						</h2>
-						<ChevronDown
-							size={16}
-							class="text-neutral-400 transition-transform {openSections['step-layout']
-								? ''
-								: '-rotate-90'}"
-						/>
-					</button>
+					</a>
 				</div>
-				{#if openSections['step-layout']}
-					<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
+				<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
+						<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Measure</h3>
+							<div class="space-y-1">
+								<div class="rounded-sm bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">full viewport</div>
+								<div class="mx-auto rounded-sm bg-sky-100 px-2 py-1 text-[10px] text-sky-800" style:width={breakoutPct}>breakout</div>
+								<div class="mx-auto rounded-sm bg-neutral-900 px-2 py-1 text-[10px] text-white" style:width={contentPct}>content</div>
+							</div>
+						</div>
+
 						<div class="grid gap-3 md:grid-cols-2">
 							<div class="rounded-lg border border-neutral-200 bg-white p-3">
 								<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
@@ -952,24 +928,15 @@
 						</div>
 
 						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Measure</h3>
-							<div class="space-y-1">
-								<div class="rounded-sm bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">full viewport</div>
-								<div class="mx-auto rounded-sm bg-sky-100 px-2 py-1 text-[10px] text-sky-800" style:width={breakoutPct}>breakout</div>
-								<div class="mx-auto rounded-sm bg-neutral-900 px-2 py-1 text-[10px] text-white" style:width={contentPct}>content</div>
-							</div>
-						</div>
-
-						<div class="rounded-lg border border-neutral-200 bg-white p-3">
 							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Breakout elements</h3>
 							<p class="mb-2 text-xs text-neutral-500">
 								Route plain Markdown structures to a track — no wrapper divs needed.
 							</p>
 							<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 								{#each BREAKOUT_ELEMENTS as el (el)}
-									<div class="flex items-center justify-between gap-2">
-										<span class="text-sm text-neutral-700">{BREAKOUT_ELEMENT_LABEL[el]}</span>
-										<div class="flex rounded-md border border-neutral-200 p-0.5" role="group" aria-label={`${BREAKOUT_ELEMENT_LABEL[el]} track`}>
+									<div class="flex items-center justify-between gap-2 rounded-md border border-neutral-100 bg-neutral-50 px-2 py-1.5">
+										<span class="text-sm font-medium text-neutral-800">{BREAKOUT_ELEMENT_LABEL[el]}</span>
+										<div class="flex shrink-0 rounded-md border border-neutral-200 bg-white p-0.5" role="group" aria-label={`${BREAKOUT_ELEMENT_LABEL[el]} track`}>
 											{#each BREAKOUT_LEVELS as level (level)}
 												<button
 													type="button"
@@ -988,25 +955,19 @@
 							</div>
 						</div>
 					</div>
-				{/if}
 
 			<div id="step-components" class={stepHeaderCls('step-components')} style="top:{stackTops[3]}">
-				<button
-					type="button"
-					onclick={() => (openSections['step-components'] = !openSections['step-components'])}
-					aria-expanded={openSections['step-components']}
-					aria-controls="step-components-body"
+				<a
+					href="#step-components"
 					class="flex w-full items-center justify-between py-2.5"
 				>
 					<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 						<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">4</span>
 						Style your components
 					</h2>
-					<ChevronDown size={16} class="text-neutral-400 transition-transform {openSections['step-components'] ? '' : '-rotate-90'}" />
-				</button>
+				</a>
 			</div>
-			{#if openSections['step-components']}
-				<div id="step-components-body" data-step="step-components" class="grid gap-2 pt-4 sm:grid-cols-3">
+			<div id="step-components-body" data-step="step-components" class="grid gap-2 pt-4 sm:grid-cols-3">
 					{#each BLOCKQUOTE_VARIANTS as v (v)}
 						<button
 							type="button"
@@ -1021,7 +982,6 @@
 						</button>
 					{/each}
 				</div>
-			{/if}
 			</div>
 		</main>
 
@@ -1054,7 +1014,7 @@
 					{/each}
 				</div>
 				<p class="hidden font-mono text-[11px] sm:block" style="color:var(--prose-500)">
-					{getWidth()} · content-grid · isolated document
+					content-grid · {fmtSize(getWidth())} +{fmtSize(getBreakoutWidth())} · isolated document
 				</p>
 			</div>
 			<div class="px-2 pb-12 sm:px-4">
@@ -1071,7 +1031,7 @@
 						<span
 							class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block"
 						>
-							tsup-system.preview/{getWidth()}
+							tsup-system.preview/{fmtSize(getWidth())}
 						</span>
 						<span class="w-14 shrink-0" aria-hidden="true"></span>
 					</div>

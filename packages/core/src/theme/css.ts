@@ -58,25 +58,28 @@ const DEFAULT_ROLE: Record<FontElement, "primary" | "secondary" | "tertiary"> = 
  *   "full"             additionally, .full-width children span full
  */
 export function generateLayoutCss(): string {
-  return `/* Layout: always-on content-grid. Routing decides what breaks out.
-   Band sizes come from --content-size / --breakout-size (value + unit), so
-   % units stay proportional to the container while rem/ch act as caps. */
-.content-grid { display: grid; width: 100%; grid-template-columns:
+  return `/* Layout: content grid, hooked by [data-grid] (blank = default).
+   The grid is opt-in by attribute; .breakout / .full-width and element
+   routing decide what breaks out. Band sizes come from --content-size /
+   --breakout-size (value + unit). */
+[data-grid] { display: grid; width: 100%; grid-template-columns:
   [full-start] minmax(0, 1fr)
   [breakout-start] minmax(0, var(--breakout-size, 6%))
   [content-start] minmax(0, var(--content-size, 70%))
   [content-end]
   minmax(0, var(--breakout-size, 6%))
   [breakout-end] minmax(0, 1fr) [full-end]; }
-.content-grid > * { grid-column: content; min-width: 0; }
-.content-grid > .breakout { grid-column: breakout; }
-.content-grid > .full-width { grid-column: full; }
+[data-grid] > * { grid-column: content; min-width: 0; }
+[data-grid] > .breakout { grid-column: breakout; }
+[data-grid] > .full-width { grid-column: full; }
 /* Replaced elements don't stretch to grid tracks by default — make images
    fill whichever track routing assigns them. */
-.content-grid > img { display: block; width: 100%; height: auto; }
-.content-grid .breakout img, .content-grid .full-width img { display: block; width: 100%; height: auto; }
+[data-grid] > img { display: block; width: 100%; height: auto; }
+[data-grid] .breakout img, [data-grid] .full-width img { display: block; width: 100%; height: auto; }
+/* Full-bleed images run edge to edge: no radius. */
+[data-grid] > .full-width img { border-radius: 0; }
 @media (max-width: 40rem) {
-  .content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
+  [data-grid] { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
 }`;
 }
 
@@ -97,30 +100,34 @@ const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
 export function generateRoutingCss(breakouts: Breakouts): string {
   const breakoutSel: string[] = [];
   const fullSel: string[] = [];
+  const fullImg: string[] = [];
   for (const el of Object.keys(BREAKOUT_SELECTOR) as BreakoutElement[]) {
     const level: BreakoutLevel = breakouts[el] ?? "content";
     const s = BREAKOUT_SELECTOR[el];
     if (level === "breakout") {
-      breakoutSel.push(`.content-grid > ${s}`);
+      breakoutSel.push(`[data-grid] > ${s}`);
     }
     if (level === "full") {
-      fullSel.push(`.content-grid > ${s}`);
+      fullSel.push(`[data-grid] > ${s}`);
+      // Full-bleed images run edge to edge: no radius.
+      if (el === "img") fullImg.push(`[data-grid] > ${s}`);
     }
   }
   const lines: string[] = ["/* Element breakout routing. */"];
   if (breakoutSel.length) lines.push(`${breakoutSel.join(",\n")} { grid-column: breakout; }`);
   if (fullSel.length) lines.push(`${fullSel.join(",\n")} { grid-column: full; }`);
+  if (fullImg.length) lines.push(`${fullImg.join(",\n")} { border-radius: 0; }`);
   return lines.join("\n");
 }
 
 /** data-grid feature level for a layout mode. */
 /**
- * Class contract for the document shell. The grid must sit on the element
- * whose direct children are the content (breakout/full-width targets), so
- * the builder and the shipped CSS stay in lockstep.
+ * Class contract for the document shell. The shell carries data-grid (the
+ * opt-in hook) and its direct children are the content, so the builder and
+ * the shipped CSS stay in lockstep.
  */
-export function docShellClasses(width: SizeValue): string {
-  return `tsb-doc content-grid tsb-width-${width.value}${width.unit === "%" ? "pct" : width.unit}`;
+export function docShellClasses(): string {
+  return `tsb-doc`;
 }
 
 /**
