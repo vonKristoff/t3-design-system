@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { TAILWIND_PALETTE } from '@tsup-system/core';
+	import { TAILWIND_PALETTE, generateRelativeScale, type RelativeScale } from '@tsup-system/core';
 
 	interface Props {
 		family: string;
@@ -15,6 +15,17 @@
 	let box: HTMLDivElement | undefined = $state(undefined);
 
 	const currentHex = $derived(TAILWIND_PALETTE[family]?.[step as '500'] ?? '#888888');
+
+	const RELATIVE_ORDER: (keyof RelativeScale)[] = ['dark-2', 'dark-1', 'base', 'light-1', 'light-2'];
+
+	// Constrained ±2 scale derived from the current pick (null if unresolvable).
+	const relative = $derived.by(() => {
+		try {
+			return generateRelativeScale(`${family}-${step}`);
+		} catch {
+			return null;
+		}
+	});
 
 	function toggle(): void {
 		open = !open;
@@ -51,6 +62,23 @@
 		<span class="min-w-0 flex-1 truncate text-left text-xs">{family}-{step}</span>
 		<span aria-hidden="true" class="text-neutral-400">{open ? '▲' : '▼'}</span>
 	</button>
+
+	{#if relative}
+		<div class="mt-1.5 flex items-stretch gap-0.5" aria-label="Derived relative scale">
+			{#each RELATIVE_ORDER as key (key)}
+				<span
+					title={`${key}: ${relative[key]}`}
+					style:background={relative[key]}
+					class="h-5 flex-1 rounded-sm border border-black/20 {key === 'base'
+						? 'ring-1 ring-neutral-700'
+						: ''}"
+				></span>
+			{/each}
+		</div>
+	{/if}
+	<p class="mt-1 text-[11px] leading-snug text-neutral-500">
+		Your colour lands on {step}; light/dark ±2 derive from it.
+	</p>
 
 	{#if open}
 		<ul
