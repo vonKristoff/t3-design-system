@@ -52,7 +52,7 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
       variables[`--${sem}-${step}`] = value;
     }
   }
-  const pairs = deriveReadablePairs(scales);
+  const pairs = deriveReadablePairs(scales, anchors);
   for (const [name, value] of Object.entries(pairs)) {
     variables[name] = value;
   }

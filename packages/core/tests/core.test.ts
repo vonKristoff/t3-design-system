@@ -254,6 +254,31 @@ describe("readable pairs", () => {
     expect(files["markdown.css"]).toContain("color: var(--prose-on-quote);");
     expect(files["markdown.css"]).toContain("color: var(--traffic-ok-on-callout);");
   });
+  test("hue bounce rescues grey links from chromatic anchors", () => {
+    const light = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, accent: "yellow-100" },
+    };
+    const gen = generateTheme(light);
+    const link = gen.pairs["--accent-on-base"];
+    expect(link).not.toBe(gen.scales["accent"]["600"]);
+    const back = hexToOklch(link);
+    expect(back.c).toBeGreaterThanOrEqual(0.05);
+    const base = cssToHex(gen.scales["base"]["50"]) as string;
+    expect(contrastRatio(link, base)).toBeGreaterThanOrEqual(4.5);
+    // Complementary hue of the yellow anchor (≈103° → ≈283°).
+    let drift = Math.abs(back.h - 283.2);
+    if (drift > 180) drift = 360 - drift;
+    expect(drift).toBeLessThanOrEqual(40);
+  });
+  test("hue bounce never fires for achromatic anchors", () => {
+    const grey = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, accent: "slate-500" },
+    };
+    const gen = generateTheme(grey);
+    expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
+  });
 });
 
 describe("theme consistency", () => {

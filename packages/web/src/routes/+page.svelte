@@ -37,6 +37,7 @@
 	import ColorField from '$lib/components/ColorField.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import PaletteModal from '$lib/components/PaletteModal.svelte';
 	import SampleDoc from '$lib/sample.svx';
 	import {
 		theme,
@@ -251,6 +252,7 @@
 	const STEP_ICON = [Type, Palette, LayoutGrid, Quote];
 
 	let activeStep = $state<StepId>('step-fonts');
+	let paletteOpen = $state(false);
 	let cssPanelOpen = $state(false);
 	let footerVisible = $state(false);
 	let frame: HTMLIFrameElement | undefined = $state(undefined);
@@ -594,6 +596,15 @@
 						<PanelRight size={16} />
 					{/if}
 					<span class="hidden sm:inline">CSS preview</span>
+				</button>
+				<button
+					type="button"
+					onclick={() => (paletteOpen = true)}
+					title="Preview generated palette"
+					class="hidden items-center gap-1.5 rounded-md border border-neutral-300 px-2.5 py-1.5 text-xs font-medium hover:bg-neutral-50 md:flex"
+				>
+					<Palette size={16} />
+					<span class="hidden sm:inline">Palette</span>
 				</button>
 				<button
 					type="button"
@@ -1145,4 +1156,6 @@
 			</div>
 		</div>
 	</aside>
+
+	<PaletteModal open={paletteOpen} gen={getGenerated()} onclose={() => (paletteOpen = false)} />
 </div>
