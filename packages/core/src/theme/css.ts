@@ -142,7 +142,7 @@ export function generateWidthCss(width: SizeValue, breakout: SizeValue): string 
       ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
       : "";
   return `/* Content ${size(width)}; breakout +${size(breakout)} per side. */
-.tsb-doc { --content-size: ${size(width)}; --breakout-size: ${size(breakout)}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-800); }${fullOverride}`;
+.tsb-doc { --content-size: ${size(width)}; --breakout-size: ${size(breakout)}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-on-base); }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
@@ -188,11 +188,11 @@ html { background: var(--base-100); }
 body {
   margin: 0;
   background: var(--base-50);
-  color: var(--prose-800);
+  color: var(--prose-on-base);
   font-family: var(--font-p, var(--font-primary));
 }
-a { color: var(--accent-600); }
-a:hover { color: var(--accent-700); }
+a { color: var(--accent-on-base); }
+a:hover { color: var(--accent-hover-on-base); }
 hr { border: 0; border-top: 1px solid var(--alt-300); }
 img { max-width: 100%; border-radius: 0.5rem; }
 /* Full-bleed preview band: matches the html background so themed
@@ -216,7 +216,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown h4 { font-family: var(--font-h4); font-weight: var(--font-h4-weight, 400); font-size: ${fluid("h4")}; }
 .markdown h5 { font-family: var(--font-h5); font-weight: var(--font-h5-weight, 400); font-size: ${fluid("h5")}; }
 .markdown h6 { font-family: var(--font-h6); font-weight: var(--font-h6-weight, 400); font-size: ${fluid("h6")}; }
-.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-800); line-height: normal; font-size: ${fluid("p")}; text-wrap: pretty; }
+.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-on-base); line-height: normal; font-size: ${fluid("p")}; text-wrap: pretty; }
 .markdown p { margin-bottom: 1.3rem; }
 .markdown ul, .markdown ol { font-family: var(--font-list); font-weight: var(--font-list-weight, 400); }
 .markdown li { margin-left: 0.5rem; }
@@ -234,7 +234,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
 }
 .markdown blockquote p { margin-bottom: 0; }
 .markdown.bq-rule blockquote {
-  color: var(--prose-700);
+  color: var(--prose-on-quote);
   background: var(--alt-100);
   border-left: 4px solid var(--accent-500);
   padding: 0.75rem 1rem;
@@ -242,7 +242,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
 }
 .markdown.bq-rule blockquote p { font-size: ${fluid("blockquote")}; font-style: italic; font-weight: var(--font-blockquote-weight, 400); }
 .markdown.bq-pull blockquote {
-  color: var(--prose-800);
+  color: var(--prose-on-base);
   background: transparent;
   border: 0;
   padding: 1.5rem 1rem;
@@ -250,7 +250,7 @@ img { max-width: 100%; border-radius: 0.5rem; }
 }
 .markdown.bq-pull blockquote p { font-size: ${fluid("h3")}; font-style: italic; line-height: normal; font-weight: var(--font-blockquote-weight, 400); }
 .markdown.bq-minimal blockquote {
-  color: var(--prose-600);
+  color: var(--prose-on-quote-soft);
   background: transparent;
   border: 0;
   padding: 0.25rem 0 0.25rem 1rem;
@@ -260,15 +260,15 @@ img { max-width: 100%; border-radius: 0.5rem; }
   font-family: var(--font-code);
   font-weight: var(--font-code-weight, 400);
   background: var(--alt-950);
-  color: var(--alt-50);
+  color: var(--pre-on-ink);
   font-size: ${fluid("code")};
   border-radius: 0.5rem;
   overflow-x: auto;
   padding: 1.125em;
 }
-.markdown code { font-family: var(--font-code); background: var(--alt-200); color: var(--prose-900); padding: 0.1em 0.35em; border-radius: 0.3rem; }
+.markdown code { font-family: var(--font-code); background: var(--alt-200); color: var(--prose-on-alt); padding: 0.1em 0.35em; border-radius: 0.3rem; }
 .markdown pre code { background: transparent; color: inherit; padding: 0; }
-.markdown table { width: 100%; border-collapse: collapse; font-family: var(--font-p); }.markdown th { background: var(--alt-200); color: var(--prose-900); text-align: left; }
+.markdown table { width: 100%; border-collapse: collapse; font-family: var(--font-p); }.markdown th { background: var(--alt-200); color: var(--prose-on-alt); text-align: left; }
 .markdown th, .markdown td { border: 1px solid var(--alt-300); padding: 0.5rem 0.75rem; }
 .markdown tbody tr:nth-child(even) { background: var(--alt-100); }
 .markdown ul { list-style: disc; padding-left: 1.5rem; }
@@ -276,11 +276,11 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown ul ul { list-style: circle; }
 .markdown ol ol, .markdown ul ol { list-style: lower-roman; }
 .markdown li { margin: 0.25rem 0; }
-.markdown li::marker { color: var(--accent-600); }
+.markdown li::marker { color: var(--accent-on-base); }
 .markdown .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0; }
-.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-900); }
-.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-900); }
-.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-900); }
+.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
+.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
+.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
 .markdown .brand { color: var(--brand-primary); }
 .markdown .brand-secondary { color: var(--brand-secondary); }
 /* Stacked images keep breathing room, in and out of the grid. */

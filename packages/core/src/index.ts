@@ -5,6 +5,7 @@ export * from "./theme/generate-theme.ts";
 export * from "./theme/validate.ts";
 export * from "./theme/css.ts";
 export * from "./theme/contrast.ts";
+export * from "./theme/readable-pairs.ts";
 export * from "./colors/tailwind-palette.ts";
 export * from "./colors/oklch.ts";
 export * from "./colors/generate-scale.ts";

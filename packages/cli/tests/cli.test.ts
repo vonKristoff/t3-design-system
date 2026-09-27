@@ -35,7 +35,10 @@ describe("cli output", () => {
 
     const markdownCss = await readFile(join(out, "markdown.css"), "utf8");
     expect(markdownCss).not.toMatch(/blue-600|red-500|amber-100/);
-    expect(markdownCss).toContain("var(--prose-700)");
+    expect(markdownCss).toContain("var(--prose-on-quote)");
+    expect(markdownCss).toContain("var(--accent-on-base)");
+    expect(rootCss).toContain(`--accent-light-1: ${gen.variables["--accent-light-1"]};`);
+    expect(rootCss).toContain(`--prose-on-base: ${gen.variables["--prose-on-base"]};`);
   });
 
   test("missing theme fails with useful error", async () => {

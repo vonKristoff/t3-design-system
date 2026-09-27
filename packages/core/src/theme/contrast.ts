@@ -2,8 +2,8 @@ import { hexToRgb } from "../colors/oklch.ts";
 import { generateScale } from "../colors/generate-scale.ts";
 import type { ThemeOptions } from "./types.ts";
 
-function luminance(hex: string): number {
-  let { r, g, b } = hexToRgb(hex);
+export function luminance(hex: string): number {
+  const { r, g, b } = hexToRgb(hex);
   const f = (c: number) => {
     c = Math.min(1, Math.max(0, c));
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
@@ -11,7 +11,7 @@ function luminance(hex: string): number {
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 }
 
-function cssToHex(value: string): string | null {
+export function cssToHex(value: string): string | null {
   const v = value.trim();
   if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(v)) {
     let h = v.slice(1);

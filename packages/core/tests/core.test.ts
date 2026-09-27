@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { resolveTailwindHex } from "../src/colors/tailwind-palette.ts";
-import { generateScale } from "../src/colors/generate-scale.ts";
+import { generateRelativeScale, generateScale, parseTailwindStep, RELATIVE_DELTA } from "../src/colors/generate-scale.ts";
 import { isValidCssColor, hexToOklch } from "../src/colors/oklch.ts";
+import { contrastRatio, cssToHex } from "../src/theme/contrast.ts";
+import { READABLE_PAIRS } from "../src/theme/readable-pairs.ts";
 import { DEFAULT_THEME } from "../src/theme/defaults.ts";
 import { PRESET_THEMES, assertPresetsValid, matchPreset } from "../src/theme/presets.ts";
 import { generateTheme } from "../src/theme/generate-theme.ts";
@@ -156,6 +158,101 @@ describe("serialization round-trip", () => {
     const files = generateThemeFiles(weighted, gen, "");
     expect(files["root.css"]).toContain("--font-h1-weight: 650;");
     expect(files["typography.css"]).toContain("font-weight: var(--font-h1-weight, 400);");
+  });
+});
+
+describe("anchor pinning", () => {
+  test("the picked step number is where the colour lands", () => {
+    expect(parseTailwindStep("yellow-100")).toBe("100");
+    expect(generateScale("yellow-100")["100"]).toBe("#fef9c3");
+    expect(generateScale("slate-950")["950"]).toBe(resolveTailwindHex("slate-950").toLowerCase());
+    expect(generateScale("blue-600")["600"]).toBe("#2563eb");
+  });
+});
+
+describe("relative scale", () => {
+  test("fixed delta, strict ordering mid-range", () => {
+    expect(RELATIVE_DELTA).toBe(0.1);
+    const rel = generateRelativeScale("blue-600");
+    expect(rel.base).toBe("#2563eb");
+    for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
+    const l = (hex: string) => hexToOklch(hex).l;
+    expect(l(rel["light-2"])).toBeGreaterThan(l(rel["light-1"]));
+    expect(l(rel["light-1"])).toBeGreaterThan(l(rel.base));
+    expect(l(rel.base)).toBeGreaterThan(l(rel["dark-1"]));
+    expect(l(rel["dark-1"])).toBeGreaterThan(l(rel["dark-2"]));
+    expect(l(rel["light-1"]) - l(rel.base)).toBeCloseTo(0.1, 1);
+    expect(l(rel.base) - l(rel["dark-1"])).toBeCloseTo(0.1, 1);
+  });
+  test("extreme anchors clamp without invalid output", () => {
+    for (const name of ["yellow-50", "slate-950"]) {
+      const rel = generateRelativeScale(name);
+      for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
+      const l = (hex: string) => hexToOklch(hex).l;
+      // Non-strict: clamped steps may duplicate at the extremes.
+      expect(l(rel["light-2"])).toBeGreaterThanOrEqual(l(rel["light-1"]));
+      expect(l(rel["light-1"])).toBeGreaterThanOrEqual(l(rel.base));
+      expect(l(rel.base)).toBeGreaterThanOrEqual(l(rel["dark-1"]));
+      expect(l(rel["dark-1"])).toBeGreaterThanOrEqual(l(rel["dark-2"]));
+    }
+  });
+  test("relative tokens are emitted per semantic", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    for (const key of ["light-1", "light-2", "dark-1", "dark-2"] as const) {
+      expect(gen.variables[`--accent-${key}`]).toBe(gen.relative["accent"][key]);
+    }
+    expect(gen.rootCss).toContain("--base-light-1:");
+    expect(gen.rootCss).toContain("--traffic-ok-dark-2:");
+  });
+});
+
+describe("readable pairs", () => {
+  test("every pair meets AA against its surface", () => {
+    const kj = (v: string | null) => {
+      expect(v).not.toBeNull();
+      return v as string;
+    };
+    const checkTheme = (colors: typeof DEFAULT_THEME.colors) => {
+      const theme = { ...structuredClone(DEFAULT_THEME), colors };
+      const gen = generateTheme(theme);
+      for (const spec of READABLE_PAIRS) {
+        const text = kj(cssToHex(gen.pairs[spec.varName]));
+        const bg = kj(cssToHex(gen.scales[spec.bgSem][spec.bgStep]));
+        expect(contrastRatio(text, bg)).toBeGreaterThanOrEqual(4.5);
+      }
+      const hover = kj(cssToHex(gen.pairs["--accent-hover-on-base"]));
+      const link = kj(cssToHex(gen.pairs["--accent-on-base"]));
+      const base = kj(cssToHex(gen.scales["base"]["50"]));
+      expect(contrastRatio(hover, base)).toBeGreaterThanOrEqual(4.5);
+      expect(hover).not.toBe(link);
+    };
+    checkTheme(DEFAULT_THEME.colors);
+    const night = PRESET_THEMES.find((p) => p.name === "night")!;
+    checkTheme(night.colors);
+    checkTheme({ ...DEFAULT_THEME.colors, accent: "yellow-100", prose: "amber-200" });
+  });
+  test("defaults resolve to the previously hardcoded rungs", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    expect(gen.pairs["--prose-on-base"]).toBe(gen.scales["prose"]["800"]);
+    expect(gen.pairs["--prose-on-alt"]).toBe(gen.scales["prose"]["900"]);
+    expect(gen.pairs["--prose-on-quote"]).toBe(gen.scales["prose"]["700"]);
+    expect(gen.pairs["--prose-on-quote-soft"]).toBe(gen.scales["prose"]["600"]);
+    expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
+    expect(gen.pairs["--accent-hover-on-base"]).toBe(gen.scales["accent"]["700"]);
+    expect(gen.pairs["--traffic-stop-on-callout"]).toBe(gen.scales["traffic-stop"]["900"]);
+    expect(gen.pairs["--traffic-warning-on-callout"]).toBe(gen.scales["traffic-warning"]["900"]);
+    expect(gen.pairs["--traffic-ok-on-callout"]).toBe(gen.scales["traffic-ok"]["900"]);
+    expect(gen.pairs["--pre-on-ink"]).toBe(gen.scales["alt"]["50"]);
+  });
+  test("pair vars are emitted and consumed", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    expect(gen.rootCss).toContain("--prose-on-base:");
+    expect(gen.rootCss).toContain("--accent-hover-on-base:");
+    expect(files["base.css"]).toContain("color: var(--prose-on-base);");
+    expect(files["base.css"]).toContain("color: var(--accent-on-base);");
+    expect(files["markdown.css"]).toContain("color: var(--prose-on-quote);");
+    expect(files["markdown.css"]).toContain("color: var(--traffic-ok-on-callout);");
   });
 });
 

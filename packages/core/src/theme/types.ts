@@ -117,6 +117,23 @@ export const SCALE_STEPS: ScaleStep[] = [
 
 export type ColorScale = Record<ScaleStep, string>;
 
+/**
+ * Constrained relative scale: the exact anchor plus two fixed lightness
+ * steps either side. Emitted as --{semantic}, --{semantic}-light-1/2,
+ * --{semantic}-dark-1/2.
+ */
+export interface RelativeScale {
+  base: string;
+  "light-1": string;
+  "light-2": string;
+  "dark-1": string;
+  "dark-2": string;
+}
+
+export const RELATIVE_KEYS = ["light-1", "light-2", "dark-1", "dark-2"] as const;
+
+export type RelativeKey = (typeof RELATIVE_KEYS)[number];
+
 export const SEMANTIC_NAMES = [
   "base",
   "alt",
