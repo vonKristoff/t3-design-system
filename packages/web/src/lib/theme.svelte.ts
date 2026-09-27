@@ -15,8 +15,9 @@ import {
 	buildBunxCommand,
 	contrastWarnings,
 	googleFontHref,
+	resolveBounce,
 	type BlockquoteVariant,
-	type BreakoutElement,
+	type ResolvedBounce,	type BreakoutElement,
 	type BreakoutLevel,
 	type SizeValue,
 	type FontElement,
@@ -70,7 +71,10 @@ function readTheme(): ThemeOptions {
 		fontAssignments: theme.fontAssignments ? { ...theme.fontAssignments } : undefined,
 		width: { ...(theme.width ?? DEFAULT_THEME.width!) },
 		breakout: { ...(theme.breakout ?? DEFAULT_THEME.breakout!) },
-		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined
+		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined,
+		experiments: theme.experiments?.hueBounce
+			? { hueBounce: { ...theme.experiments.hueBounce } }
+			: undefined
 	};
 }
 
@@ -161,6 +165,21 @@ export function setBlockquote(variant: BlockquoteVariant): void {
 	theme.components.blockquote = variant;
 }
 
+export function getHueBounce(): ReturnType<typeof resolveBounce> {
+	return resolveBounce(theme.experiments?.hueBounce);
+}
+
+export function setHueBounce(patch: Partial<ResolvedBounce>): void {
+	const next: Record<string, number | boolean> = {};
+	if (patch.enabled !== undefined) next.enabled = patch.enabled;
+	if (patch.hueShift !== undefined) next.hueShift = patch.hueShift;
+	if (patch.minAnchorC !== undefined) next.minAnchorC = patch.minAnchorC;
+	if (patch.maxPickC !== undefined) next.maxPickC = patch.maxPickC;
+	if (patch.minRenderC !== undefined) next.minRenderC = patch.minRenderC;
+	if (patch.maxDrift !== undefined) next.maxDrift = patch.maxDrift;
+	theme.experiments = { hueBounce: { ...theme.experiments?.hueBounce, ...next } };
+}
+
 /** Full standalone document CSS for the iframe preview (same files the CLI ships). */
 export function getDocumentCss(): string {
 	const s = readTheme();
@@ -227,4 +246,5 @@ export function resetTheme(): void {
 	theme.breakout = fresh.breakout;
 	theme.breakouts = fresh.breakouts;
 	theme.components = fresh.components;
+	theme.experiments = fresh.experiments;
 }

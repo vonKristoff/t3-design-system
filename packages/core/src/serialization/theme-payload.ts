@@ -78,6 +78,9 @@ export function encodeTheme(options: ThemeOptions): string {
   if (!same(options.components ?? {}, DEFAULT_THEME.components ?? {})) {
     out["components"] = options.components ?? {};
   }
+  if (!same(options.experiments ?? {}, DEFAULT_THEME.experiments ?? {})) {
+    out["experiments"] = options.experiments ?? {};
+  }
 
   const json = JSON.stringify(out);
   return base64UrlEncode(deflateSync(strToU8(json)));

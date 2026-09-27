@@ -279,6 +279,44 @@ describe("readable pairs", () => {
     const gen = generateTheme(grey);
     expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
   });
+  test("hue bounce toggle and knobs are honored", () => {
+    const light = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, accent: "yellow-100" },
+    };
+    const bounced = generateTheme(light).pairs["--accent-on-base"];
+    expect(bounced).not.toBe(generateTheme(light).scales["accent"]["600"]);
+    const off = generateTheme({
+      ...light,
+      experiments: { hueBounce: { enabled: false } },
+    });
+    expect(off.pairs["--accent-on-base"]).toBe(off.scales["accent"]["600"]);
+    const shifted = generateTheme({
+      ...light,
+      experiments: { hueBounce: { hueShift: 90 } },
+    });
+    expect(shifted.pairs["--accent-on-base"]).not.toBe(bounced);
+    const shiftedBack = hexToOklch(shifted.pairs["--accent-on-base"]);
+    let drift = Math.abs(shiftedBack.h - ((103.2 + 90) % 360));
+    if (drift > 180) drift = 360 - drift;
+    expect(drift).toBeLessThanOrEqual(40);
+  });
+  test("experiments validate, reject junk, and round-trip", () => {
+    const withExp = {
+      ...structuredClone(DEFAULT_THEME),
+      experiments: { hueBounce: { enabled: true, hueShift: 200 } },
+    };
+    expect(decodeTheme(encodeTheme(withExp))).toEqual(withExp);
+    expect(() =>
+      validateThemeOptions({ version: 1, experiments: { hueBounce: { hueShift: 999 } } })
+    ).toThrow(/hueShift/);
+    expect(() =>
+      validateThemeOptions({ version: 1, experiments: { hueBounce: { enabled: "yes" } } })
+    ).toThrow(/enabled/);
+    expect(() =>
+      validateThemeOptions({ version: 1, experiments: "bounce" })
+    ).toThrow(/experiments/);
+  });
 });
 
 describe("theme consistency", () => {

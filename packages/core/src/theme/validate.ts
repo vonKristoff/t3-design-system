@@ -190,5 +190,45 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components };
+  // --- experiments (absent => defaults; partial objects merged per knob) ---
+  let experiments: ThemeOptions["experiments"];
+  if (v["experiments"] === undefined) {
+    experiments = { ...DEFAULT_THEME.experiments };
+  } else {
+    const re = v["experiments"];
+    if (typeof re !== "object" || re === null) throw err('Invalid "experiments" object.');
+    experiments = {};
+    const hb: unknown = (re as Record<string, unknown>)["hueBounce"];
+    if (hb !== undefined) {
+      if (typeof hb !== "object" || hb === null) throw err('Invalid "experiments.hueBounce" object.');
+      const h = hb as Record<string, unknown>;
+      const num = (key: string, min: number, max: number): number | undefined => {
+        const n = h[key];
+        if (n === undefined) return undefined;
+        if (typeof n !== "number" || !Number.isFinite(n) || n < min || n > max) {
+          throw err(`Invalid experiments.hueBounce.${key}: ${JSON.stringify(n)}. Expected ${min}–${max}.`);
+        }
+        return n;
+      };
+      const enabled = h["enabled"];
+      if (enabled !== undefined && typeof enabled !== "boolean") {
+        throw err(`Invalid experiments.hueBounce.enabled: ${JSON.stringify(enabled)}.`);
+      }
+      const parsed: NonNullable<NonNullable<ThemeOptions["experiments"]>["hueBounce"]> = {};
+      if (enabled !== undefined) parsed.enabled = enabled;
+      const hueShift = num("hueShift", 0, 360);
+      if (hueShift !== undefined) parsed.hueShift = hueShift;
+      const minAnchorC = num("minAnchorC", 0, 0.3);
+      if (minAnchorC !== undefined) parsed.minAnchorC = minAnchorC;
+      const maxPickC = num("maxPickC", 0, 0.3);
+      if (maxPickC !== undefined) parsed.maxPickC = maxPickC;
+      const minRenderC = num("minRenderC", 0, 0.3);
+      if (minRenderC !== undefined) parsed.minRenderC = minRenderC;
+      const maxDrift = num("maxDrift", 0, 180);
+      if (maxDrift !== undefined) parsed.maxDrift = maxDrift;
+      experiments.hueBounce = parsed;
+    }
+  }
+
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, experiments };
 }

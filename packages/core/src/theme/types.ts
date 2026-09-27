@@ -70,6 +70,28 @@ export interface ComponentStyles {
   blockquote?: BlockquoteVariant;
 }
 
+/**
+ * Hue-bounce experiment knobs. All optional — absent means the default.
+ * When disabled, readable picks stay exactly as derived (no hue rotation).
+ */
+export interface BounceOptions {
+  enabled?: boolean;
+  /** Complementary rotation in degrees. Default 180. */
+  hueShift?: number;
+  /** Bounce only when the anchor family is at least this chromatic. Default 0.03. */
+  minAnchorC?: number;
+  /** Bounce only when the picked rung is greyer than this. Default 0.03. */
+  maxPickC?: number;
+  /** Bounced render must reach at least this chroma. Default 0.05. */
+  minRenderC?: number;
+  /** Bounced render must stay within this hue drift. Default 40. */
+  maxDrift?: number;
+}
+
+export interface Experiments {
+  hueBounce?: BounceOptions;
+}
+
 export interface ThemeOptions {
   version: number;
   colors: ThemeColors;
@@ -86,6 +108,8 @@ export interface ThemeOptions {
   breakouts?: Breakouts;
   /** Component styles. Defaults to { blockquote: "rule" } when omitted. */
   components?: ComponentStyles;
+  /** Experiment flags. Defaults to hue bounce enabled. */
+  experiments?: Experiments;
 }
 
 export type ScaleStep =

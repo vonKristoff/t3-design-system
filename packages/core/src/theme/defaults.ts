@@ -43,6 +43,9 @@ export const DEFAULT_THEME: ThemeOptions = {
   components: {
     blockquote: "rule",
   },
+  experiments: {
+    hueBounce: { enabled: true },
+  },
 };
 
 // Curated Google Fonts: 3 sans + 3 serif. `axis` is the variable-font axis

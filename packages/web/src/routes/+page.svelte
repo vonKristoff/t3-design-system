@@ -51,6 +51,8 @@
 		getGenerated,
 		getActivePreset,
 		applyPresetTheme,
+		getHueBounce,
+		setHueBounce,
 		getWidth,
 		setWidth,
 		getBreakoutWidth,
@@ -499,6 +501,7 @@
 		{ el: 'h2', tag: 'h2', sample: 'Scales with viewport' },
 		{ el: 'h3', tag: 'h3', sample: 'No breakpoints needed' },
 		{ el: 'h4', tag: 'h4', sample: 'One clamp per level' },
+		{ el: 'h5', tag: 'h5', sample: 'Small but proportionate' },
 		{ el: 'p', tag: 'p', sample: 'The quick brown fox jumps over the lazy dog.' },
 		{ el: 'blockquote', tag: 'blockquote', sample: 'Simplicity is the soul of efficiency.' }
 	];
@@ -854,6 +857,62 @@
 								/>
 							</div>
 						{/each}
+					</div>
+					<div class="mt-3 rounded-lg border border-dashed border-neutral-300 bg-white p-3">
+						<label class="flex cursor-pointer items-center gap-2 text-sm font-medium">
+							<input
+								type="checkbox"
+								checked={getHueBounce().enabled}
+								onchange={(e) => setHueBounce({ enabled: (e.currentTarget as HTMLInputElement).checked })}
+								class="accent-neutral-900"
+							/>
+							Experiments · hue bounce
+							<span class="font-normal text-neutral-500">grey readable picks rotate hue + strengthen</span>
+						</label>
+						{#if getHueBounce().enabled}
+							<div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+								<label class="block text-xs text-neutral-600">
+									<span class="mb-1 flex justify-between"><span>Hue shift°</span><output class="font-mono">{getHueBounce().hueShift}</output></span>
+									<input
+										type="range" min="0" max="360" step="5" value={getHueBounce().hueShift}
+										oninput={(e) => setHueBounce({ hueShift: Number((e.currentTarget as HTMLInputElement).value) })}
+										class="w-full accent-neutral-900" aria-label="Hue shift degrees"
+									/>
+								</label>
+								<label class="block text-xs text-neutral-600">
+									<span class="mb-1 flex justify-between"><span>Needs anchor C ≥</span><output class="font-mono">{getHueBounce().minAnchorC.toFixed(3)}</output></span>
+									<input
+										type="range" min="0" max="0.1" step="0.005" value={getHueBounce().minAnchorC}
+										oninput={(e) => setHueBounce({ minAnchorC: Number((e.currentTarget as HTMLInputElement).value) })}
+										class="w-full accent-neutral-900" aria-label="Minimum anchor chroma"
+									/>
+								</label>
+								<label class="block text-xs text-neutral-600">
+									<span class="mb-1 flex justify-between"><span>Bounce when pick C &lt;</span><output class="font-mono">{getHueBounce().maxPickC.toFixed(3)}</output></span>
+									<input
+										type="range" min="0" max="0.1" step="0.005" value={getHueBounce().maxPickC}
+										oninput={(e) => setHueBounce({ maxPickC: Number((e.currentTarget as HTMLInputElement).value) })}
+										class="w-full accent-neutral-900" aria-label="Maximum pick chroma"
+									/>
+								</label>
+								<label class="block text-xs text-neutral-600">
+									<span class="mb-1 flex justify-between"><span>Target strength C ≥</span><output class="font-mono">{getHueBounce().minRenderC.toFixed(2)}</output></span>
+									<input
+										type="range" min="0.02" max="0.2" step="0.01" value={getHueBounce().minRenderC}
+										oninput={(e) => setHueBounce({ minRenderC: Number((e.currentTarget as HTMLInputElement).value) })}
+										class="w-full accent-neutral-900" aria-label="Minimum rendered chroma"
+									/>
+								</label>
+								<label class="block text-xs text-neutral-600">
+									<span class="mb-1 flex justify-between"><span>Max drift°</span><output class="font-mono">{getHueBounce().maxDrift}</output></span>
+									<input
+										type="range" min="0" max="180" step="5" value={getHueBounce().maxDrift}
+										oninput={(e) => setHueBounce({ maxDrift: Number((e.currentTarget as HTMLInputElement).value) })}
+										class="w-full accent-neutral-900" aria-label="Maximum hue drift degrees"
+									/>
+								</label>
+							</div>
+						{/if}
 					</div>
 				</div>
 

@@ -1,7 +1,7 @@
 import { TARGET_L } from "../colors/generate-scale.ts";
 import { hexToOklch, oklchToHex } from "../colors/oklch.ts";
 import { contrastRatio, cssToHex, luminance } from "./contrast.ts";
-import type { ColorScale, ScaleStep, SemanticName } from "./types.ts";
+import type { BounceOptions, ColorScale, ScaleStep, SemanticName } from "./types.ts";
 import { SCALE_STEPS } from "./types.ts";
 
 export const MIN_READABLE_RATIO = 4.5;
@@ -14,6 +14,28 @@ export const BOUNCE_HUE_SHIFT = 180;
 export const BOUNCE_SWEEP_C = [0.06, 0.09, 0.12, 0.15, 0.18];
 export const BOUNCE_MIN_RENDER_C = 0.05;
 export const BOUNCE_MAX_HUE_DRIFT = 40;
+
+export interface ResolvedBounce {
+  enabled: boolean;
+  hueShift: number;
+  minAnchorC: number;
+  maxPickC: number;
+  minRenderC: number;
+  maxDrift: number;
+}
+
+export const BOUNCE_DEFAULTS: ResolvedBounce = {
+  enabled: true,
+  hueShift: BOUNCE_HUE_SHIFT,
+  minAnchorC: BOUNCE_MIN_ANCHOR_C,
+  maxPickC: BOUNCE_MAX_PICK_C,
+  minRenderC: BOUNCE_MIN_RENDER_C,
+  maxDrift: BOUNCE_MAX_HUE_DRIFT,
+};
+
+export function resolveBounce(opts?: BounceOptions): ResolvedBounce {
+  return { ...BOUNCE_DEFAULTS, ...opts };
+}
 
 export interface ReadablePairSpec {
   /** Emitted variable, e.g. "--prose-on-base". */
@@ -117,8 +139,10 @@ export function bounceHex(
   pickedHex: string,
   anchorHex: string,
   bgHex: string,
-  minRatio = MIN_READABLE_RATIO
+  minRatio = MIN_READABLE_RATIO,
+  bounce: ResolvedBounce = BOUNCE_DEFAULTS
 ): string {
+  if (!bounce.enabled) return pickedHex;
   let anchor: { l: number; c: number; h: number };
   let picked: { l: number; c: number; h: number };
   try {
@@ -127,9 +151,9 @@ export function bounceHex(
   } catch {
     return pickedHex;
   }
-  if (anchor.c < BOUNCE_MIN_ANCHOR_C) return pickedHex;
-  if (picked.c >= BOUNCE_MAX_PICK_C) return pickedHex;
-  const targetH = (anchor.h + BOUNCE_HUE_SHIFT) % 360;
+  if (anchor.c < bounce.minAnchorC) return pickedHex;
+  if (picked.c >= bounce.maxPickC) return pickedHex;
+  const targetH = (anchor.h + bounce.hueShift) % 360;
   for (const c of BOUNCE_SWEEP_C) {
     const hex = oklchToHex(picked.l, c, targetH);
     let back: { l: number; c: number; h: number };
@@ -140,7 +164,7 @@ export function bounceHex(
     }
     let drift = Math.abs(back.h - targetH);
     if (drift > 180) drift = 360 - drift;
-    if (back.c >= BOUNCE_MIN_RENDER_C && drift <= BOUNCE_MAX_HUE_DRIFT && contrastRatio(hex, bgHex) >= minRatio) {
+    if (back.c >= bounce.minRenderC && drift <= bounce.maxDrift && contrastRatio(hex, bgHex) >= minRatio) {
       return hex;
     }
   }
@@ -150,7 +174,8 @@ export function bounceHex(
 /** Derive every readable pair value (varName → hex) from generated scales. */
 export function deriveReadablePairs(
   scales: Record<SemanticName, ColorScale>,
-  anchors: Record<SemanticName, string>
+  anchors: Record<SemanticName, string>,
+  bounce: ResolvedBounce = BOUNCE_DEFAULTS
 ): Record<string, string> {
   const out: Record<string, string> = {};
   let accentLink: ScaleStep = "600";
@@ -160,7 +185,7 @@ export function deriveReadablePairs(
     const step = pickReadableRung(scales[spec.textSem], bg, spec.textPreferred);
     let hex = scales[spec.textSem][step];
     if (spec.bounce) {
-      hex = bounceHex(hex, anchors[spec.textSem], bg);
+      hex = bounceHex(hex, anchors[spec.textSem], bg, MIN_READABLE_RATIO, bounce);
     }
     out[spec.varName] = hex;
     if (spec.varName === "--accent-on-base") accentLink = step;
@@ -169,7 +194,7 @@ export function deriveReadablePairs(
   if (baseBg) {
     const hover = pickHoverRung(scales["accent"], baseBg, accentLink);
     let hex = scales["accent"][hover];
-    hex = bounceHex(hex, anchors["accent"], baseBg);
+    hex = bounceHex(hex, anchors["accent"], baseBg, MIN_READABLE_RATIO, bounce);
     out["--accent-hover-on-base"] = hex;
   }
   return out;

@@ -2,7 +2,7 @@ import { generateRelativeScale, generateScale } from "../colors/generate-scale.t
 import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
 import type { ColorScale, RelativeScale, SemanticName, ThemeOptions } from "./types.ts";
 import { RELATIVE_KEYS } from "./types.ts";
-import { deriveReadablePairs } from "./readable-pairs.ts";
+import { deriveReadablePairs, resolveBounce } from "./readable-pairs.ts";
 
 export interface GeneratedTheme {
   options: ThemeOptions;
@@ -52,7 +52,7 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
       variables[`--${sem}-${step}`] = value;
     }
   }
-  const pairs = deriveReadablePairs(scales, anchors);
+  const pairs = deriveReadablePairs(scales, anchors, resolveBounce(options.experiments?.hueBounce));
   for (const [name, value] of Object.entries(pairs)) {
     variables[name] = value;
   }
