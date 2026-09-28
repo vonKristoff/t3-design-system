@@ -650,9 +650,10 @@
 					{/each}
 				</nav>
 			</div>
-			<div class="mt-4 grid max-w-5xl gap-0 overflow-hidden rounded-lg border border-neutral-200 lg:grid-cols-2" style={getVarStyle()}>
-				<div class="bg-white p-4">
-					<h2 class="text-sm font-semibold">Think in roles, not hex codes</h2>
+			<div class="mt-4 max-w-5xl overflow-hidden rounded-lg border border-neutral-200" style={getVarStyle()}>
+				<h2 class="bg-white px-4 pt-4 text-sm font-semibold">Think in roles, not hex codes</h2>
+				<div class="grid lg:grid-cols-2">
+				<div class="bg-white p-4 pt-1">
 					<p class="mt-1 text-sm text-neutral-600">
 						You never pick raw colours — you assign meaning. Each semantic is a <em>job</em>:
 						<strong>Surfaces</strong> hold content (<code class="font-mono text-xs">base</code>,
@@ -696,6 +697,7 @@
 									{name}
 								</span>
 							{/each}
+						</div>
 						</div>
 					</div>
 				</div>
