@@ -284,11 +284,16 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown ol ol, .markdown ul ol { list-style: lower-roman; }
 .markdown li { margin: 0.25rem 0; }
 .markdown li::marker { color: var(--accent-on-base); }
-.markdown .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0; background: var(--alt-100); border-left: 4px solid var(--accent-500); color: var(--prose-on-quote); }
+.markdown .callout { position: relative; border-radius: 0.75rem; padding: 0.875rem 1rem 0.875rem 2.75rem; margin: 1rem 0; background: var(--alt-100); border-left: 4px solid var(--accent-500); color: var(--prose-on-quote); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.06); }
+.markdown .callout::before { content: ""; position: absolute; left: 1rem; top: 1.15rem; width: 0.6rem; height: 0.6rem; border-radius: 9999px; background: var(--accent-500); }
 .markdown .callout-pop { background: var(--pop-600); border-left: 4px solid var(--pop-700); color: var(--inverse-on-pop); }
+.markdown .callout-pop::before { background: var(--inverse-on-pop); }
 .markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
+.markdown .callout-stop::before { background: var(--traffic-stop-500); }
 .markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
+.markdown .callout-warning::before { background: var(--traffic-warning-500); }
 .markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
+.markdown .callout-ok::before { background: var(--traffic-ok-500); }
 .markdown .pop { color: var(--pop); }
 .markdown .muted { color: var(--muted-on-base); }
 /* Stacked images keep breathing room, in and out of the grid. */
