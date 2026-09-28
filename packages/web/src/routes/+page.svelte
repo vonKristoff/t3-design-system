@@ -1169,12 +1169,20 @@
 					<div class="flex flex-row items-center gap-1.5" aria-label="Chosen theme colours">
 						{#each COLOR_FIELDS as field (field.key)}
 							{@const chosen = theme.colors[field.key as ColorKey]}
-							<span
-								class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
-								style:background={swatch(chosen)}
-								title={`${field.label}: ${chosen} · ${swatch(chosen)}`}
-								aria-hidden="true"
-							></span>
+							<span class="group relative inline-flex" role="img" aria-label={`${field.label}: ${chosen}, ${swatch(chosen)} — ${field.hint}`}>
+								<span
+									class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
+									style:background={swatch(chosen)}
+									aria-hidden="true"
+								></span>
+								<span
+									class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden -translate-x-1/2 rounded-md bg-neutral-900 px-2 py-1 text-center whitespace-nowrap group-hover:block"
+									aria-hidden="true"
+								>
+									<span class="block text-[11px] font-semibold text-white">{field.label} · {chosen}</span>
+									<span class="block font-mono text-[10px] text-neutral-300">{swatch(chosen)} — {field.hint}</span>
+								</span>
+							</span>
 						{/each}
 					</div>
 				<code
