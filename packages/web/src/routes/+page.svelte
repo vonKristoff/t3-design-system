@@ -11,6 +11,7 @@
 		fluidClamp,
 		docShellClasses,
 		resolveTailwindHex,
+		twistPop,
 		type BlockquoteVariant,
 		type BreakoutElement,
 		type BreakoutLevel,
@@ -916,37 +917,50 @@
 								{/each}
 								{#if group === 'Emphasis'}
 									<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-										<span class="block">
-											<span class="block text-sm font-medium text-neutral-800">Twist</span>
-											<span class="block text-xs text-neutral-500">Pop rotated +35°, tweakable ±15</span>
-										</span>
-										<span
-											class="mt-1.5 block h-9 w-full rounded-md border border-black/20"
-											style:background={getGenerated().variables["--pop-twist"]}
-											title={`--pop-twist: ${getGenerated().variables["--pop-twist"]}`}
-											aria-hidden="true"
-										></span>
-										<label class="mt-1.5 block">
-											<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-												<span>Hue {getTwist().hue >= 0 ? '+' : ''}{getTwist().hue}°</span>
-												<output class="font-mono">+{35 + getTwist().hue}°</output>
+										<div class="grid grid-cols-[3fr_2fr] items-stretch gap-2">
+											<span class="min-w-0 space-y-1.5">
+												<span class="block">
+													<span class="block text-sm font-medium text-neutral-800">Twist</span>
+													<span class="block text-xs text-neutral-500">Pop rotated +35°, tweakable ±15</span>
+												</span>
+												<label class="block">
+													<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+														<span>Hue {getTwist().hue >= 0 ? '+' : ''}{getTwist().hue}°</span>
+														<output class="font-mono">+{35 + getTwist().hue}°</output>
+													</span>
+													<input
+														type="range" min="-15" max="15" step="1" value={getTwist().hue}
+														oninput={(e) => setTwistHue(Number((e.currentTarget as HTMLInputElement).value))}
+														class="w-full accent-neutral-900" aria-label="Twist hue tweak degrees"
+													/>
+												</label>
+												<label class="block">
+													<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+														<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
+													</span>
+													<input
+														type="range" min="-15" max="15" step="1" value={getTwist().saturation}
+														oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
+														class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
+													/>
+												</label>
 											</span>
-											<input
-												type="range" min="-15" max="15" step="1" value={getTwist().hue}
-												oninput={(e) => setTwistHue(Number((e.currentTarget as HTMLInputElement).value))}
-												class="w-full accent-neutral-900" aria-label="Twist hue tweak degrees"
-											/>
-										</label>
-										<label class="mt-1 block">
-											<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-												<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
-											</span>
-											<input
-												type="range" min="-15" max="15" step="1" value={getTwist().saturation}
-												oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
-												class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
-											/>
-										</label>
+											<span
+												class="inline-block min-h-28 rounded-md border border-black/20"
+												style:background={getGenerated().variables["--pop-twist"]}
+												title={`--pop-twist: ${getGenerated().variables["--pop-twist"]}`}
+												aria-hidden="true"
+											></span>
+										</div>
+										<div class="mt-1.5 flex items-stretch gap-0.5" aria-label="Twist hue sweep">
+											{#each [-15, -10, -5, 0, 5, 10, 15] as t (t)}
+												<span
+													title={`hue ${t >= 0 ? '+' : ''}${t}°: ${twistPop(getGenerated().anchors["pop"], t, getTwist().saturation)}`}
+													style:background={twistPop(getGenerated().anchors["pop"], t, getTwist().saturation)}
+													class="h-5 flex-1 rounded-sm border border-black/20"
+												></span>
+											{/each}
+										</div>
 									</div>
 								{/if}
 							</div>
