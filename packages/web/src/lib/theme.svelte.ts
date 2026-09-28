@@ -15,29 +15,34 @@ import {
 	buildBunxCommand,
 	contrastWarnings,
 	googleFontHref,
-	resolveBounce,
 	type BlockquoteVariant,
-	type ResolvedBounce,	type BreakoutElement,
+	type BreakoutElement,
 	type BreakoutLevel,
 	type SizeValue,
 	type FontElement,
 		type FontRole,
 		type ThemeColors,
+	type SemanticName,
+	type TextSource,
 	type ThemeOptions
 } from '@tsup-system/core';
 
 export type ColorKey = keyof ThemeColors;
 
-export const COLOR_FIELDS: { key: ColorKey; label: string; hint: string }[] = [
-	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings' },
-	{ key: 'base', label: 'Base', hint: 'Page background' },
-	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables' },
-	{ key: 'accent', label: 'Accent', hint: 'Links, highlights' },
-	{ key: 'brandPrimary', label: 'Brand Primary', hint: 'Primary brand' },
-	{ key: 'brandSecondary', label: 'Brand Secondary', hint: 'Secondary brand' },
-	{ key: 'trafficStop', label: 'Stop', hint: 'Errors, destructive' },
-	{ key: 'trafficWarning', label: 'Warning', hint: 'Caution, pending' },
-	{ key: 'trafficOk', label: 'OK', hint: 'Success, confirmed' }
+export type ColorGroup = 'Canvas' | 'Accent' | 'Brand' | 'Traffic';
+
+export const COLOR_GROUPS: ColorGroup[] = ['Canvas', 'Accent', 'Brand', 'Traffic'];
+
+export const COLOR_FIELDS: { key: ColorKey; label: string; hint: string; group: ColorGroup }[] = [
+	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings', group: 'Canvas' },
+	{ key: 'base', label: 'Base', hint: 'Page background', group: 'Canvas' },
+	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables', group: 'Canvas' },
+	{ key: 'accent', label: 'Accent', hint: 'Links, highlights', group: 'Accent' },
+	{ key: 'brandPrimary', label: 'Brand Primary', hint: 'Primary brand', group: 'Brand' },
+	{ key: 'brandSecondary', label: 'Brand Secondary', hint: 'Secondary brand', group: 'Brand' },
+	{ key: 'trafficStop', label: 'Stop', hint: 'Errors, destructive', group: 'Traffic' },
+	{ key: 'trafficWarning', label: 'Warning', hint: 'Caution, pending', group: 'Traffic' },
+	{ key: 'trafficOk', label: 'OK', hint: 'Success, confirmed', group: 'Traffic' }
 ];
 
 export const ASSIGNMENT_ELEMENTS: { key: FontElement; label: string }[] = [
@@ -72,9 +77,7 @@ function readTheme(): ThemeOptions {
 		width: { ...(theme.width ?? DEFAULT_THEME.width!) },
 		breakout: { ...(theme.breakout ?? DEFAULT_THEME.breakout!) },
 		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined,
-		experiments: theme.experiments?.hueBounce
-			? { hueBounce: { ...theme.experiments.hueBounce } }
-			: undefined
+		textSource: theme.textSource ? { ...theme.textSource } : undefined
 	};
 }
 
@@ -165,19 +168,20 @@ export function setBlockquote(variant: BlockquoteVariant): void {
 	theme.components.blockquote = variant;
 }
 
-export function getHueBounce(): ReturnType<typeof resolveBounce> {
-	return resolveBounce(theme.experiments?.hueBounce);
+/** Encoded text-source value for the prose-on dropdown: "auto" or "sem:level". */
+export function getTextSource(): string {
+  const ts = theme.textSource;
+  return ts ? `${ts.sem}:${ts.level}` : "auto";
 }
 
-export function setHueBounce(patch: Partial<ResolvedBounce>): void {
-	const next: Record<string, number | boolean> = {};
-	if (patch.enabled !== undefined) next.enabled = patch.enabled;
-	if (patch.hueShift !== undefined) next.hueShift = patch.hueShift;
-	if (patch.minAnchorC !== undefined) next.minAnchorC = patch.minAnchorC;
-	if (patch.maxPickC !== undefined) next.maxPickC = patch.maxPickC;
-	if (patch.minRenderC !== undefined) next.minRenderC = patch.minRenderC;
-	if (patch.maxDrift !== undefined) next.maxDrift = patch.maxDrift;
-	theme.experiments = { hueBounce: { ...theme.experiments?.hueBounce, ...next } };
+export function setTextSource(value: string): void {
+  if (value === "auto") {
+    theme.textSource = undefined;
+    return;
+  }
+  const [sem, level] = value.split(":");
+  if (!sem || (level !== "light" && level !== "base" && level !== "dark")) return;
+  theme.textSource = { sem: sem as SemanticName, level };
 }
 
 /** Full standalone document CSS for the iframe preview (same files the CLI ships). */
@@ -246,5 +250,5 @@ export function resetTheme(): void {
 	theme.breakout = fresh.breakout;
 	theme.breakouts = fresh.breakouts;
 	theme.components = fresh.components;
-	theme.experiments = fresh.experiments;
+	theme.textSource = fresh.textSource;
 }

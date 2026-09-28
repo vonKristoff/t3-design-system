@@ -29,7 +29,7 @@
 		'traffic-ok': 'OK'
 	};
 
-	const RELATIVE_ORDER = ['light-2', 'light-1', 'base', 'dark-1', 'dark-2'] as const;
+	const RELATIVE_ORDER = ['light', 'base', 'dark'] as const;
 </script>
 
 <svelte:window
@@ -56,7 +56,7 @@
 				<div>
 					<h2 class="text-lg font-semibold">Generated palette</h2>
 					<p class="text-xs text-neutral-500">
-						Live engine output — anchors, constrained ±2 scale, full rungs and readable pairs.
+						Live engine output — anchors, relative states, full rungs and readable pairs.
 					</p>
 				</div>
 				<button

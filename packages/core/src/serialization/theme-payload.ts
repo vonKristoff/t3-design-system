@@ -78,8 +78,8 @@ export function encodeTheme(options: ThemeOptions): string {
   if (!same(options.components ?? {}, DEFAULT_THEME.components ?? {})) {
     out["components"] = options.components ?? {};
   }
-  if (!same(options.experiments ?? {}, DEFAULT_THEME.experiments ?? {})) {
-    out["experiments"] = options.experiments ?? {};
+  if (options.textSource !== undefined) {
+    out["textSource"] = options.textSource;
   }
 
   const json = JSON.stringify(out);

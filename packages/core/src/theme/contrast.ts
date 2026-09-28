@@ -1,5 +1,8 @@
 import { hexToRgb } from "../colors/oklch.ts";
 import { generateScale } from "../colors/generate-scale.ts";
+import { generateRelativeScale } from "../colors/generate-scale.ts";
+import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
+import { SEMANTIC_TO_OPTION } from "./types.ts";
 import type { ThemeOptions } from "./types.ts";
 
 export function luminance(hex: string): number {
@@ -52,6 +55,27 @@ export function contrastWarnings(options: ThemeOptions): ContrastWarning[] {
       const ratio = contrastRatio(fh, bh);
       if (ratio < 4.5) {
         out.push({ pair: label, ratio: Math.round(ratio * 100) / 100, message: `⚠ ${label} may have low contrast (${ratio.toFixed(2)}:1).` });
+      }
+    }
+    // Explicit text source: warn, never override, when the chosen swatch fails.
+    if (options.textSource) {
+      const { sem, level } = options.textSource;
+      const sourceName = options.colors[SEMANTIC_TO_OPTION[sem]];
+      const swatch =
+        level === "base"
+          ? resolveTailwindHex(sourceName).toLowerCase()
+          : generateRelativeScale(sourceName)[level];
+      const fh = cssToHex(swatch);
+      const bh = cssToHex(generateScale(options.colors.base)["50"]);
+      if (fh && bh) {
+        const ratio = contrastRatio(fh, bh);
+        if (ratio < 4.5) {
+          out.push({
+            pair: "Text source on Base",
+            ratio: Math.round(ratio * 100) / 100,
+            message: `⚠ Text source ${sem} ${level} may have low contrast on Base (${ratio.toFixed(2)}:1).`,
+          });
+        }
       }
     }
   } catch {

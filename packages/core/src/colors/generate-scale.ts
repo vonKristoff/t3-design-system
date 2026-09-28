@@ -89,14 +89,17 @@ export function generateScale(sourceName: string): ColorScale {
 export function generateRelativeScale(sourceName: string, delta = RELATIVE_DELTA): RelativeScale {
   const sourceHex = resolveTailwindHex(sourceName).toLowerCase();
   const src = hexToOklch(sourceHex);
-  // Clamp first so chroma decay sees the lightness actually rendered;
-  // exhausted headroom yields exact duplicates, never near-miss inversions.
+  // Clamp first so chroma decay sees the lightness actually rendered.
   const at = (l: number) => decayedHex(src, Math.min(0.99, Math.max(0.12, l)));
-  return {
-    base: sourceHex,
-    "light-1": at(src.l + delta),
-    "light-2": at(src.l + 2 * delta),
-    "dark-1": at(src.l - delta),
-    "dark-2": at(src.l - 2 * delta),
-  };
+  // End-anchoring: the anchor occupies whichever slot fits. Too light for a
+  // lighter step → anchor becomes `light` and the rest derive downwards;
+  // too dark → anchor becomes `dark` and the rest derive upwards.
+  // Otherwise the anchor is `base` with one step either side.
+  if (src.l + delta > 0.99) {
+    return { base: at(src.l - delta), light: sourceHex, dark: at(src.l - 2 * delta) };
+  }
+  if (src.l - delta < 0.12) {
+    return { base: at(src.l + delta), light: at(src.l + 2 * delta), dark: sourceHex };
+  }
+  return { base: sourceHex, light: at(src.l + delta), dark: at(src.l - delta) };
 }

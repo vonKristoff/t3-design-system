@@ -7,6 +7,7 @@
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
+		SEMANTIC_NAMES,
 		fluidClamp,
 		docShellClasses,
 		resolveTailwindHex,
@@ -42,6 +43,7 @@
 	import {
 		theme,
 		COLOR_FIELDS,
+		COLOR_GROUPS,
 		ASSIGNMENT_ELEMENTS,
 		STRUCTURAL_CSS,
 		getVarStyle,
@@ -51,8 +53,8 @@
 		getGenerated,
 		getActivePreset,
 		applyPresetTheme,
-		getHueBounce,
-		setHueBounce,
+		getTextSource,
+		setTextSource,
 		getWidth,
 		setWidth,
 		getBreakoutWidth,
@@ -846,73 +848,43 @@
 					<div
 						id="step-colours-body"
 						data-step="step-colours"
-						class="grid gap-3 pt-4 md:grid-cols-2 xl:grid-cols-3"
+						class="space-y-5 pt-4"
 					>
-						{#each COLOR_FIELDS as field (field.key)}
-							<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-								<ColorField
-									label={field.label}
-									hint={field.hint}
-									bind:value={theme.colors[field.key as ColorKey]}
-								/>
-							</div>
+						{#each COLOR_GROUPS as group (group)}
+							<section aria-label={`${group} colours`}>
+								<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">{group}</h3>
+								<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+									{#each COLOR_FIELDS.filter((f) => f.group === group) as field (field.key)}
+										<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+											<ColorField
+												label={field.label}
+												hint={field.hint}
+												bind:value={theme.colors[field.key as ColorKey]}
+											/>
+											{#if field.key === 'prose'}
+												<label class="mt-2 block">
+													<span class="mb-1 block text-xs font-medium text-neutral-700">Text on base uses</span>
+													<select
+														value={getTextSource()}
+														onchange={(e) => setTextSource((e.currentTarget as HTMLSelectElement).value)}
+														class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+													>
+														<option value="auto">Auto · prose, readable</option>
+														{#each SEMANTIC_NAMES as sem (sem)}
+															<optgroup label={sem}>
+																<option value={`${sem}:light`}>{sem} light</option>
+																<option value={`${sem}:base`}>{sem} base</option>
+																<option value={`${sem}:dark`}>{sem} dark</option>
+															</optgroup>
+														{/each}
+													</select>
+												</label>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							</section>
 						{/each}
-					</div>
-					<div class="mt-3 rounded-lg border border-dashed border-neutral-300 bg-white p-3">
-						<label class="flex cursor-pointer items-center gap-2 text-sm font-medium">
-							<input
-								type="checkbox"
-								checked={getHueBounce().enabled}
-								onchange={(e) => setHueBounce({ enabled: (e.currentTarget as HTMLInputElement).checked })}
-								class="accent-neutral-900"
-							/>
-							Experiments · hue bounce
-							<span class="font-normal text-neutral-500">grey readable picks rotate hue + strengthen</span>
-						</label>
-						{#if getHueBounce().enabled}
-							<div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-								<label class="block text-xs text-neutral-600">
-									<span class="mb-1 flex justify-between"><span>Hue shift°</span><output class="font-mono">{getHueBounce().hueShift}</output></span>
-									<input
-										type="range" min="0" max="360" step="5" value={getHueBounce().hueShift}
-										oninput={(e) => setHueBounce({ hueShift: Number((e.currentTarget as HTMLInputElement).value) })}
-										class="w-full accent-neutral-900" aria-label="Hue shift degrees"
-									/>
-								</label>
-								<label class="block text-xs text-neutral-600">
-									<span class="mb-1 flex justify-between"><span>Needs anchor C ≥</span><output class="font-mono">{getHueBounce().minAnchorC.toFixed(3)}</output></span>
-									<input
-										type="range" min="0" max="0.1" step="0.005" value={getHueBounce().minAnchorC}
-										oninput={(e) => setHueBounce({ minAnchorC: Number((e.currentTarget as HTMLInputElement).value) })}
-										class="w-full accent-neutral-900" aria-label="Minimum anchor chroma"
-									/>
-								</label>
-								<label class="block text-xs text-neutral-600">
-									<span class="mb-1 flex justify-between"><span>Bounce when pick C &lt;</span><output class="font-mono">{getHueBounce().maxPickC.toFixed(3)}</output></span>
-									<input
-										type="range" min="0" max="0.1" step="0.005" value={getHueBounce().maxPickC}
-										oninput={(e) => setHueBounce({ maxPickC: Number((e.currentTarget as HTMLInputElement).value) })}
-										class="w-full accent-neutral-900" aria-label="Maximum pick chroma"
-									/>
-								</label>
-								<label class="block text-xs text-neutral-600">
-									<span class="mb-1 flex justify-between"><span>Target strength C ≥</span><output class="font-mono">{getHueBounce().minRenderC.toFixed(2)}</output></span>
-									<input
-										type="range" min="0.02" max="0.2" step="0.01" value={getHueBounce().minRenderC}
-										oninput={(e) => setHueBounce({ minRenderC: Number((e.currentTarget as HTMLInputElement).value) })}
-										class="w-full accent-neutral-900" aria-label="Minimum rendered chroma"
-									/>
-								</label>
-								<label class="block text-xs text-neutral-600">
-									<span class="mb-1 flex justify-between"><span>Max drift°</span><output class="font-mono">{getHueBounce().maxDrift}</output></span>
-									<input
-										type="range" min="0" max="180" step="5" value={getHueBounce().maxDrift}
-										oninput={(e) => setHueBounce({ maxDrift: Number((e.currentTarget as HTMLInputElement).value) })}
-										class="w-full accent-neutral-900" aria-label="Maximum hue drift degrees"
-									/>
-								</label>
-							</div>
-						{/if}
 					</div>
 				</div>
 

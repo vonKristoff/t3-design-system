@@ -14,6 +14,7 @@ import { docShellClasses } from "../src/theme/css.ts";
 import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
 import { validateThemeOptions } from "../src/theme/validate.ts";
+import { contrastWarnings } from "../src/theme/contrast.ts";
 
 describe("colour resolution", () => {
   test("blue-600 resolves", () => {
@@ -177,32 +178,46 @@ describe("relative scale", () => {
     expect(rel.base).toBe("#2563eb");
     for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
     const l = (hex: string) => hexToOklch(hex).l;
-    expect(l(rel["light-2"])).toBeGreaterThan(l(rel["light-1"]));
-    expect(l(rel["light-1"])).toBeGreaterThan(l(rel.base));
-    expect(l(rel.base)).toBeGreaterThan(l(rel["dark-1"]));
-    expect(l(rel["dark-1"])).toBeGreaterThan(l(rel["dark-2"]));
-    expect(l(rel["light-1"]) - l(rel.base)).toBeCloseTo(0.1, 1);
-    expect(l(rel.base) - l(rel["dark-1"])).toBeCloseTo(0.1, 1);
+    expect(l(rel.light)).toBeGreaterThan(l(rel.base));
+    expect(l(rel.base)).toBeGreaterThan(l(rel.dark));
+    expect(l(rel.light) - l(rel.base)).toBeCloseTo(0.1, 1);
+    expect(l(rel.base) - l(rel.dark)).toBeCloseTo(0.1, 1);
   });
-  test("extreme anchors clamp without invalid output", () => {
-    for (const name of ["yellow-50", "slate-950"]) {
-      const rel = generateRelativeScale(name);
-      for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
-      const l = (hex: string) => hexToOklch(hex).l;
-      // Non-strict: clamped steps may duplicate at the extremes.
-      expect(l(rel["light-2"])).toBeGreaterThanOrEqual(l(rel["light-1"]));
-      expect(l(rel["light-1"])).toBeGreaterThanOrEqual(l(rel.base));
-      expect(l(rel.base)).toBeGreaterThanOrEqual(l(rel["dark-1"]));
-      expect(l(rel["dark-1"])).toBeGreaterThanOrEqual(l(rel["dark-2"]));
-    }
+  test("light anchors occupy the light slot and derive backwards", () => {
+    const theme = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, prose: "red-50" },
+    };
+    const gen = generateTheme(theme);
+    const rel = gen.relative["prose"];
+    // Chosen colour becomes prose-light; base/dark step down from it.
+    expect(rel.light).toBe(gen.anchors["prose"]);
+    const l = (hex: string) => hexToOklch(hex).l;
+    expect(l(rel.light)).toBeGreaterThan(l(rel.base));
+    expect(l(rel.base)).toBeGreaterThan(l(rel.dark));
+    for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
+  });
+  test("dark anchors occupy the dark slot and derive upwards", () => {
+    const theme = {
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, prose: "slate-950" },
+    };
+    const gen = generateTheme(theme);
+    const rel = gen.relative["prose"];
+    expect(rel.dark).toBe(gen.anchors["prose"]);
+    const l = (hex: string) => hexToOklch(hex).l;
+    expect(l(rel.light)).toBeGreaterThan(l(rel.base));
+    expect(l(rel.base)).toBeGreaterThan(l(rel.dark));
+    for (const v of Object.values(rel)) expect(isValidCssColor(v)).toBe(true);
   });
   test("relative tokens are emitted per semantic", () => {
     const gen = generateTheme(DEFAULT_THEME);
-    for (const key of ["light-1", "light-2", "dark-1", "dark-2"] as const) {
+    for (const key of ["light", "dark"] as const) {
       expect(gen.variables[`--accent-${key}`]).toBe(gen.relative["accent"][key]);
     }
-    expect(gen.rootCss).toContain("--base-light-1:");
-    expect(gen.rootCss).toContain("--traffic-ok-dark-2:");
+    expect(gen.rootCss).toContain("--base-light:");
+    expect(gen.rootCss).toContain("--traffic-ok-dark:");
+    expect(gen.rootCss).not.toContain("--base-light-1:");
   });
 });
 
@@ -254,68 +269,43 @@ describe("readable pairs", () => {
     expect(files["markdown.css"]).toContain("color: var(--prose-on-quote);");
     expect(files["markdown.css"]).toContain("color: var(--traffic-ok-on-callout);");
   });
-  test("hue bounce rescues grey links from chromatic anchors", () => {
-    const light = {
+  test("swappable text source overrides body copy verbatim", () => {
+    const swapped = {
       ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, accent: "yellow-100" },
+      textSource: { sem: "accent" as const, level: "dark" as const },
     };
-    const gen = generateTheme(light);
-    const link = gen.pairs["--accent-on-base"];
-    expect(link).not.toBe(gen.scales["accent"]["600"]);
-    const back = hexToOklch(link);
-    expect(back.c).toBeGreaterThanOrEqual(0.05);
-    const base = cssToHex(gen.scales["base"]["50"]) as string;
-    expect(contrastRatio(link, base)).toBeGreaterThanOrEqual(4.5);
-    // Complementary hue of the yellow anchor (≈103° → ≈283°).
-    let drift = Math.abs(back.h - 283.2);
-    if (drift > 180) drift = 360 - drift;
-    expect(drift).toBeLessThanOrEqual(40);
-  });
-  test("hue bounce never fires for achromatic anchors", () => {
-    const grey = {
-      ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, accent: "slate-500" },
-    };
-    const gen = generateTheme(grey);
+    const gen = generateTheme(swapped);
+    expect(gen.pairs["--prose-on-base"]).toBe(gen.relative["accent"]["dark"]);
+    // Other pairs are unaffected.
     expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
   });
-  test("hue bounce toggle and knobs are honored", () => {
-    const light = {
+  test("textSource validates, rejects junk, and round-trips", () => {
+    const withSource = {
       ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, accent: "yellow-100" },
+      textSource: { sem: "brand-primary" as const, level: "light" as const },
     };
-    const bounced = generateTheme(light).pairs["--accent-on-base"];
-    expect(bounced).not.toBe(generateTheme(light).scales["accent"]["600"]);
-    const off = generateTheme({
-      ...light,
-      experiments: { hueBounce: { enabled: false } },
-    });
-    expect(off.pairs["--accent-on-base"]).toBe(off.scales["accent"]["600"]);
-    const shifted = generateTheme({
-      ...light,
-      experiments: { hueBounce: { hueShift: 90 } },
-    });
-    expect(shifted.pairs["--accent-on-base"]).not.toBe(bounced);
-    const shiftedBack = hexToOklch(shifted.pairs["--accent-on-base"]);
-    let drift = Math.abs(shiftedBack.h - ((103.2 + 90) % 360));
-    if (drift > 180) drift = 360 - drift;
-    expect(drift).toBeLessThanOrEqual(40);
+    expect(decodeTheme(encodeTheme(withSource))).toEqual(withSource);
+    expect(() =>
+      validateThemeOptions({ version: 1, textSource: { sem: "plum", level: "base" } })
+    ).toThrow(/textSource\.sem/);
+    expect(() =>
+      validateThemeOptions({ version: 1, textSource: { sem: "accent", level: "dim" } })
+    ).toThrow(/textSource\.level/);
+    expect(() =>
+      validateThemeOptions({ version: 1, textSource: "prose" })
+    ).toThrow(/textSource/);
   });
-  test("experiments validate, reject junk, and round-trip", () => {
-    const withExp = {
+  test("explicit low-contrast source raises a warning, never an override", () => {
+    const risky = {
       ...structuredClone(DEFAULT_THEME),
-      experiments: { hueBounce: { enabled: true, hueShift: 200 } },
+      textSource: { sem: "base" as const, level: "light" as const },
     };
-    expect(decodeTheme(encodeTheme(withExp))).toEqual(withExp);
-    expect(() =>
-      validateThemeOptions({ version: 1, experiments: { hueBounce: { hueShift: 999 } } })
-    ).toThrow(/hueShift/);
-    expect(() =>
-      validateThemeOptions({ version: 1, experiments: { hueBounce: { enabled: "yes" } } })
-    ).toThrow(/enabled/);
-    expect(() =>
-      validateThemeOptions({ version: 1, experiments: "bounce" })
-    ).toThrow(/experiments/);
+    const warnings = contrastWarnings(risky);
+    expect(warnings.some((w) => w.pair === "Text source on Base")).toBe(true);
+    // Value still passes through verbatim.
+    expect(generateTheme(risky).pairs["--prose-on-base"]).toBe(
+      generateTheme(risky).relative["base"]["light"]
+    );
   });
 });
 

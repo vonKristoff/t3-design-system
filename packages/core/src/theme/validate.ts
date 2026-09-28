@@ -1,7 +1,7 @@
 import { isValidTailwindName } from "../colors/tailwind-palette.ts";
 import { DEFAULT_THEME } from "./defaults.ts";
-import type { BreakoutElement, FontElement, FontRole, SizeUnit, SizeValue, ThemeOptions } from "./types.ts";
-import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SIZE_UNITS } from "./types.ts";
+import type { BreakoutElement, FontElement, FontRole, SemanticName, SizeUnit, SizeValue, ThemeOptions } from "./types.ts";
+import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SEMANTIC_NAMES, SIZE_UNITS } from "./types.ts";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "accent",
@@ -190,45 +190,23 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  // --- experiments (absent => defaults; partial objects merged per knob) ---
-  let experiments: ThemeOptions["experiments"];
-  if (v["experiments"] === undefined) {
-    experiments = { ...DEFAULT_THEME.experiments };
+  // --- textSource (absent => auto-derived prose; explicit swatch overrides) ---
+  let textSource: ThemeOptions["textSource"];
+  if (v["textSource"] === undefined) {
+    textSource = undefined;
   } else {
-    const re = v["experiments"];
-    if (typeof re !== "object" || re === null) throw err('Invalid "experiments" object.');
-    experiments = {};
-    const hb: unknown = (re as Record<string, unknown>)["hueBounce"];
-    if (hb !== undefined) {
-      if (typeof hb !== "object" || hb === null) throw err('Invalid "experiments.hueBounce" object.');
-      const h = hb as Record<string, unknown>;
-      const num = (key: string, min: number, max: number): number | undefined => {
-        const n = h[key];
-        if (n === undefined) return undefined;
-        if (typeof n !== "number" || !Number.isFinite(n) || n < min || n > max) {
-          throw err(`Invalid experiments.hueBounce.${key}: ${JSON.stringify(n)}. Expected ${min}–${max}.`);
-        }
-        return n;
-      };
-      const enabled = h["enabled"];
-      if (enabled !== undefined && typeof enabled !== "boolean") {
-        throw err(`Invalid experiments.hueBounce.enabled: ${JSON.stringify(enabled)}.`);
-      }
-      const parsed: NonNullable<NonNullable<ThemeOptions["experiments"]>["hueBounce"]> = {};
-      if (enabled !== undefined) parsed.enabled = enabled;
-      const hueShift = num("hueShift", 0, 360);
-      if (hueShift !== undefined) parsed.hueShift = hueShift;
-      const minAnchorC = num("minAnchorC", 0, 0.3);
-      if (minAnchorC !== undefined) parsed.minAnchorC = minAnchorC;
-      const maxPickC = num("maxPickC", 0, 0.3);
-      if (maxPickC !== undefined) parsed.maxPickC = maxPickC;
-      const minRenderC = num("minRenderC", 0, 0.3);
-      if (minRenderC !== undefined) parsed.minRenderC = minRenderC;
-      const maxDrift = num("maxDrift", 0, 180);
-      if (maxDrift !== undefined) parsed.maxDrift = maxDrift;
-      experiments.hueBounce = parsed;
+    const ts = v["textSource"];
+    if (typeof ts !== "object" || ts === null) throw err('Invalid "textSource" object.');
+    const sem = (ts as Record<string, unknown>)["sem"];
+    const level = (ts as Record<string, unknown>)["level"];
+    if (typeof sem !== "string" || !(SEMANTIC_NAMES as readonly string[]).includes(sem)) {
+      throw err(`Invalid textSource.sem: ${JSON.stringify(sem)}.`);
     }
+    if (level !== "light" && level !== "base" && level !== "dark") {
+      throw err(`Invalid textSource.level: ${JSON.stringify(level)}. Expected "light", "base" or "dark".`);
+    }
+    textSource = { sem: sem as SemanticName, level };
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, experiments };
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, textSource };
 }

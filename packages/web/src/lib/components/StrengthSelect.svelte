@@ -16,9 +16,9 @@
 
 	const currentHex = $derived(TAILWIND_PALETTE[family]?.[step as '500'] ?? '#888888');
 
-	const RELATIVE_ORDER: (keyof RelativeScale)[] = ['dark-2', 'dark-1', 'base', 'light-1', 'light-2'];
+	const RELATIVE_ORDER: (keyof RelativeScale)[] = ['dark', 'base', 'light'];
 
-	// Constrained ±2 scale derived from the current pick (null if unresolvable).
+	// Constrained relative scale derived from the current pick (null if unresolvable).
 	const relative = $derived.by(() => {
 		try {
 			return generateRelativeScale(`${family}-${step}`);
@@ -77,7 +77,7 @@
 		</div>
 	{/if}
 	<p class="mt-1 text-[11px] leading-snug text-neutral-500">
-		Your colour lands on {step}; light/dark ±2 derive from it.
+		Your colour lands on {step}; light/dark derive from it.
 	</p>
 
 	{#if open}

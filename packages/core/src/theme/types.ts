@@ -70,28 +70,6 @@ export interface ComponentStyles {
   blockquote?: BlockquoteVariant;
 }
 
-/**
- * Hue-bounce experiment knobs. All optional — absent means the default.
- * When disabled, readable picks stay exactly as derived (no hue rotation).
- */
-export interface BounceOptions {
-  enabled?: boolean;
-  /** Complementary rotation in degrees. Default 180. */
-  hueShift?: number;
-  /** Bounce only when the anchor family is at least this chromatic. Default 0.03. */
-  minAnchorC?: number;
-  /** Bounce only when the picked rung is greyer than this. Default 0.03. */
-  maxPickC?: number;
-  /** Bounced render must reach at least this chroma. Default 0.05. */
-  minRenderC?: number;
-  /** Bounced render must stay within this hue drift. Default 40. */
-  maxDrift?: number;
-}
-
-export interface Experiments {
-  hueBounce?: BounceOptions;
-}
-
 export interface ThemeOptions {
   version: number;
   colors: ThemeColors;
@@ -108,8 +86,11 @@ export interface ThemeOptions {
   breakouts?: Breakouts;
   /** Component styles. Defaults to { blockquote: "rule" } when omitted. */
   components?: ComponentStyles;
-  /** Experiment flags. Defaults to hue bounce enabled. */
-  experiments?: Experiments;
+  /**
+   * Swappable text source for body copy. Defaults to prose/base (auto-derived
+   * readable); set to render body text from another established swatch.
+   */
+  textSource?: TextSource;
 }
 
 export type ScaleStep =
@@ -142,21 +123,29 @@ export const SCALE_STEPS: ScaleStep[] = [
 export type ColorScale = Record<ScaleStep, string>;
 
 /**
- * Constrained relative scale: the exact anchor plus two fixed lightness
- * steps either side. Emitted as --{semantic}, --{semantic}-light-1/2,
- * --{semantic}-dark-1/2.
+ * Constrained relative scale: the anchor plus one fixed lightness step
+ * either side. Emitted as --{semantic}, --{semantic}-light, --{semantic}-dark.
+ *
+ * End-anchoring: when the anchor sits too close to white (or black) for a
+ * step to fit, the anchor itself occupies the extreme slot and the rest
+ * derive backwards — e.g. a red-50 pick becomes prose-light, with prose and
+ * prose-dark generated darker. The trio always spans light→dark.
  */
 export interface RelativeScale {
   base: string;
-  "light-1": string;
-  "light-2": string;
-  "dark-1": string;
-  "dark-2": string;
+  light: string;
+  dark: string;
 }
 
-export const RELATIVE_KEYS = ["light-1", "light-2", "dark-1", "dark-2"] as const;
+export const RELATIVE_KEYS = ["light", "dark"] as const;
 
 export type RelativeKey = (typeof RELATIVE_KEYS)[number];
+
+/** Which relative state supplies body-copy text. Defaults to prose/base. */
+export interface TextSource {
+  sem: SemanticName;
+  level: RelativeKey | "base";
+}
 
 export const SEMANTIC_NAMES = [
   "base",
@@ -171,3 +160,16 @@ export const SEMANTIC_NAMES = [
 ] as const;
 
 export type SemanticName = (typeof SEMANTIC_NAMES)[number];
+
+/** Semantic name → ThemeOptions.colors key. */
+export const SEMANTIC_TO_OPTION = {
+  base: "base",
+  alt: "alt",
+  prose: "prose",
+  accent: "accent",
+  "brand-primary": "brandPrimary",
+  "brand-secondary": "brandSecondary",
+  "traffic-stop": "trafficStop",
+  "traffic-warning": "trafficWarning",
+  "traffic-ok": "trafficOk",
+} as const satisfies Record<SemanticName, keyof ThemeColors>;
