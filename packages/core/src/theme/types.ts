@@ -55,7 +55,7 @@ export interface SizeValue {
 /** Frosted-surface opacity. Absent means GLASS_ALPHA_DEFAULT. */
 export type GlassAlpha = number;
 
-export const GLASS_ALPHA_DEFAULT = 0.7;
+export const GLASS_ALPHA_DEFAULT = 0.85;
 
 /**
  * Pop twist tweaks, applied on top of the automatic +35° rotation.

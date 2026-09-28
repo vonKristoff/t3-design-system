@@ -913,32 +913,32 @@
 														class="w-full accent-neutral-900" aria-label="Twist hue tweak degrees"
 													/>
 												</label>
-												<label class="block">
-													<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-														<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
-													</span>
-													<input
-														type="range" min="-15" max="15" step="1" value={getTwist().saturation}
-														oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
-														class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
-													/>
-												</label>
-											</span>
+											<label class="block">
+												<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+													<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
+												</span>
+												<input
+													type="range" min="-15" max="15" step="1" value={getTwist().saturation}
+													oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
+													class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
+												/>
+											</label>
+											<div class="flex items-stretch gap-0.5" aria-label="Twist light and dark">
+												{#each ["light", "base", "dark"] as k (k)}
+													<span
+														title={`--pop-twist${k === 'base' ? '' : '-' + k}: ${k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}`}
+														style:background={k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}
+														class="h-5 flex-1 border border-black/20 first:rounded-l-md last:rounded-r-md"
+													></span>
+												{/each}
+											</div>
+										</span>
 											<span
 												class="inline-block min-h-28 rounded-md border border-black/20"
 												style:background={getGenerated().variables["--pop-twist"]}
 												title={`--pop-twist: ${getGenerated().variables["--pop-twist"]}`}
 												aria-hidden="true"
 											></span>
-										</div>
-										<div class="mt-1.5 flex items-stretch gap-0.5" aria-label="Twist light and dark">
-											{#each ["light", "base", "dark"] as k (k)}
-												<span
-													title={`--pop-twist${k === 'base' ? '' : '-' + k}: ${k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}`}
-													style:background={k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}
-													class="h-5 flex-1 border border-black/20 first:rounded-l-md last:rounded-r-md"
-												></span>
-											{/each}
 										</div>
 									</div>
 								{/if}

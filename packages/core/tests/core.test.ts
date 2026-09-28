@@ -306,8 +306,8 @@ describe("readable pairs", () => {
   test("glass vars, alpha and frosted panel ship", () => {
     const gen = generateTheme(DEFAULT_THEME);
     expect(gen.variables["--glass"]).toBe(gen.anchors["glass"]);
-    expect(gen.variables["--glass-alpha"]).toBe("0.7");
-    expect(gen.variables["--glass-fill"]).toBe("color-mix(in srgb, var(--glass) 70%, transparent)");
+    expect(gen.variables["--glass-alpha"]).toBe("0.85");
+    expect(gen.variables["--glass-fill"]).toBe("color-mix(in srgb, var(--glass) 85%, transparent)");
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(files["base.css"]).toContain(".glass-panel");
     expect(files["base.css"]).toContain("var(--glass-fill)");
