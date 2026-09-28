@@ -107,6 +107,27 @@
 					</section>
 				{/each}
 
+				<section aria-label="Twist">
+					<div class="mb-1.5 flex items-center gap-2">
+						<span
+							class="inline-block h-5 w-5 rounded border border-black/20"
+							style:background={gen.variables["--pop-twist"]}
+							title={`--pop-twist: ${gen.variables["--pop-twist"]}`}
+						></span>
+						<h3 class="text-sm font-semibold">Twist</h3>
+						<span class="font-mono text-[11px] text-neutral-500">{gen.variables["--pop-twist"]}</span>
+					</div>
+					<div class="flex gap-0.5" aria-label="Twist light and dark">
+						{#each [{ k: 'light', v: gen.variables["--pop-twist-light"] }, { k: 'base', v: gen.variables["--pop-twist"] }, { k: 'dark', v: gen.variables["--pop-twist-dark"] }] as s (s.k)}
+							<span
+								title={`--pop-twist${s.k === 'base' ? '' : '-' + s.k}: ${s.v}`}
+								style:background={s.v}
+								class="h-7 flex-1 border border-black/10 first:rounded-l-md last:rounded-r-md"
+							></span>
+						{/each}
+					</div>
+				</section>
+
 				<section aria-label="Readable pairs">
 					<h3 class="mb-1.5 text-sm font-semibold">Readable pairs <span class="font-normal text-neutral-500">(≥ 4.5:1, auto-derived)</span></h3>
 					<div class="flex flex-wrap gap-1.5">

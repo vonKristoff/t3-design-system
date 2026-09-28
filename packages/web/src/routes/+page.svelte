@@ -4,13 +4,11 @@
 		FLUID_SIZES,
 		BREAKOUT_ELEMENTS,
 		SIZE_UNITS,
-		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
 		fluidClamp,
 		docShellClasses,
 		resolveTailwindHex,
-		type BlockquoteVariant,
 		type BreakoutElement,
 		type BreakoutLevel,
 		type SizeUnit,
@@ -27,7 +25,6 @@
 		Palette,
 		PanelRight,
 		PanelRightClose,
-		Quote,
 		RotateCcw,
 		Smartphone,
 		Tablet,
@@ -64,7 +61,6 @@
 		getBreakoutRoute,
 		setBreakoutRoute,
 		getBlockquote,
-		setBlockquote,
 		getDocumentCss,
 		getLayoutCss,
 		setAssignment,
@@ -205,7 +201,7 @@
 		return Math.min(r.max, Math.max(r.min, value));
 	}
 
-	type StepId = 'step-fonts' | 'step-colours' | 'step-layout' | 'step-components';
+	type StepId = 'step-fonts' | 'step-colours' | 'step-layout';
 
 	const STEPS: {
 		id: StepId;
@@ -238,24 +234,11 @@
 			title: 'Select your layout',
 			blurb: 'Content measure, breakouts and routing',
 			activeCls: 'border-emerald-200 bg-emerald-100'
-		},
-		{
-			id: 'step-components',
-			n: 4,
-			short: 'Components',
-			title: 'Style your components',
-			blurb: 'Blockquote variants, more to follow',
-			activeCls: 'border-rose-200 bg-rose-100'
 		}
 	];
 
-	const BLOCKQUOTE_BLURB: Record<BlockquoteVariant, string> = {
-		rule: 'Accent rule · current default',
-		pull: 'Large centered pull-quote',
-		minimal: 'Plain indent, no chrome'
-	};
 
-	const STEP_ICON = [Type, Palette, LayoutGrid, Quote];
+	const STEP_ICON = [Type, Palette, LayoutGrid];
 
 	let activeStep = $state<StepId>('step-fonts');
 	let paletteOpen = $state(false);
@@ -414,7 +397,7 @@
 
 	// Sticky pitch measured at runtime so the headers always land flush,
 	// whatever the nav height or font loading does.
-	let stackTops = $state(['56px', '98px', '140px', '182px']);
+	let stackTops = $state(['56px', '98px', '140px']);
 
 	function measureStack(): void {
 		const nav = document.querySelector('header')?.getBoundingClientRect().height ?? 56;
@@ -1057,33 +1040,6 @@
 							</div>
 						</div>
 					</div>
-
-			<div id="step-components" class={stepHeaderCls('step-components')} style="top:{stackTops[3]}">
-				<a
-					href="#step-components"
-					class="flex w-full items-center justify-between py-2.5"
-				>
-					<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
-						<span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white">4</span>
-						Style your components
-					</h2>
-				</a>
-			</div>
-			<div id="step-components-body" data-step="step-components" class="grid gap-2 pt-4 sm:grid-cols-3">
-					{#each BLOCKQUOTE_VARIANTS as v (v)}
-						<button
-							type="button"
-							onclick={() => setBlockquote(v)}
-							aria-pressed={getBlockquote() === v}
-							class="rounded-lg border p-3 text-left {getBlockquote() === v
-								? 'border-neutral-900 bg-neutral-900 text-white'
-								: 'border-neutral-200 bg-white hover:border-neutral-400'}"
-						>
-							<span class="block text-sm font-semibold">Blockquote · {v}</span>
-							<span class="block text-xs {getBlockquote() === v ? 'text-neutral-300' : 'text-neutral-500'}">{BLOCKQUOTE_BLURB[v]}</span>
-						</button>
-					{/each}
-				</div>
 			</div>
 		</main>
 
@@ -1149,6 +1105,21 @@
 						style="border:0;background:var(--base-50);height:900px;overflow:hidden"
 					></iframe>
 				</div>
+			</div>
+		</section>
+
+		<section aria-label="Components" class="mx-auto max-w-6xl px-4 pt-6 pb-8 sm:px-8">
+			<h2 class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+				Components
+			</h2>
+			<p class="mt-1 text-sm text-neutral-600">coming soon</p>
+			<div class="mt-3 grid gap-2 sm:grid-cols-3" aria-hidden="true">
+				{#each ['Card', 'Accordion', 'Dialog'] as name (name)}
+					<div class="rounded-lg border border-dashed border-neutral-300 bg-white/60 p-4 text-center">
+						<span class="block text-sm font-medium text-neutral-400">{name}</span>
+						<span class="block text-xs text-neutral-400">soon</span>
+					</div>
+				{/each}
 			</div>
 		</section>
 

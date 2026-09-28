@@ -378,6 +378,16 @@ describe("readable pairs", () => {
     expect(files["markdown.css"]).toContain("color: var(--prose-on-quote);");
     expect(files["markdown.css"]).toContain("color: var(--inverse-on-pop);");
   });
+  test("traffic callouts carry 6px borders and halo dots", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    for (const name of ["stop", "warning", "ok"] as const) {
+      expect(files["markdown.css"]).toContain(`.markdown .callout-${name} {`);
+      expect(files["markdown.css"]).toContain(`border-left: 6px solid var(--traffic-${name}-500);`);
+      expect(files["markdown.css"]).toContain(`.markdown .callout-${name}::before`);
+      expect(files["markdown.css"]).toContain(`var(--traffic-${name}-500) 20%`);
+    }
+  });
   test("swappable text source overrides body copy verbatim", () => {
     const swapped = {
       ...structuredClone(DEFAULT_THEME),
