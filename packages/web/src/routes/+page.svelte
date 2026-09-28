@@ -652,6 +652,20 @@
 				type, Markdown styles, breakout layout and a Tailwind bridge — from three steps, exported as
 				a single bunx command.
 			</p>
+			<div class="mt-4 max-w-2xl rounded-lg border border-neutral-200 bg-white p-4">
+				<h2 class="text-sm font-semibold">Think in roles, not hex codes</h2>
+				<p class="mt-1 text-sm text-neutral-600">
+					You never pick raw colours — you assign meaning. Each semantic is a <em>job</em>:
+					<strong>Surfaces</strong> hold content (<code class="font-mono text-xs">base</code>,
+					<code class="font-mono text-xs">alt</code>, frosted <code class="font-mono text-xs">glass</code>);
+					<strong>Content</strong> is what you read (<code class="font-mono text-xs">prose</code>,
+					<code class="font-mono text-xs">muted</code>, <code class="font-mono text-xs">inverse</code> on dark fills);
+					<strong>Emphasis</strong> directs attention (<code class="font-mono text-xs">accent</code> for
+					interaction, <code class="font-mono text-xs">pop</code> — with its <code class="font-mono text-xs">twist</code> — for moments);
+					<strong>Traffic</strong> signals state. Pick one anchor per role and the engine grows its
+					scale, derives readable text pairings, and ships the same tokens the preview uses.
+				</p>
+			</div>
 			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
