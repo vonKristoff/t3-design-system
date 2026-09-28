@@ -7,7 +7,6 @@
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
-		CHROMATIC_NAMES,
 		SEMANTIC_NAMES,
 		fluidClamp,
 		docShellClasses,
@@ -56,6 +55,11 @@
 		applyPresetTheme,
 		getTextSource,
 		setTextSource,
+		getGlassAlpha,
+		setGlassAlpha,
+		getTwist,
+		setTwistHue,
+		setTwistSaturation,
 		getWidth,
 		setWidth,
 		getBreakoutWidth,
@@ -862,57 +866,78 @@
 												hint={field.hint}
 												bind:value={theme.colors[field.key as ColorKey]}
 											/>
-											{#if field.key === 'prose'}
-												<label class="mt-2 block">
-													<span class="mb-1 block text-xs font-medium text-neutral-700">Text on base uses</span>
-													<select
-														value={getTextSource()}
-														onchange={(e) => setTextSource((e.currentTarget as HTMLSelectElement).value)}
-														class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-													>
-														<option value="auto">Auto · prose, readable</option>
-														{#each SEMANTIC_NAMES as sem (sem)}
-															<optgroup label={sem}>
-																<option value={`${sem}:light`}>{sem} light</option>
-																<option value={`${sem}:base`}>{sem} base</option>
-																<option value={`${sem}:dark`}>{sem} dark</option>
-															</optgroup>
-														{/each}
-													</select>
-												</label>
-											{/if}
-										</div>
-									{/each}
-								</div>
-							</section>
-						{/each}
-						<section aria-label="Chromatics">
-							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Chromatics</h3>
-							<div class="grid gap-3 md:grid-cols-2">
-								{#each CHROMATIC_NAMES as name (name)}
-									<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-										<div class="mb-1.5 flex items-center gap-2">
-											<span
-												class="inline-block h-5 w-5 rounded border border-black/20"
-												style:background={getGenerated().anchors[name]}
-												title={`--${name}: ${getGenerated().anchors[name]}`}
-											></span>
-											<span class="text-sm font-medium text-neutral-800 capitalize">{name}</span>
-											<span class="font-mono text-xs text-neutral-500">{getGenerated().anchors[name]} · fixed anchor, generated range</span>
-										</div>
-										<div class="flex gap-0.5" aria-label={`${name} rungs`}>
-											{#each SCALE_STEPS as step (step)}
-												<span
-													title={`--${name}-${step}: ${getGenerated().scales[name][step]}`}
-													style:background={getGenerated().scales[name][step]}
-													class="h-6 flex-1 border border-black/10 first:rounded-l-md last:rounded-r-md"
-												></span>
-											{/each}
-										</div>
+										{#if field.key === 'prose'}
+											<label class="mt-2 block">
+												<span class="mb-1 block text-xs font-medium text-neutral-700">Text on base uses</span>
+												<select
+													value={getTextSource()}
+													onchange={(e) => setTextSource((e.currentTarget as HTMLSelectElement).value)}
+													class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+												>
+													<option value="auto">Auto · prose, readable</option>
+													{#each SEMANTIC_NAMES as sem (sem)}
+														<optgroup label={sem}>
+															<option value={`${sem}:light`}>{sem} light</option>
+															<option value={`${sem}:base`}>{sem} base</option>
+															<option value={`${sem}:dark`}>{sem} dark</option>
+														</optgroup>
+													{/each}
+												</select>
+											</label>
+										{/if}
+										{#if field.key === 'glass'}
+											<label class="mt-2 block">
+												<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+													<span>Alpha</span>
+													<output class="font-mono">{Math.round(getGlassAlpha() * 100)}%</output>
+												</span>
+												<input
+													type="range" min="0" max="100" step="1" value={Math.round(getGlassAlpha() * 100)}
+													oninput={(e) => setGlassAlpha(Number((e.currentTarget as HTMLInputElement).value) / 100)}
+													class="w-full accent-neutral-900" aria-label="Glass alpha percent"
+												/>
+											</label>
+										{/if}
 									</div>
 								{/each}
+								{#if group === 'Emphasis'}
+									<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+										<span class="block">
+											<span class="block text-sm font-medium text-neutral-800">Twist</span>
+											<span class="block text-xs text-neutral-500">Pop rotated +35°, tweakable ±15</span>
+										</span>
+										<span
+											class="mt-1.5 block h-9 w-full rounded-md border border-black/20"
+											style:background={getGenerated().variables["--pop-twist"]}
+											title={`--pop-twist: ${getGenerated().variables["--pop-twist"]}`}
+											aria-hidden="true"
+										></span>
+										<label class="mt-1.5 block">
+											<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+												<span>Hue {getTwist().hue >= 0 ? '+' : ''}{getTwist().hue}°</span>
+												<output class="font-mono">+{35 + getTwist().hue}°</output>
+											</span>
+											<input
+												type="range" min="-15" max="15" step="1" value={getTwist().hue}
+												oninput={(e) => setTwistHue(Number((e.currentTarget as HTMLInputElement).value))}
+												class="w-full accent-neutral-900" aria-label="Twist hue tweak degrees"
+											/>
+										</label>
+										<label class="mt-1 block">
+											<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
+												<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
+											</span>
+											<input
+												type="range" min="-15" max="15" step="1" value={getTwist().saturation}
+												oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
+												class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
+											/>
+										</label>
+									</div>
+								{/if}
 							</div>
 						</section>
+					{/each}
 					</div>
 				</div>
 

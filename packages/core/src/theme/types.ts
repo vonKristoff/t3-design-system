@@ -17,6 +17,7 @@ export const PAYLOAD_VERSION = 1;
 export interface ThemeColors {
   base: string;
   alt: string;
+  glass: string;
   prose: string;
   muted: string;
   accent: string;
@@ -51,7 +52,21 @@ export interface SizeValue {
   unit: SizeUnit;
 }
 
-/** How far breakouts extend beyond the content measure (per side). */
+/** Frosted-surface opacity. Absent means GLASS_ALPHA_DEFAULT. */
+export type GlassAlpha = number;
+
+export const GLASS_ALPHA_DEFAULT = 0.7;
+
+/**
+ * Pop twist tweaks, applied on top of the automatic +35° rotation.
+ * Hue offset in degrees (-15..15); saturation as relative percent (-15..15).
+ */
+export interface Twist {
+  hue?: number;
+  saturation?: number;
+}
+
+export const TWIST_BASE_HUE = 35;
 
 /** Markdown structures that can be routed to a grid track. */
 export const BREAKOUT_ELEMENTS = ["blockquote", "table", "pre", "img", "callout", "hr"] as const;
@@ -92,6 +107,10 @@ export interface ThemeOptions {
    * readable); set to render body text from another established swatch.
    */
   textSource?: TextSource;
+  /** Frosted-surface opacity 0..1. Absent means GLASS_ALPHA_DEFAULT. */
+  glassAlpha?: GlassAlpha;
+  /** Pop twist tweaks on top of the automatic +35° rotation. */
+  twist?: Twist;
 }
 
 export type ScaleStep =
@@ -151,6 +170,7 @@ export interface TextSource {
 export const SEMANTIC_NAMES = [
   "base",
   "alt",
+  "glass",
   "prose",
   "muted",
   "accent",
@@ -183,6 +203,7 @@ export const CHROMATIC_ANCHOR_STEP: Record<ChromaticName, ScaleStep> = {
 export const SEMANTIC_TO_OPTION = {
   base: "base",
   alt: "alt",
+  glass: "glass",
   prose: "prose",
   muted: "muted",
   accent: "accent",

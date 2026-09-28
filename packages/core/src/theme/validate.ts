@@ -209,5 +209,40 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     textSource = { sem: sem as SemanticName, level };
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, textSource };
+  // --- glassAlpha (absent => default; 0..1) ---
+  let glassAlpha: ThemeOptions["glassAlpha"];
+  if (v["glassAlpha"] === undefined) {
+    glassAlpha = undefined;
+  } else {
+    const a = v["glassAlpha"];
+    if (typeof a !== "number" || !Number.isFinite(a) || a < 0 || a > 1) {
+      throw err(`Invalid glassAlpha: ${JSON.stringify(a)}. Expected 0–1.`);
+    }
+    glassAlpha = a;
+  }
+
+  // --- twist (absent => automatic +35°; tweaks -15..15) ---
+  let twist: ThemeOptions["twist"];
+  if (v["twist"] === undefined) {
+    twist = undefined;
+  } else {
+    const tw = v["twist"];
+    if (typeof tw !== "object" || tw === null) throw err('Invalid "twist" object.');
+    twist = {};
+    const t = tw as Record<string, unknown>;
+    if (t["hue"] !== undefined) {
+      if (typeof t["hue"] !== "number" || !Number.isFinite(t["hue"]) || t["hue"] < -15 || t["hue"] > 15) {
+        throw err(`Invalid twist.hue: ${JSON.stringify(t["hue"])}. Expected -15..15.`);
+      }
+      twist.hue = t["hue"];
+    }
+    if (t["saturation"] !== undefined) {
+      if (typeof t["saturation"] !== "number" || !Number.isFinite(t["saturation"]) || t["saturation"] < -15 || t["saturation"] > 15) {
+        throw err(`Invalid twist.saturation: ${JSON.stringify(t["saturation"])}. Expected -15..15.`);
+      }
+      twist.saturation = t["saturation"];
+    }
+  }
+
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, textSource, glassAlpha, twist };
 }

@@ -194,6 +194,13 @@ body {
 a { color: var(--accent-on-base); }
 a:hover { color: var(--accent-hover-on-base); }
 hr { border: 0; border-top: 1px solid var(--alt-300); }
+.glass-panel {
+  background: var(--glass-fill);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass);
+  border-radius: 0.75rem;
+}
 img { max-width: 100%; border-radius: 0.5rem; }
 /* Full-bleed preview band: matches the html background so themed
    documents read as a continuous canvas. */

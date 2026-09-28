@@ -82,6 +82,12 @@ export function encodeTheme(options: ThemeOptions): string {
   if (options.textSource !== undefined) {
     out["textSource"] = options.textSource;
   }
+  if (options.glassAlpha !== undefined) {
+    out["glassAlpha"] = options.glassAlpha;
+  }
+  if (!same(options.twist ?? {}, {})) {
+    out["twist"] = options.twist ?? {};
+  }
 
   const json = JSON.stringify(out);
   return base64UrlEncode(deflateSync(strToU8(json)));

@@ -6,6 +6,7 @@ export const DEFAULT_THEME: ThemeOptions = {
   colors: {
     base: "slate-50",
     alt: "slate-100",
+    glass: "slate-100",
     prose: "slate-900",
     muted: "slate-500",
     accent: "blue-600",

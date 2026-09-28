@@ -3,6 +3,7 @@
 // so the preview can never diverge from generated output.
 import {
 	DEFAULT_THEME,
+	GLASS_ALPHA_DEFAULT,
 	PRESET_THEMES,
 	matchPreset,
 	generateTheme,
@@ -29,18 +30,19 @@ import {
 
 export type ColorKey = keyof ThemeColors;
 
-export type ColorGroup = 'Surfaces' | 'Content' | 'Emphasis' | 'Contrast' | 'Traffic';
+export type ColorGroup = 'Surfaces' | 'Content' | 'Emphasis' | 'Traffic';
 
-export const COLOR_GROUPS: ColorGroup[] = ['Surfaces', 'Content', 'Emphasis', 'Contrast', 'Traffic'];
+export const COLOR_GROUPS: ColorGroup[] = ['Surfaces', 'Content', 'Emphasis', 'Traffic'];
 
 export const COLOR_FIELDS: { key: ColorKey; label: string; hint: string; group: ColorGroup }[] = [
 	{ key: 'base', label: 'Base', hint: 'Page background', group: 'Surfaces' },
 	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables', group: 'Surfaces' },
+	{ key: 'glass', label: 'Glass', hint: 'Frosted surface + alpha', group: 'Surfaces' },
 	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings', group: 'Content' },
 	{ key: 'muted', label: 'Muted', hint: 'Diminished text', group: 'Content' },
+	{ key: 'inverse', label: 'Inverse', hint: 'Inverse text colour', group: 'Content' },
 	{ key: 'accent', label: 'Accent', hint: 'Links, buttons, controls', group: 'Emphasis' },
 	{ key: 'pop', label: 'Pop', hint: 'Badges, callouts, standouts', group: 'Emphasis' },
-	{ key: 'inverse', label: 'Inverse', hint: 'Content on contrasting surfaces', group: 'Contrast' },
 	{ key: 'trafficStop', label: 'Stop', hint: 'Errors, destructive', group: 'Traffic' },
 	{ key: 'trafficWarning', label: 'Warning', hint: 'Caution, pending', group: 'Traffic' },
 	{ key: 'trafficOk', label: 'OK', hint: 'Success, confirmed', group: 'Traffic' }
@@ -78,7 +80,9 @@ function readTheme(): ThemeOptions {
 		width: { ...(theme.width ?? DEFAULT_THEME.width!) },
 		breakout: { ...(theme.breakout ?? DEFAULT_THEME.breakout!) },
 		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined,
-		textSource: theme.textSource ? { ...theme.textSource } : undefined
+		textSource: theme.textSource ? { ...theme.textSource } : undefined,
+		glassAlpha: theme.glassAlpha,
+		twist: theme.twist ? { ...theme.twist } : undefined
 	};
 }
 
@@ -185,6 +189,31 @@ export function setTextSource(value: string): void {
   theme.textSource = { sem: sem as SemanticName, level };
 }
 
+export function getGlassAlpha(): number {
+  return theme.glassAlpha ?? GLASS_ALPHA_DEFAULT;
+}
+
+export function setGlassAlpha(alpha: number): void {
+  theme.glassAlpha = Math.min(1, Math.max(0, Math.round(alpha * 100) / 100));
+}
+
+export function getTwist(): { hue: number; saturation: number } {
+  return {
+    hue: theme.twist?.hue ?? 0,
+    saturation: theme.twist?.saturation ?? 0,
+  };
+}
+
+export function setTwistHue(hue: number): void {
+  const clamped = Math.min(15, Math.max(-15, Math.round(hue)));
+  theme.twist = { ...theme.twist, hue: clamped };
+}
+
+export function setTwistSaturation(saturation: number): void {
+  const clamped = Math.min(15, Math.max(-15, Math.round(saturation)));
+  theme.twist = { ...theme.twist, saturation: clamped };
+}
+
 /** Full standalone document CSS for the iframe preview (same files the CLI ships). */
 export function getDocumentCss(): string {
 	const s = readTheme();
@@ -252,4 +281,6 @@ export function resetTheme(): void {
 	theme.breakouts = fresh.breakouts;
 	theme.components = fresh.components;
 	theme.textSource = fresh.textSource;
+	theme.glassAlpha = fresh.glassAlpha;
+	theme.twist = fresh.twist;
 }

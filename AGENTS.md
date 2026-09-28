@@ -80,17 +80,16 @@ grouped as palette cards:
 SURFACES
 base
 alt
+glass
 
 CONTENT
 prose
 muted
+inverse
 
 EMPHASIS
 accent
 pop
-
-CONTRAST
-inverse
 
 TRAFFIC
 stop
@@ -190,7 +189,13 @@ standout sections
 occasional decorative elements
 
 inverse
-Content placed on contrasting surfaces (e.g. text on accent or pop fills).
+Inverse text colour — content placed on contrasting surfaces
+(e.g. text on accent or pop fills). Lives with Content because it is read
+as text, not as a surface.
+
+glass
+Frosted surface with an alpha channel (--glass-alpha, --glass-fill,
+.glass-panel). Lives with Surfaces.
 
 stop
 Negative/error/destructive state (errors, failed operations).
@@ -530,8 +535,8 @@ A useful layout is:
 │ │ │
 │ Base [▼] │ │
 │ Alt [▼] │ MARKDOWN PREVIEW │
-│ Prose [▼] │ │
-│ Muted [▼] │ # Heading │
+│ Glass [▼] │ │
+│ Prose [▼] │ # Heading │
 │ │ │
 │ Accent [▼] │ Markdown content... │
 │ Pop [▼] │ │
@@ -572,6 +577,7 @@ version: number;
 colors: {
 base: string;
 alt: string;
+glass: string;
 prose: string;
 muted: string;
 accent: string;
@@ -580,6 +586,9 @@ inverse: string;
 trafficStop: string;
 trafficWarning: string;
 trafficOk: string;
+
+glassAlpha?: number;
+twist?: { hue?: number; saturation?: number };
 
 };
 
@@ -925,6 +934,7 @@ For example:
 
 base slate-50
 alt slate-100
+glass slate-100
 prose slate-900
 muted slate-500
 accent blue-600
@@ -1096,6 +1106,8 @@ base
 
 alt
 
+glass
+
 prose
 
 muted
@@ -1174,6 +1186,7 @@ The theme author only needs to understand:
 
 base
 alt
+glass
 prose
 muted
 accent

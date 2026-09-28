@@ -271,6 +271,9 @@ describe("readable pairs", () => {
     expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
     expect(gen.pairs["--accent-hover-on-base"]).toBe(gen.scales["accent"]["700"]);
     expect(gen.pairs["--muted-on-base"]).toBe(gen.scales["muted"]["600"]);
+    expect(gen.pairs["--traffic-stop-on-callout"]).toBe(gen.scales["traffic-stop"]["900"]);
+    expect(gen.pairs["--traffic-warning-on-callout"]).toBe(gen.scales["traffic-warning"]["900"]);
+    expect(gen.pairs["--traffic-ok-on-callout"]).toBe(gen.scales["traffic-ok"]["900"]);
     expect(gen.pairs["--inverse-on-accent"]).toBe(gen.scales["inverse"]["50"]);
     expect(gen.pairs["--inverse-on-pop"]).toBe(gen.scales["inverse"]["50"]);
     expect(gen.pairs["--traffic-stop-on-callout"]).toBe(gen.scales["traffic-stop"]["900"]);
@@ -294,6 +297,60 @@ describe("readable pairs", () => {
     expect(gen.variables["--white-light"]).toBe(gen.relative["white"]["light"]);
     expect(gen.rootCss).toContain("--black-50:");
     expect(gen.rootCss).toContain("--white-950:");
+    // Every rung is a valid achromatic grey.
+    for (const v of [...Object.values(gen.scales["black"]), ...Object.values(gen.scales["white"])]) {
+      expect(isValidCssColor(v)).toBe(true);
+      expect(hexToOklch(v).c).toBeLessThan(0.012);
+    }
+  });
+  test("glass vars, alpha and frosted panel ship", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    expect(gen.variables["--glass"]).toBe(gen.anchors["glass"]);
+    expect(gen.variables["--glass-alpha"]).toBe("0.7");
+    expect(gen.variables["--glass-fill"]).toBe("color-mix(in srgb, var(--glass) 70%, transparent)");
+    const files = generateThemeFiles(DEFAULT_THEME, gen, "");
+    expect(files["base.css"]).toContain(".glass-panel");
+    expect(files["base.css"]).toContain("var(--glass-fill)");
+    const custom = {
+      ...structuredClone(DEFAULT_THEME),
+      glassAlpha: 0.4,
+    };
+    expect(generateTheme(custom).variables["--glass-fill"]).toBe(
+      "color-mix(in srgb, var(--glass) 40%, transparent)"
+    );
+    expect(decodeTheme(encodeTheme(custom))).toEqual(custom);
+    expect(() => validateThemeOptions({ version: 1, glassAlpha: 2 })).toThrow(/glassAlpha/);
+    expect(() => validateThemeOptions({ version: 1, glassAlpha: "half" })).toThrow(/glassAlpha/);
+  });
+  test("pop twist defaults to +35° with tweaks either side", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const anchor = hexToOklch(gen.anchors["pop"]);
+    const twisted = hexToOklch(gen.variables["--pop-twist"]);
+    expect(isValidCssColor(gen.variables["--pop-twist"])).toBe(true);
+    let drift = Math.abs(twisted.h - ((anchor.h + 35) % 360));
+    if (drift > 180) drift = 360 - drift;
+    expect(drift).toBeLessThan(5);
+    expect(twisted.l).toBeCloseTo(anchor.l, 1);
+    const plusOpts = {
+      ...structuredClone(DEFAULT_THEME),
+      twist: { hue: 10, saturation: 10 },
+    };
+    const plus = generateTheme(plusOpts);
+    const plusBack = hexToOklch(plus.variables["--pop-twist"]);
+    let plusDrift = Math.abs(plusBack.h - ((anchor.h + 45) % 360));
+    if (plusDrift > 180) plusDrift = 360 - plusDrift;
+    expect(plusDrift).toBeLessThan(5);
+    expect(plusBack.c).toBeGreaterThan(twisted.c);
+    // Achromatic pop stays grey, never invents colour.
+    const grey = generateTheme({
+      ...structuredClone(DEFAULT_THEME),
+      colors: { ...DEFAULT_THEME.colors, pop: "neutral-500" },
+    });
+    expect(hexToOklch(grey.variables["--pop-twist"]).c).toBeLessThan(0.012);
+    expect(decodeTheme(encodeTheme(plusOpts))).toEqual(plusOpts);
+    expect(() => validateThemeOptions({ version: 1, twist: { hue: 99 } })).toThrow(/twist\.hue/);
+    expect(() => validateThemeOptions({ version: 1, twist: { saturation: -99 } })).toThrow(/twist\.saturation/);
+    expect(() => validateThemeOptions({ version: 1, twist: "spicy" })).toThrow(/twist/);
   });
   test("pair vars are emitted and consumed", () => {
     const gen = generateTheme(DEFAULT_THEME);

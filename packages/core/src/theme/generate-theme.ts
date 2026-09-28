@@ -1,7 +1,8 @@
 import { generateRelativeScale, generateRelativeScaleFromHex, generateScale, generateScaleFromHex } from "../colors/generate-scale.ts";
+import { hexToOklch, oklchToHex } from "../colors/oklch.ts";
 import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
 import type { ChromaticName, ColorScale, RelativeScale, SemanticName, ThemeOptions } from "./types.ts";
-import { CHROMATIC_ANCHOR_STEP, CHROMATIC_HEX, CHROMATIC_NAMES, RELATIVE_KEYS } from "./types.ts";
+import { CHROMATIC_ANCHOR_STEP, CHROMATIC_HEX, CHROMATIC_NAMES, GLASS_ALPHA_DEFAULT, RELATIVE_KEYS, TWIST_BASE_HUE } from "./types.ts";
 import { deriveReadablePairs } from "./readable-pairs.ts";
 
 export interface GeneratedTheme {
@@ -22,6 +23,7 @@ export interface GeneratedTheme {
 const OPTION_TO_SEMANTIC: [keyof ThemeOptions["colors"], SemanticName][] = [
   ["base", "base"],
   ["alt", "alt"],
+  ["glass", "glass"],
   ["prose", "prose"],
   ["muted", "muted"],
   ["accent", "accent"],
@@ -66,6 +68,12 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
     const { sem, level } = options.textSource;
     pairs["--prose-on-base"] = level === "base" ? anchors[sem] : relative[sem][level];
   }
+  // Frosted glass fill + pop twist (hue-rotated pop).
+  const alpha = options.glassAlpha ?? GLASS_ALPHA_DEFAULT;
+  const alphaPct = Math.round(alpha * 100);
+  variables["--glass-alpha"] = String(alpha);
+  variables["--glass-fill"] = `color-mix(in srgb, var(--glass) ${alphaPct}%, transparent)`;
+  variables["--pop-twist"] = twistPop(anchors["pop"], options.twist?.hue ?? 0, options.twist?.saturation ?? 0);
   for (const [name, value] of Object.entries(pairs)) {
     variables[name] = value;
   }
@@ -75,4 +83,15 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
   }
   lines.push("}");
   return { options, scales, relative, anchors, pairs, variables, rootCss: lines.join("\n") };
+}
+
+/**
+ * Pop twist: the pop anchor rotated by the automatic base hue plus an
+ * optional tweak (-15..15°), with relative saturation adjustment (-15..15%).
+ */
+export function twistPop(popHex: string, hueTweak = 0, saturationTweak = 0): string {
+  const src = hexToOklch(popHex.toLowerCase());
+  const h = ((src.h + TWIST_BASE_HUE + hueTweak) % 360 + 360) % 360;
+  const c = Math.max(0, src.c * (1 + saturationTweak / 100));
+  return oklchToHex(src.l, Math.min(c, 0.37), h);
 }

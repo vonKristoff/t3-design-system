@@ -16,6 +16,7 @@ export const PRESET_THEMES: PresetTheme[] = [
     colors: {
       base: "cyan-50",
       alt: "blue-100",
+      glass: "cyan-100",
       prose: "slate-900",
       muted: "slate-500",
       accent: "cyan-600",
@@ -33,6 +34,7 @@ export const PRESET_THEMES: PresetTheme[] = [
     colors: {
       base: "amber-50",
       alt: "orange-100",
+      glass: "amber-100",
       prose: "neutral-900",
       muted: "amber-700",
       accent: "orange-600",
@@ -50,6 +52,7 @@ export const PRESET_THEMES: PresetTheme[] = [
     colors: {
       base: "slate-950",
       alt: "slate-900",
+      glass: "slate-800",
       prose: "slate-100",
       muted: "slate-400",
       accent: "indigo-400",
@@ -67,6 +70,7 @@ export const PRESET_THEMES: PresetTheme[] = [
     colors: {
       base: "neutral-950",
       alt: "neutral-900",
+      glass: "neutral-800",
       prose: "neutral-100",
       muted: "neutral-400",
       accent: "fuchsia-500",
@@ -84,6 +88,7 @@ export const PRESET_THEMES: PresetTheme[] = [
     colors: {
       base: "lime-50",
       alt: "green-100",
+      glass: "lime-100",
       prose: "green-950",
       muted: "green-700",
       accent: "green-600",
