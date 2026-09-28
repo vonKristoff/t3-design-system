@@ -74,21 +74,29 @@ The CLI is the export/generation mechanism.
 3. Core semantic colour model
    Do NOT use generic primary and secondary as the main application colour model.
 
-The user-facing theme has exactly these semantic colour anchors:
+The user-facing theme has exactly these semantic colour anchors,
+grouped as palette cards:
 
+SURFACES
 base
 alt
+
+CONTENT
 prose
+muted
+
+EMPHASIS
 accent
+pop
 
-brand-primary
-brand-secondary
+CONTRAST
+inverse
 
-traffic-stop
-traffic-warning
-traffic-ok
+CHROMATICS (fixed, not generated)
+black (#000000)
+white (#ffffff)
 
-These are the colours the user selects in the UI.
+These are the colours the user selects in the UI (black/white are absolute).
 
 The purpose of each is:
 
@@ -129,57 +137,59 @@ headings
 
 normal Markdown text
 
+muted
+Diminished text — secondary information that steps back from prose.
+
+Examples:
+
+captions
+
+metadata
+
+placeholders
+
+secondary labels
+
 accent
-The general attention/interaction colour.
+The colour the interface uses to express its identity and interaction.
 
 Examples:
 
 links
 
-highlights
+buttons
 
-selected elements
+active states
 
-interactive details
+controls
 
-brand-primary
-The primary brand colour.
+key UI elements
 
-brand-secondary
-The secondary brand colour.
+branded highlights
 
-traffic-stop
-Negative/error/destructive state.
+pop
+A deliberately contrasting colour used sparingly to attract attention.
 
 Examples:
 
-errors
+promotional cards
 
-failed operations
+badges
 
-destructive warnings
+special callouts
 
-traffic-warning
-Caution/pending/attention state.
+illustrations
 
-Examples:
+standout sections
 
-warnings
+occasional decorative elements
 
-pending states
+inverse
+Content placed on contrasting surfaces (e.g. text on accent or pop fills).
 
-things requiring attention
-
-traffic-ok
-Positive/success/confirmed state.
-
-Examples:
-
-success
-
-completed
-
-valid/OK states
+black / white
+Absolute chromatics. Fixed values used as readability fallbacks and
+reference points; they are never generated.
 
 Do not rename these semantic concepts without a strong technical reason.
 
@@ -264,17 +274,17 @@ For example:
 --accent-900
 --accent-950
 
-The same applies to every semantic colour:
+The same applies to every generated semantic colour:
 
 base
 alt
 prose
+muted
 accent
-brand-primary
-brand-secondary
-traffic-stop
-traffic-warning
-traffic-ok
+pop
+inverse
+
+(black/white are fixed absolutes, not generated.)
 
 The selected source colour should be treated as the anchor for the generated scale.
 
@@ -339,14 +349,16 @@ For example:
 
 --prose-50: ...;
 
+--muted-500: ...;
+
 --accent-50: ...;
 
---brand-primary-50: ...;
---brand-secondary-50: ...;
+--pop-500: ...;
 
---traffic-stop-50: ...;
---traffic-warning-50: ...;
---traffic-ok-50: ...;
+--inverse: ...;
+
+--black: #000000;
+--white: #ffffff;
 }
 
 Use the same naming convention consistently.
@@ -538,14 +550,10 @@ colors: {
 base: string;
 alt: string;
 prose: string;
+muted: string;
 accent: string;
-
-    brandPrimary: string;
-    brandSecondary: string;
-
-    trafficStop: string;
-    trafficWarning: string;
-    trafficOk: string;
+pop: string;
+inverse: string;
 
 };
 
@@ -710,14 +718,13 @@ For example:
 
 --prose-50: ...;
 
+--muted-500: ...;
+
 --accent-50: ...;
 
---brand-primary-50: ...;
---brand-secondary-50: ...;
+--pop-500: ...;
 
---traffic-stop-50: ...;
---traffic-warning-50: ...;
---traffic-ok-50: ...;
+--inverse: ...;
 
 --font-primary: ...;
 --font-secondary: ...;
@@ -813,7 +820,7 @@ Instead, Tailwind should ultimately point at the generated semantic CSS variable
 
 The design system should allow usage conceptually like:
 
-<div class="bg-brand-primary">
+<div class="bg-accent">
 
 or the equivalent Tailwind-compatible variable-based implementation.
 
@@ -890,15 +897,13 @@ Do not approximate the preview separately.
 
 For example:
 
-base zinc-50
-alt zinc-100
-prose zinc-900
+base slate-50
+alt slate-100
+prose slate-900
+muted slate-500
 accent blue-600
-brand-primary blue-600
-brand-secondary violet-600
-traffic-stop red-600
-traffic-warning amber-500
-traffic-ok green-600
+pop fuchsia-500
+inverse slate-50
 
 Use sensible default fonts based on the chosen fallback typography system.
 
@@ -1067,17 +1072,13 @@ alt
 
 prose
 
+muted
+
 accent
 
-brand-primary
+pop
 
-brand-secondary
-
-traffic-stop
-
-traffic-warning
-
-traffic-ok
+inverse
 
 See the Markdown preview update immediately.
 
@@ -1133,8 +1134,8 @@ oklch(0.623 0.214 259.815)
 Semantic output
 The generated application thinks:
 
---brand-primary-500
---traffic-warning-100
+--accent-500
+--pop-100
 --prose-700
 
 not:
@@ -1148,12 +1149,10 @@ The theme author only needs to understand:
 base
 alt
 prose
+muted
 accent
-brand-primary
-brand-secondary
-traffic-stop
-traffic-warning
-traffic-ok
+pop
+inverse
 
 Portable configuration
 The web application serialises the complete configuration into a versioned compressed Base64URL payload.

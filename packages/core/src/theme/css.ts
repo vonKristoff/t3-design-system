@@ -277,12 +277,10 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown ol ol, .markdown ul ol { list-style: lower-roman; }
 .markdown li { margin: 0.25rem 0; }
 .markdown li::marker { color: var(--accent-on-base); }
-.markdown .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0; }
-.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
-.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
-.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
-.markdown .brand { color: var(--brand-primary); }
-.markdown .brand-secondary { color: var(--brand-secondary); }
+.markdown .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 1rem 0; background: var(--alt-100); border-left: 4px solid var(--accent-500); color: var(--prose-on-quote); }
+.markdown .callout-pop { background: var(--pop-600); border-left: 4px solid var(--pop-700); color: var(--inverse-on-pop); }
+.markdown .pop { color: var(--pop); }
+.markdown .muted { color: var(--muted-on-base); }
 /* Stacked images keep breathing room, in and out of the grid. */
 .markdown img + img { margin-top: 1.5rem; }
 `;
@@ -297,11 +295,13 @@ img { max-width: 100%; border-radius: 0.5rem; }
   --color-base-900: var(--base-900);
   --color-accent-500: var(--accent-500);
   --color-accent-600: var(--accent-600);
-  --color-brand-primary: var(--brand-primary-600);
-  --color-brand-secondary: var(--brand-secondary-600);
-  --color-traffic-stop: var(--traffic-stop-600);
-  --color-traffic-warning: var(--traffic-warning-500);
-  --color-traffic-ok: var(--traffic-ok-600);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-muted-600: var(--muted-600);
+  --color-pop: var(--pop);
+  --color-pop-500: var(--pop-500);
+  --color-pop-600: var(--pop-600);
+  --color-inverse: var(--inverse);
   --font-primary: var(--font-primary);
   --font-secondary: var(--font-secondary);
 }

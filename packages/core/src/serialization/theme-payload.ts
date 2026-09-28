@@ -6,9 +6,9 @@ import { validateThemeOptions } from "../theme/validate.ts";
 export const CLI_PACKAGE_NAME = "tsup-system";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
-  "base", "alt", "prose", "accent",
-  "brandPrimary", "brandSecondary",
-  "trafficStop", "trafficWarning", "trafficOk",
+  "base", "alt", "prose", "muted",
+  "accent", "pop",
+  "inverse",
 ];
 
 function canonical(value: unknown): string {

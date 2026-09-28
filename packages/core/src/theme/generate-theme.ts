@@ -11,9 +11,9 @@ export interface GeneratedTheme {
   relative: Record<SemanticName, RelativeScale>;
   /** Raw source anchor hex per semantic (the exact colour the user picked). */
   anchors: Record<SemanticName, string>;
-  /** Auto-derived readable text-on-surface values (varName → hex). */
+  /** Fixed chromatics + auto-derived readable text-on-surface values. */
   pairs: Record<string, string>;
-  /** CSS custom-property map, e.g. "--brand-primary-500" -> "#2563eb" */
+  /** CSS custom-property map, e.g. "--accent-500" -> "#2563eb" */
   variables: Record<string, string>;
   /** Full :root block text */
   rootCss: string;
@@ -23,12 +23,10 @@ const OPTION_TO_SEMANTIC: [keyof ThemeOptions["colors"], SemanticName][] = [
   ["base", "base"],
   ["alt", "alt"],
   ["prose", "prose"],
+  ["muted", "muted"],
   ["accent", "accent"],
-  ["brandPrimary", "brand-primary"],
-  ["brandSecondary", "brand-secondary"],
-  ["trafficStop", "traffic-stop"],
-  ["trafficWarning", "traffic-warning"],
-  ["trafficOk", "traffic-ok"],
+  ["pop", "pop"],
+  ["inverse", "inverse"],
 ];
 
 export function generateTheme(options: ThemeOptions): GeneratedTheme {
@@ -53,6 +51,9 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
     }
   }
   const pairs = deriveReadablePairs(scales);
+  // Fixed chromatics: absolute, never generated.
+  variables["--black"] = "#000000";
+  variables["--white"] = "#ffffff";
   // Swappable body-copy source: default is the auto-derived prose value;
   // an explicit swatch overrides it verbatim (warnings cover low contrast).
   if (options.textSource) {

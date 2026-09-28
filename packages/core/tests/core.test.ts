@@ -15,6 +15,7 @@ import { fluidClamp, fluidPreferred } from "../src/typography/fluid.ts";
 import { encodeTheme, decodeTheme } from "../src/serialization/theme-payload.ts";
 import { validateThemeOptions } from "../src/theme/validate.ts";
 import { contrastWarnings } from "../src/theme/contrast.ts";
+import { ensureContrast } from "../src/theme/readable-pairs.ts";
 
 describe("colour resolution", () => {
   test("blue-600 resolves", () => {
@@ -66,7 +67,7 @@ describe("serialization round-trip", () => {
   test("modified theme round-trips and stays small", () => {
     const modified = {
       ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, accent: "purple-600", trafficOk: "teal-500" },
+      colors: { ...DEFAULT_THEME.colors, accent: "purple-600", pop: "teal-500" },
       fonts: { primary: "DM Sans" },
       width: { value: 60, unit: "ch" as const },
       breakout: { value: 4, unit: "rem" as const },
@@ -231,8 +232,8 @@ describe("relative scale", () => {
       expect(gen.variables[`--accent-${key}`]).toBe(gen.relative["accent"][key]);
     }
     expect(gen.rootCss).toContain("--base-light:");
-    expect(gen.rootCss).toContain("--traffic-ok-dark:");
-    expect(gen.rootCss).not.toContain("--base-light-1:");
+    expect(gen.rootCss).toContain("--pop-dark:");
+    expect(gen.rootCss).not.toMatch(/--base-(light|dark)-\d/);
   });
 });
 
@@ -269,9 +270,9 @@ describe("readable pairs", () => {
     expect(gen.pairs["--prose-on-quote-soft"]).toBe(gen.scales["prose"]["600"]);
     expect(gen.pairs["--accent-on-base"]).toBe(gen.scales["accent"]["600"]);
     expect(gen.pairs["--accent-hover-on-base"]).toBe(gen.scales["accent"]["700"]);
-    expect(gen.pairs["--traffic-stop-on-callout"]).toBe(gen.scales["traffic-stop"]["900"]);
-    expect(gen.pairs["--traffic-warning-on-callout"]).toBe(gen.scales["traffic-warning"]["900"]);
-    expect(gen.pairs["--traffic-ok-on-callout"]).toBe(gen.scales["traffic-ok"]["900"]);
+    expect(gen.pairs["--muted-on-base"]).toBe(gen.scales["muted"]["600"]);
+    expect(gen.pairs["--inverse-on-accent"]).toBe(gen.scales["inverse"]["50"]);
+    expect(gen.pairs["--inverse-on-pop"]).toBe(gen.scales["inverse"]["50"]);
     expect(gen.pairs["--pre-on-ink"]).toBe(gen.scales["alt"]["50"]);
   });
   test("pair vars are emitted and consumed", () => {
@@ -279,10 +280,12 @@ describe("readable pairs", () => {
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");
     expect(gen.rootCss).toContain("--prose-on-base:");
     expect(gen.rootCss).toContain("--accent-hover-on-base:");
+    expect(gen.rootCss).toContain("--muted-on-base:");
+    expect(gen.rootCss).toContain("--inverse-on-pop:");
     expect(files["base.css"]).toContain("color: var(--prose-on-base);");
     expect(files["base.css"]).toContain("color: var(--accent-on-base);");
     expect(files["markdown.css"]).toContain("color: var(--prose-on-quote);");
-    expect(files["markdown.css"]).toContain("color: var(--traffic-ok-on-callout);");
+    expect(files["markdown.css"]).toContain("color: var(--inverse-on-pop);");
   });
   test("swappable text source overrides body copy verbatim", () => {
     const swapped = {
@@ -297,7 +300,7 @@ describe("readable pairs", () => {
   test("textSource validates, rejects junk, and round-trips", () => {
     const withSource = {
       ...structuredClone(DEFAULT_THEME),
-      textSource: { sem: "brand-primary" as const, level: "light" as const },
+      textSource: { sem: "accent" as const, level: "light" as const },
     };
     expect(decodeTheme(encodeTheme(withSource))).toEqual(withSource);
     expect(() =>
@@ -309,6 +312,11 @@ describe("readable pairs", () => {
     expect(() =>
       validateThemeOptions({ version: 1, textSource: "prose" })
     ).toThrow(/textSource/);
+  });
+  test("ensureContrast falls back to black, then white", () => {
+    expect(ensureContrast("#434a5a", "#fafafa")).toBe("#434a5a");
+    expect(ensureContrast("#808080", "#d946ef")).toBe("#000000");
+    expect(ensureContrast("#3b0764", "#020617")).toBe("#ffffff");
   });
   test("explicit low-contrast source raises a warning, never an override", () => {
     const risky = {
@@ -328,20 +336,25 @@ describe("theme consistency", () => {
   test("preview variables match generator", () => {
     const gen = generateTheme(DEFAULT_THEME);
     expect(gen.variables["--accent-600"]).toBeDefined();
-    expect(gen.rootCss).toContain("--brand-primary-");
+    expect(gen.rootCss).toContain("--accent-");
   });
   test("raw anchor var equals the exact chosen colour", () => {
     const gen = generateTheme(DEFAULT_THEME);
-    expect(gen.anchors["brand-primary"]).toBe("#2563eb");
-    expect(gen.variables["--brand-primary"]).toBe("#2563eb");
+    expect(gen.anchors["accent"]).toBe("#2563eb");
+    expect(gen.variables["--accent"]).toBe("#2563eb");
     // Light anchor: the anchor is exact even though generated steps go muddy.
     const light = {
       ...structuredClone(DEFAULT_THEME),
-      colors: { ...DEFAULT_THEME.colors, brandPrimary: "yellow-100" },
+      colors: { ...DEFAULT_THEME.colors, accent: "yellow-100" },
     };
     const g2 = generateTheme(light);
-    expect(g2.anchors["brand-primary"]).toBe("#fef9c3");
-    expect(g2.variables["--brand-primary"]).toBe("#fef9c3");
+    expect(g2.anchors["accent"]).toBe("#fef9c3");
+    expect(g2.variables["--accent"]).toBe("#fef9c3");
+  });
+  test("fixed chromatics are absolute", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    expect(gen.variables["--black"]).toBe("#000000");
+    expect(gen.variables["--white"]).toBe("#ffffff");
   });
 });
 

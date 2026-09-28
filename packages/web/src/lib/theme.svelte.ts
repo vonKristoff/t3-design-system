@@ -29,20 +29,18 @@ import {
 
 export type ColorKey = keyof ThemeColors;
 
-export type ColorGroup = 'Canvas' | 'Accent' | 'Brand' | 'Traffic';
+export type ColorGroup = 'Surfaces' | 'Content' | 'Emphasis' | 'Contrast';
 
-export const COLOR_GROUPS: ColorGroup[] = ['Canvas', 'Accent', 'Brand', 'Traffic'];
+export const COLOR_GROUPS: ColorGroup[] = ['Surfaces', 'Content', 'Emphasis', 'Contrast'];
 
 export const COLOR_FIELDS: { key: ColorKey; label: string; hint: string; group: ColorGroup }[] = [
-	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings', group: 'Canvas' },
-	{ key: 'base', label: 'Base', hint: 'Page background', group: 'Canvas' },
-	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables', group: 'Canvas' },
-	{ key: 'accent', label: 'Accent', hint: 'Links, highlights', group: 'Accent' },
-	{ key: 'brandPrimary', label: 'Brand Primary', hint: 'Primary brand', group: 'Brand' },
-	{ key: 'brandSecondary', label: 'Brand Secondary', hint: 'Secondary brand', group: 'Brand' },
-	{ key: 'trafficStop', label: 'Stop', hint: 'Errors, destructive', group: 'Traffic' },
-	{ key: 'trafficWarning', label: 'Warning', hint: 'Caution, pending', group: 'Traffic' },
-	{ key: 'trafficOk', label: 'OK', hint: 'Success, confirmed', group: 'Traffic' }
+	{ key: 'base', label: 'Base', hint: 'Page background', group: 'Surfaces' },
+	{ key: 'alt', label: 'Alt', hint: 'Cards, code blocks, tables', group: 'Surfaces' },
+	{ key: 'prose', label: 'Prose', hint: 'Paragraphs, headings', group: 'Content' },
+	{ key: 'muted', label: 'Muted', hint: 'Diminished text', group: 'Content' },
+	{ key: 'accent', label: 'Accent', hint: 'Links, buttons, controls', group: 'Emphasis' },
+	{ key: 'pop', label: 'Pop', hint: 'Badges, callouts, standouts', group: 'Emphasis' },
+	{ key: 'inverse', label: 'Inverse', hint: 'Content on contrasting surfaces', group: 'Contrast' }
 ];
 
 export const ASSIGNMENT_ELEMENTS: { key: FontElement; label: string }[] = [

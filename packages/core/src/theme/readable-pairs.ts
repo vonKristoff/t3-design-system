@@ -26,10 +26,10 @@ export const READABLE_PAIRS: ReadablePairSpec[] = [
   { varName: "--prose-on-alt", textSem: "prose", textPreferred: "900", bgSem: "alt", bgStep: "200" },
   { varName: "--prose-on-quote", textSem: "prose", textPreferred: "700", bgSem: "alt", bgStep: "100" },
   { varName: "--prose-on-quote-soft", textSem: "prose", textPreferred: "600", bgSem: "base", bgStep: "50" },
+  { varName: "--muted-on-base", textSem: "muted", textPreferred: "600", bgSem: "base", bgStep: "50" },
   { varName: "--accent-on-base", textSem: "accent", textPreferred: "600", bgSem: "base", bgStep: "50" },
-  { varName: "--traffic-stop-on-callout", textSem: "traffic-stop", textPreferred: "900", bgSem: "traffic-stop", bgStep: "100" },
-  { varName: "--traffic-warning-on-callout", textSem: "traffic-warning", textPreferred: "900", bgSem: "traffic-warning", bgStep: "100" },
-  { varName: "--traffic-ok-on-callout", textSem: "traffic-ok", textPreferred: "900", bgSem: "traffic-ok", bgStep: "100" },
+  { varName: "--inverse-on-accent", textSem: "inverse", textPreferred: "50", bgSem: "accent", bgStep: "600" },
+  { varName: "--inverse-on-pop", textSem: "inverse", textPreferred: "50", bgSem: "pop", bgStep: "600" },
   { varName: "--pre-on-ink", textSem: "alt", textPreferred: "50", bgSem: "alt", bgStep: "950" },
 ];
 
@@ -104,13 +104,24 @@ export function deriveReadablePairs(
     const bg = cssToHex(scales[spec.bgSem][spec.bgStep]);
     if (!bg) continue;
     const step = pickReadableRung(scales[spec.textSem], bg, spec.textPreferred);
-    out[spec.varName] = scales[spec.textSem][step];
+    out[spec.varName] = ensureContrast(scales[spec.textSem][step], bg);
     if (spec.varName === "--accent-on-base") accentLink = step;
   }
   const baseBg = cssToHex(scales["base"]["50"]);
   if (baseBg) {
     const hover = pickHoverRung(scales["accent"], baseBg, accentLink);
-    out["--accent-hover-on-base"] = scales["accent"][hover];
+    out["--accent-hover-on-base"] = ensureContrast(scales["accent"][hover], baseBg);
   }
   return out;
+}
+
+/**
+ * Guarantee readability: if the picked value fails, fall back to black then
+ * white. For any background exactly one of the two always passes, so the
+ * AA guarantee holds even for fills no scale rung can pair with.
+ */
+export function ensureContrast(textHex: string, bgHex: string, minRatio = MIN_READABLE_RATIO): string {
+  if (contrastRatio(textHex, bgHex) >= minRatio) return textHex;
+  if (contrastRatio("#000000", bgHex) >= minRatio) return "#000000";
+  return "#ffffff";
 }

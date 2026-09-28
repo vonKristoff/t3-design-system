@@ -21,12 +21,10 @@
 		base: 'Base',
 		alt: 'Alt',
 		prose: 'Prose',
+		muted: 'Muted',
 		accent: 'Accent',
-		'brand-primary': 'Brand Primary',
-		'brand-secondary': 'Brand Secondary',
-		'traffic-stop': 'Stop',
-		'traffic-warning': 'Warning',
-		'traffic-ok': 'OK'
+		pop: 'Pop',
+		inverse: 'Inverse'
 	};
 
 	const RELATIVE_ORDER = ['light', 'base', 'dark'] as const;

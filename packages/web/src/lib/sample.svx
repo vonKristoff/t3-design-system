@@ -8,7 +8,7 @@ Pick colours and fonts on the left. The preview updates [immediately](#live-prev
 
 ### Why semantic colours?
 
-Instead of thinking in `blue-600`, the theme author thinks in roles: `base` for the canvas, `alt` for raised surfaces, `prose` for readable text, and `accent` for interaction. Brand and traffic-light states — <span class="brand">primary</span>, <span class="brand-secondary">secondary</span> — complete the system.
+Instead of thinking in `blue-600`, the theme author thinks in roles: `base` for the canvas, `alt` for raised surfaces, `prose` for readable text with <span class="muted">muted</span> support, `accent` for interaction, and <span class="pop">pop</span> for exceptional emphasis.
 
 ---
 
@@ -38,7 +38,7 @@ Use `var(--accent-600)` for links, never a hardcoded hex. A full example:
 import { generateTheme } from '@tsup-system/core';
 
 const theme = generateTheme(options);
-console.log(theme.variables['--brand-primary-500']);
+console.log(theme.variables['--accent-500']);
 ```
 
 ## Live preview
@@ -85,15 +85,13 @@ The end of the document. If the theme looks right here, it will look right every
 | `--alt-100`        | Surface     | Code, tables       |
 | `--prose-800`      | Text        | Paragraphs         |
 | `--accent-600`     | Interaction | Links, highlights  |
-| `--traffic-ok-600` | Success     | Confirmations      |
+| `--pop-500`        | Emphasis    | Badges, standouts  |
 
 ## Status callouts
 
-<div class="callout callout-stop">Something failed. The destructive action was rolled back safely.</div>
+<div class="callout">Heads up: this step is pending review before Thursday.</div>
 
-<div class="callout callout-warning">Heads up: this step is pending review before Thursday.</div>
-
-<div class="callout callout-ok">All checks passed. The theme is ready to generate.</div>
+<div class="callout-pop">All checks passed. The theme is ready to generate.</div>
 
 ## A picture break
 

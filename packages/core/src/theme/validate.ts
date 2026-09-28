@@ -4,9 +4,9 @@ import type { BreakoutElement, FontElement, FontRole, SemanticName, SizeUnit, Si
 import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SEMANTIC_NAMES, SIZE_UNITS } from "./types.ts";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
-  "base", "alt", "prose", "accent",
-  "brandPrimary", "brandSecondary",
-  "trafficStop", "trafficWarning", "trafficOk",
+  "base", "alt", "prose", "muted",
+  "accent", "pop",
+  "inverse",
 ];
 
 const FONT_KEYS = ["primary", "secondary", "tertiary"] as const;

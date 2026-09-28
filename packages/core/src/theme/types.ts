@@ -18,12 +18,10 @@ export interface ThemeColors {
   base: string;
   alt: string;
   prose: string;
+  muted: string;
   accent: string;
-  brandPrimary: string;
-  brandSecondary: string;
-  trafficStop: string;
-  trafficWarning: string;
-  trafficOk: string;
+  pop: string;
+  inverse: string;
 }
 
 export interface ThemeFonts {
@@ -151,12 +149,10 @@ export const SEMANTIC_NAMES = [
   "base",
   "alt",
   "prose",
+  "muted",
   "accent",
-  "brand-primary",
-  "brand-secondary",
-  "traffic-stop",
-  "traffic-warning",
-  "traffic-ok",
+  "pop",
+  "inverse",
 ] as const;
 
 export type SemanticName = (typeof SEMANTIC_NAMES)[number];
@@ -166,10 +162,8 @@ export const SEMANTIC_TO_OPTION = {
   base: "base",
   alt: "alt",
   prose: "prose",
+  muted: "muted",
   accent: "accent",
-  "brand-primary": "brandPrimary",
-  "brand-secondary": "brandSecondary",
-  "traffic-stop": "trafficStop",
-  "traffic-warning": "trafficWarning",
-  "traffic-ok": "trafficOk",
+  pop: "pop",
+  inverse: "inverse",
 } as const satisfies Record<SemanticName, keyof ThemeColors>;

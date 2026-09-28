@@ -31,7 +31,7 @@ describe("cli output", () => {
     const gen = generateTheme(decodeTheme(payload));
     const rootCss = await readFile(join(out, "root.css"), "utf8");
     expect(rootCss).toContain(`--accent-600: ${gen.variables["--accent-600"]};`);
-    expect(rootCss).toContain(`--brand-primary-600: ${gen.variables["--brand-primary-600"]};`);
+    expect(rootCss).toContain(`--pop-500: ${gen.variables["--pop-500"]};`);
 
     const markdownCss = await readFile(join(out, "markdown.css"), "utf8");
     expect(markdownCss).not.toMatch(/blue-600|red-500|amber-100/);

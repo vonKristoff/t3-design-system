@@ -278,11 +278,10 @@
 	);
 
 	const CHIPS = [
-		['brand-primary', 'var(--brand-primary)', 'var(--base-50)'],
-		['brand-secondary', 'var(--brand-secondary)', 'var(--base-50)'],
-		['stop · 100', 'var(--traffic-stop-100)', 'var(--traffic-stop-900)'],
-		['warning · 100', 'var(--traffic-warning-100)', 'var(--traffic-warning-900)'],
-		['ok · 100', 'var(--traffic-ok-100)', 'var(--traffic-ok-900)']
+		['accent', 'var(--accent-600)', 'var(--inverse-on-accent)'],
+		['pop', 'var(--pop-600)', 'var(--inverse-on-pop)'],
+		['muted', 'var(--alt-100)', 'var(--muted-on-base)'],
+		['inverse', 'var(--prose-900)', 'var(--inverse)']
 	]
 		.map(
 			([label, bg, fg]) =>
@@ -512,12 +511,10 @@
 		{ sem: 'base', label: 'Base', anchor: 'base' },
 		{ sem: 'alt', label: 'Alt', anchor: 'alt' },
 		{ sem: 'prose', label: 'Prose', anchor: 'prose' },
+		{ sem: 'muted', label: 'Muted', anchor: 'muted' },
 		{ sem: 'accent', label: 'Accent', anchor: 'accent' },
-		{ sem: 'brand-primary', label: 'Brand Primary', anchor: 'brandPrimary' },
-		{ sem: 'brand-secondary', label: 'Brand Secondary', anchor: 'brandSecondary' },
-		{ sem: 'traffic-stop', label: 'Stop', anchor: 'trafficStop' },
-		{ sem: 'traffic-warning', label: 'Warning', anchor: 'trafficWarning' },
-		{ sem: 'traffic-ok', label: 'OK', anchor: 'trafficOk' }
+		{ sem: 'pop', label: 'Pop', anchor: 'pop' },
+		{ sem: 'inverse', label: 'Inverse', anchor: 'inverse' }
 	];
 
 	const TREE = `theme/
@@ -532,12 +529,12 @@
 
 	const TAILWIND_EXCERPT = `@import "tailwindcss";
 @theme inline {
-  --color-brand-primary: var(--brand-primary-600);
-  --color-traffic-ok: var(--traffic-ok-600);
+  --color-accent-600: var(--accent-600);
+  --color-pop-500: var(--pop-500);
   --font-primary: var(--font-primary);
 }`;
 
-	const USAGE_EXCERPT = `<div class="bg-brand-primary font-primary">
+	const USAGE_EXCERPT = `<div class="bg-accent-600 font-primary">
   Ships with your system
 </div>`;
 </script>
@@ -840,7 +837,7 @@
 								<span class="flex" aria-hidden="true">
 									<span class="inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.base)}></span>
 									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.accent)}></span>
-									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.brandPrimary)}></span>
+									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.pop)}></span>
 								</span>
 							</label>
 						{/each}
@@ -885,6 +882,25 @@
 								</div>
 							</section>
 						{/each}
+						<section aria-label="Chromatics">
+							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Chromatics</h3>
+							<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+								<div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+									<span class="inline-block h-9 w-14 rounded-md border border-black/20 bg-black" title="black · #000000"></span>
+									<span>
+										<span class="block text-sm font-medium text-neutral-800">Black</span>
+										<span class="block font-mono text-xs text-neutral-500">#000000 · fixed</span>
+									</span>
+								</div>
+								<div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+									<span class="inline-block h-9 w-14 rounded-md border border-black/20 bg-white" title="white · #ffffff"></span>
+									<span>
+										<span class="block text-sm font-medium text-neutral-800">White</span>
+										<span class="block font-mono text-xs text-neutral-500">#ffffff · fixed</span>
+									</span>
+								</div>
+							</div>
+						</section>
 					</div>
 				</div>
 
