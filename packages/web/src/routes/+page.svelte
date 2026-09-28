@@ -912,6 +912,16 @@
 													class="w-full accent-neutral-900" aria-label="Glass alpha percent"
 												/>
 											</label>
+											<div
+												class="checkerboard mt-1.5 overflow-hidden rounded-md border border-black/20"
+												title={`--glass-fill over transparency grid (alpha ${Math.round(getGlassAlpha() * 100)}%)`}
+											>
+												<div
+													class="h-12 w-full"
+													style:background={getGenerated().variables["--glass-fill"]}
+													aria-hidden="true"
+												></div>
+											</div>
 										{/if}
 									</div>
 								{/each}
