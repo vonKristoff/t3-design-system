@@ -93,6 +93,12 @@ The end of the document. If the theme looks right here, it will look right every
 
 <div class="callout-pop">All checks passed. The theme is ready to generate.</div>
 
+<div class="callout-stop">Something failed. The destructive action was rolled back safely.</div>
+
+<div class="callout-warning">Caution: this action needs attention before continuing.</div>
+
+<div class="callout-ok">Confirmed. Everything checks out.</div>
+
 ## A picture break
 
 <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='280'%3E%3Crect width='800' height='280' fill='%23d4d4d8'/%3E%3Ctext x='400' y='150' font-family='sans-serif' font-size='28' text-anchor='middle' fill='%2352525b'%3EPlaceholder image%3C/text%3E%3C/svg%3E" alt="Placeholder" />

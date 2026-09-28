@@ -7,6 +7,7 @@ const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "muted",
   "accent", "pop",
   "inverse",
+  "trafficStop", "trafficWarning", "trafficOk",
 ];
 
 const FONT_KEYS = ["primary", "secondary", "tertiary"] as const;

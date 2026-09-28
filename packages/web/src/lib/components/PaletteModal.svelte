@@ -3,6 +3,7 @@
 		READABLE_PAIRS,
 		SCALE_STEPS,
 		SEMANTIC_NAMES,
+		CHROMATIC_NAMES,
 		type GeneratedTheme,
 		type SemanticName
 	} from '@tsup-system/core';
@@ -24,7 +25,10 @@
 		muted: 'Muted',
 		accent: 'Accent',
 		pop: 'Pop',
-		inverse: 'Inverse'
+		inverse: 'Inverse',
+		'traffic-stop': 'Stop',
+		'traffic-warning': 'Warning',
+		'traffic-ok': 'OK'
 	};
 
 	const RELATIVE_ORDER = ['light', 'base', 'dark'] as const;
@@ -102,6 +106,34 @@
 						</div>
 					</section>
 				{/each}
+
+				<section aria-label="Chromatics">
+					<h3 class="mb-1.5 text-sm font-semibold">Chromatics <span class="font-normal text-neutral-500">(fixed anchors, generated ranges)</span></h3>
+					<div class="grid gap-3 sm:grid-cols-2">
+						{#each CHROMATIC_NAMES as name (name)}
+							<div>
+								<div class="mb-1.5 flex items-center gap-2">
+									<span
+										class="inline-block h-5 w-5 rounded border border-black/20"
+										style:background={gen.anchors[name]}
+										title={`--${name}: ${gen.anchors[name]}`}
+									></span>
+									<h4 class="text-sm font-semibold capitalize">{name}</h4>
+									<span class="font-mono text-[11px] text-neutral-500">{gen.anchors[name]}</span>
+								</div>
+								<div class="flex gap-0.5" aria-label={`${name} rungs`}>
+									{#each SCALE_STEPS as step (step)}
+										<span
+											title={`--${name}-${step}: ${gen.scales[name][step]}`}
+											style:background={gen.scales[name][step]}
+											class="h-7 flex-1 border border-black/10 first:rounded-l-md last:rounded-r-md"
+										></span>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</section>
 
 				<section aria-label="Readable pairs">
 					<h3 class="mb-1.5 text-sm font-semibold">Readable pairs <span class="font-normal text-neutral-500">(≥ 4.5:1, auto-derived)</span></h3>

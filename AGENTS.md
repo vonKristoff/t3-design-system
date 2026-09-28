@@ -92,7 +92,12 @@ pop
 CONTRAST
 inverse
 
-CHROMATICS (fixed, not generated)
+TRAFFIC
+stop
+warning
+ok
+
+CHROMATICS (fixed anchors, generated ranges)
 black (#000000)
 white (#ffffff)
 
@@ -187,9 +192,18 @@ occasional decorative elements
 inverse
 Content placed on contrasting surfaces (e.g. text on accent or pop fills).
 
+stop
+Negative/error/destructive state (errors, failed operations).
+
+warning
+Caution/pending/attention state (warnings, things requiring attention).
+
+ok
+Positive/success/confirmed state (success, valid/OK states).
+
 black / white
-Absolute chromatics. Fixed values used as readability fallbacks and
-reference points; they are never generated.
+Absolute chromatics. Fixed anchor values used as readability fallbacks and
+reference points; their full ranges are still generated from those anchors.
 
 Do not rename these semantic concepts without a strong technical reason.
 
@@ -243,11 +257,11 @@ The UI should present colour choices in a clear visual dropdown/select rather th
 
 For example:
 
-Brand Primary
+Accent
 [ blue-600 ▼ ]
 
-Brand Secondary
-[ violet-600 ▼ ]
+Pop
+[ fuchsia-500 ▼ ]
 
 Ideally show a small colour swatch alongside each option.
 
@@ -284,7 +298,14 @@ accent
 pop
 inverse
 
-(black/white are fixed absolutes, not generated.)
+TRAFFIC
+stop
+warning
+ok
+
+CHROMATICS (fixed anchors, generated ranges)
+black (#000000)
+white (#ffffff)
 
 The selected source colour should be treated as the anchor for the generated scale.
 
@@ -510,15 +531,17 @@ A useful layout is:
 │ Base [▼] │ │
 │ Alt [▼] │ MARKDOWN PREVIEW │
 │ Prose [▼] │ │
-│ Accent [▼] │ # Heading │
+│ Muted [▼] │ # Heading │
 │ │ │
-│ Brand Primary [▼] │ Markdown content... │
-│ Brand Secondary │ │
-│ [▼] │ ## Heading │
+│ Accent [▼] │ Markdown content... │
+│ Pop [▼] │ │
+│ │ ## Heading │
 │ │ │
-│ Stop [▼] │ > Blockquote │
+│ Inverse [▼] │ > Blockquote │
+│ │ │
+│ Stop [▼] │ | Table | Table | │
 │ Warning [▼] │ │
-│ OK [▼] │ | Table | Table | │
+│ OK [▼] │ │
 │ │ │
 │ TYPOGRAPHY │ `js                          │
 │                   │          code                            │
@@ -554,6 +577,9 @@ muted: string;
 accent: string;
 pop: string;
 inverse: string;
+trafficStop: string;
+trafficWarning: string;
+trafficOk: string;
 
 };
 

@@ -21,6 +21,9 @@ export const PRESET_THEMES: PresetTheme[] = [
       accent: "cyan-600",
       pop: "orange-400",
       inverse: "slate-50",
+      trafficStop: "red-600",
+      trafficWarning: "amber-500",
+      trafficOk: "green-600",
     },
   },
   {
@@ -35,6 +38,9 @@ export const PRESET_THEMES: PresetTheme[] = [
       accent: "orange-600",
       pop: "rose-500",
       inverse: "neutral-50",
+      trafficStop: "red-600",
+      trafficWarning: "amber-500",
+      trafficOk: "green-600",
     },
   },
   {
@@ -49,6 +55,9 @@ export const PRESET_THEMES: PresetTheme[] = [
       accent: "indigo-400",
       pop: "fuchsia-400",
       inverse: "slate-50",
+      trafficStop: "red-400",
+      trafficWarning: "amber-400",
+      trafficOk: "green-400",
     },
   },
   {
@@ -63,6 +72,9 @@ export const PRESET_THEMES: PresetTheme[] = [
       accent: "fuchsia-500",
       pop: "lime-400",
       inverse: "neutral-50",
+      trafficStop: "red-500",
+      trafficWarning: "amber-400",
+      trafficOk: "lime-400",
     },
   },
   {
@@ -77,6 +89,9 @@ export const PRESET_THEMES: PresetTheme[] = [
       accent: "green-600",
       pop: "amber-400",
       inverse: "green-50",
+      trafficStop: "red-600",
+      trafficWarning: "amber-500",
+      trafficOk: "green-600",
     },
   },
 ];

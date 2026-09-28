@@ -7,6 +7,7 @@
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
+		CHROMATIC_NAMES,
 		SEMANTIC_NAMES,
 		fluidClamp,
 		docShellClasses,
@@ -281,7 +282,10 @@
 		['accent', 'var(--accent-600)', 'var(--inverse-on-accent)'],
 		['pop', 'var(--pop-600)', 'var(--inverse-on-pop)'],
 		['muted', 'var(--alt-100)', 'var(--muted-on-base)'],
-		['inverse', 'var(--prose-900)', 'var(--inverse)']
+		['inverse', 'var(--prose-900)', 'var(--inverse)'],
+		['stop', 'var(--traffic-stop-100)', 'var(--traffic-stop-on-callout)'],
+		['warning', 'var(--traffic-warning-100)', 'var(--traffic-warning-on-callout)'],
+		['ok', 'var(--traffic-ok-100)', 'var(--traffic-ok-on-callout)']
 	]
 		.map(
 			([label, bg, fg]) =>
@@ -884,21 +888,29 @@
 						{/each}
 						<section aria-label="Chromatics">
 							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Chromatics</h3>
-							<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-								<div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-									<span class="inline-block h-9 w-14 rounded-md border border-black/20 bg-black" title="black · #000000"></span>
-									<span>
-										<span class="block text-sm font-medium text-neutral-800">Black</span>
-										<span class="block font-mono text-xs text-neutral-500">#000000 · fixed</span>
-									</span>
-								</div>
-								<div class="flex items-center gap-3 rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-									<span class="inline-block h-9 w-14 rounded-md border border-black/20 bg-white" title="white · #ffffff"></span>
-									<span>
-										<span class="block text-sm font-medium text-neutral-800">White</span>
-										<span class="block font-mono text-xs text-neutral-500">#ffffff · fixed</span>
-									</span>
-								</div>
+							<div class="grid gap-3 md:grid-cols-2">
+								{#each CHROMATIC_NAMES as name (name)}
+									<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+										<div class="mb-1.5 flex items-center gap-2">
+											<span
+												class="inline-block h-5 w-5 rounded border border-black/20"
+												style:background={getGenerated().anchors[name]}
+												title={`--${name}: ${getGenerated().anchors[name]}`}
+											></span>
+											<span class="text-sm font-medium text-neutral-800 capitalize">{name}</span>
+											<span class="font-mono text-xs text-neutral-500">{getGenerated().anchors[name]} · fixed anchor, generated range</span>
+										</div>
+										<div class="flex gap-0.5" aria-label={`${name} rungs`}>
+											{#each SCALE_STEPS as step (step)}
+												<span
+													title={`--${name}-${step}: ${getGenerated().scales[name][step]}`}
+													style:background={getGenerated().scales[name][step]}
+													class="h-6 flex-1 border border-black/10 first:rounded-l-md last:rounded-r-md"
+												></span>
+											{/each}
+										</div>
+									</div>
+								{/each}
 							</div>
 						</section>
 					</div>

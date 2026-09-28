@@ -11,6 +11,9 @@ export const DEFAULT_THEME: ThemeOptions = {
     accent: "blue-600",
     pop: "fuchsia-500",
     inverse: "slate-50",
+    trafficStop: "red-600",
+    trafficWarning: "amber-500",
+    trafficOk: "green-600",
   },
   fonts: {
     primary: "Roboto",

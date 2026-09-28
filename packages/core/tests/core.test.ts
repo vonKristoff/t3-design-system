@@ -273,7 +273,27 @@ describe("readable pairs", () => {
     expect(gen.pairs["--muted-on-base"]).toBe(gen.scales["muted"]["600"]);
     expect(gen.pairs["--inverse-on-accent"]).toBe(gen.scales["inverse"]["50"]);
     expect(gen.pairs["--inverse-on-pop"]).toBe(gen.scales["inverse"]["50"]);
+    expect(gen.pairs["--traffic-stop-on-callout"]).toBe(gen.scales["traffic-stop"]["900"]);
+    expect(gen.pairs["--traffic-warning-on-callout"]).toBe(gen.scales["traffic-warning"]["900"]);
+    expect(gen.pairs["--traffic-ok-on-callout"]).toBe(gen.scales["traffic-ok"]["900"]);
     expect(gen.pairs["--pre-on-ink"]).toBe(gen.scales["alt"]["50"]);
+  });
+  test("fixed chromatics carry full generated ranges", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    expect(gen.anchors["black"]).toBe("#000000");
+    expect(gen.anchors["white"]).toBe("#ffffff");
+    expect(gen.scales["black"]["950"]).toBe("#000000");
+    expect(gen.scales["white"]["50"]).toBe("#ffffff");
+    // End-anchored extremes: black derives upwards, white downwards.
+    const l = (hex: string) => hexToOklch(hex).l;
+    expect(gen.relative["black"].dark).toBe("#000000");
+    expect(l(gen.relative["black"].base)).toBeGreaterThan(l(gen.relative["black"].dark));
+    expect(gen.relative["white"].light).toBe("#ffffff");
+    expect(l(gen.relative["white"].light)).toBeGreaterThan(l(gen.relative["white"].base));
+    expect(gen.variables["--black-900"]).toBe(gen.scales["black"]["900"]);
+    expect(gen.variables["--white-light"]).toBe(gen.relative["white"]["light"]);
+    expect(gen.rootCss).toContain("--black-50:");
+    expect(gen.rootCss).toContain("--white-950:");
   });
   test("pair vars are emitted and consumed", () => {
     const gen = generateTheme(DEFAULT_THEME);

@@ -22,6 +22,9 @@ export interface ThemeColors {
   accent: string;
   pop: string;
   inverse: string;
+  trafficStop: string;
+  trafficWarning: string;
+  trafficOk: string;
 }
 
 export interface ThemeFonts {
@@ -153,9 +156,28 @@ export const SEMANTIC_NAMES = [
   "accent",
   "pop",
   "inverse",
+  "traffic-stop",
+  "traffic-warning",
+  "traffic-ok",
 ] as const;
 
 export type SemanticName = (typeof SEMANTIC_NAMES)[number];
+
+/** Fixed chromatics: absolute anchors, still granted full generated ranges. */
+export const CHROMATIC_NAMES = ["black", "white"] as const;
+
+export type ChromaticName = (typeof CHROMATIC_NAMES)[number];
+
+export const CHROMATIC_HEX: Record<ChromaticName, string> = {
+  black: "#000000",
+  white: "#ffffff",
+};
+
+/** Rung each fixed anchor pins to: black lives at the bottom, white at the top. */
+export const CHROMATIC_ANCHOR_STEP: Record<ChromaticName, ScaleStep> = {
+  black: "950",
+  white: "50",
+};
 
 /** Semantic name → ThemeOptions.colors key. */
 export const SEMANTIC_TO_OPTION = {
@@ -166,4 +188,7 @@ export const SEMANTIC_TO_OPTION = {
   accent: "accent",
   pop: "pop",
   inverse: "inverse",
+  "traffic-stop": "trafficStop",
+  "traffic-warning": "trafficWarning",
+  "traffic-ok": "trafficOk",
 } as const satisfies Record<SemanticName, keyof ThemeColors>;

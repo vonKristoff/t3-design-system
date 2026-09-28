@@ -68,13 +68,16 @@ function decayedHex(src: Oklch, targetL: number, slope = 2.1): string {
  */
 export function generateScale(sourceName: string): ColorScale {
   const sourceHex = resolveTailwindHex(sourceName).toLowerCase();
-  const src = hexToOklch(sourceHex);
-  const anchor = parseTailwindStep(sourceName);
+  return generateScaleFromHex(sourceHex, parseTailwindStep(sourceName));
+}
 
+/** Hex-based core: fixed anchors (chromatics) pin to an explicit step. */
+export function generateScaleFromHex(sourceHex: string, anchor: ScaleStep): ColorScale {
+  const src = hexToOklch(sourceHex.toLowerCase());
   const out = {} as ColorScale;
   for (const step of SCALE_STEPS) {
     if (step === anchor) {
-      out[step] = sourceHex;
+      out[step] = sourceHex.toLowerCase();
       continue;
     }
     out[step] = decayedHex(src, TARGET_L[step]);
@@ -90,7 +93,13 @@ export function generateScale(sourceName: string): ColorScale {
  */
 export function generateRelativeScale(sourceName: string, delta = RELATIVE_DELTA): RelativeScale {
   const sourceHex = resolveTailwindHex(sourceName).toLowerCase();
-  const src = hexToOklch(sourceHex);
+  return generateRelativeScaleFromHex(sourceHex, delta);
+}
+
+/** Hex-based core for fixed anchors (chromatics). */
+export function generateRelativeScaleFromHex(sourceHex: string, delta = RELATIVE_DELTA): RelativeScale {
+  const src = hexToOklch(sourceHex.toLowerCase());
+  const hex = sourceHex.toLowerCase();
   // Anchors at/below mid keep the classic ramp (byte-identical to before);
   // paler anchors shed chroma faster when darkened so the trio reads as one
   // pastel family instead of snapping to full strength a step down.
@@ -102,10 +111,10 @@ export function generateRelativeScale(sourceName: string, delta = RELATIVE_DELTA
   // too dark → anchor becomes `dark` and the rest derive upwards.
   // Otherwise the anchor is `base` with one step either side.
   if (src.l + delta > 0.99) {
-    return { base: at(src.l - delta), light: sourceHex, dark: at(src.l - 2 * delta) };
+    return { base: at(src.l - delta), light: hex, dark: at(src.l - 2 * delta) };
   }
   if (src.l - delta < 0.12) {
-    return { base: at(src.l + delta), light: at(src.l + 2 * delta), dark: sourceHex };
+    return { base: at(src.l + delta), light: at(src.l + 2 * delta), dark: hex };
   }
-  return { base: sourceHex, light: at(src.l + delta), dark: at(src.l - delta) };
+  return { base: hex, light: at(src.l + delta), dark: at(src.l - delta) };
 }
