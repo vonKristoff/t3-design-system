@@ -10,7 +10,6 @@
 		fluidClamp,
 		docShellClasses,
 		resolveTailwindHex,
-		twistPop,
 		type BlockquoteVariant,
 		type BreakoutElement,
 		type BreakoutLevel,
@@ -877,7 +876,7 @@
 												label={field.label}
 												hint={field.hint}
 												bind:value={theme.colors[field.key as ColorKey]}
-												fill={field.key === 'glass' ? getGenerated().variables["--glass-fill"] : undefined}
+												fill={field.key === 'glass' ? `color-mix(in srgb, ${getGenerated().variables["--glass"]} ${Math.round(getGlassAlpha() * 100)}%, transparent)` : undefined}
 												checker={field.key === 'glass'}
 											/>
 										{#if field.key === 'glass'}
@@ -932,12 +931,12 @@
 												aria-hidden="true"
 											></span>
 										</div>
-										<div class="mt-1.5 flex items-stretch gap-0.5" aria-label="Twist hue sweep">
-											{#each [-15, -10, -5, 0, 5, 10, 15] as t (t)}
+										<div class="mt-1.5 flex items-stretch gap-0.5" aria-label="Twist light and dark">
+											{#each ["light", "base", "dark"] as k (k)}
 												<span
-													title={`hue ${t >= 0 ? '+' : ''}${t}°: ${twistPop(getGenerated().anchors["pop"], t, getTwist().saturation)}`}
-													style:background={twistPop(getGenerated().anchors["pop"], t, getTwist().saturation)}
-													class="h-5 flex-1 rounded-sm border border-black/20"
+													title={`--pop-twist${k === 'base' ? '' : '-' + k}: ${k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}`}
+													style:background={k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}
+													class="h-5 flex-1 border border-black/20 first:rounded-l-md last:rounded-r-md"
 												></span>
 											{/each}
 										</div>

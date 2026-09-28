@@ -288,12 +288,12 @@ img { max-width: 100%; border-radius: 0.5rem; }
 .markdown .callout::before { content: ""; position: absolute; left: 1rem; top: 1.15rem; width: 0.6rem; height: 0.6rem; border-radius: 9999px; background: var(--accent-500); }
 .markdown .callout-pop { background: var(--pop-600); border-left: 4px solid var(--pop-700); color: var(--inverse-on-pop); }
 .markdown .callout-pop::before { background: var(--inverse-on-pop); }
-.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 4px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
-.markdown .callout-stop::before { background: var(--traffic-stop-500); }
-.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 4px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
-.markdown .callout-warning::before { background: var(--traffic-warning-500); }
-.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 4px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
-.markdown .callout-ok::before { background: var(--traffic-ok-500); }
+.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 6px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
+.markdown .callout-stop::before { background: var(--traffic-stop-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-stop-500) 20%, transparent); }
+.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 6px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
+.markdown .callout-warning::before { background: var(--traffic-warning-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-warning-500) 20%, transparent); }
+.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 6px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
+.markdown .callout-ok::before { background: var(--traffic-ok-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-ok-500) 20%, transparent); }
 .markdown .pop { color: var(--pop); }
 .markdown .muted { color: var(--muted-on-base); }
 /* Stacked images keep breathing room, in and out of the grid. */
