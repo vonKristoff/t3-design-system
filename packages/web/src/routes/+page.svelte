@@ -623,15 +623,33 @@
 		class="min-w-0 flex-1 transition-[margin] duration-300 {cssPanelOpen ? 'lg:mr-[26rem]' : ''}"
 	>
 		<section class="mx-auto max-w-6xl px-4 pt-8 pb-2 sm:px-8">
-			<p class="w-fit rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
-				Tailwind-compatible · scaffold CSS generator
-			</p>
-			<h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Ship your design system</h1>
-			<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
-				This generator produces your design-system scaffold CSS — semantic colour scales, fluid
-				type, Markdown styles, breakout layout and a Tailwind bridge — from three steps, exported as
-				a single bunx command.
-			</p>
+			<div class="grid items-end gap-6 lg:grid-cols-[1.25fr_1fr]">
+				<div>
+					<p class="w-fit rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
+						Tailwind-compatible · scaffold CSS generator
+					</p>
+					<h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Ship your design system</h1>
+					<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
+						This generator produces your design-system scaffold CSS — semantic colour scales, fluid
+						type, <strong class="font-semibold text-neutral-900">Markdown</strong> styles, breakout layout and a
+						<strong class="font-semibold text-neutral-900">Tailwind</strong> bridge — from three steps, exported as
+						a single <strong class="font-semibold text-neutral-900">bunx</strong> command.
+					</p>
+				</div>
+				<nav aria-label="System nouns" class="flex flex-col gap-1 lg:items-end lg:pb-1">
+					{#each [{ word: 'Type', id: 'step-fonts', n: 1 }, { word: 'Colour', id: 'step-colours', n: 2 }, { word: 'Layout', id: 'step-layout', n: 3 }] as item (item.id)}
+						<button
+							type="button"
+							onclick={() => jumpTo(item.id as StepId)}
+							class="group flex items-baseline gap-2 text-left"
+							aria-label={`${item.word} — go to step ${item.n}`}
+						>
+							<span class="font-mono text-xs text-neutral-400">0{item.n}</span>
+							<span class="text-4xl font-bold tracking-tight text-neutral-900 group-hover:underline sm:text-5xl">{item.word}</span>
+						</button>
+					{/each}
+				</nav>
+			</div>
 			<div class="mt-4 max-w-2xl rounded-lg border border-neutral-200 bg-white p-4">
 				<h2 class="text-sm font-semibold">Think in roles, not hex codes</h2>
 				<p class="mt-1 text-sm text-neutral-600">
@@ -646,7 +664,7 @@
 					scale, derives readable text pairings, and ships the same tokens the preview uses.
 				</p>
 			</div>
-			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
 					<li>
