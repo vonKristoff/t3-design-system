@@ -650,57 +650,19 @@
 					{/each}
 				</nav>
 			</div>
-			<div class="mt-4 max-w-5xl overflow-hidden rounded-lg border border-neutral-200" style={getVarStyle()}>
-				<h2 class="bg-white px-4 pt-4 text-sm font-semibold">Think in roles, not hex codes</h2>
-				<div class="grid lg:grid-cols-2">
-				<div class="bg-white p-4 pt-1">
-					<p class="mt-1 text-sm text-neutral-600">
-						You never pick raw colours — you assign meaning. Each semantic is a <em>job</em>:
-						<strong>Surfaces</strong> hold content (<code class="font-mono text-xs">base</code>,
-						<code class="font-mono text-xs">alt</code>, frosted <code class="font-mono text-xs">glass</code>);
-						<strong>Content</strong> is what you read (<code class="font-mono text-xs">prose</code>,
-						<code class="font-mono text-xs">muted</code>, <code class="font-mono text-xs">inverse</code> on dark fills);
-						<strong>Emphasis</strong> directs attention (<code class="font-mono text-xs">accent</code> for
-						interaction, <code class="font-mono text-xs">pop</code> — with its <code class="font-mono text-xs">twist</code> — for moments);
-						<strong>Traffic</strong> signals state. Pick one anchor per role and the engine grows its
-						scale, derives readable text pairings, and ships the same tokens the preview uses.
-					</p>
-				</div>
-				<div class="p-4" style="background:var(--alt-100)">
-					<div class="rounded-md border border-neutral-200 p-2" aria-label="Layer key diagram">
-						<div class="grid grid-cols-2 gap-2">
-							<div class="rounded p-2" style="background:var(--base-50)" title="html · base">
-								<div class="mt-1 rounded p-2" style="background:var(--alt-100)" title="section · alt">
-									<div class="mt-1 rounded-lg border p-2" style="background:var(--glass-fill);border-color:var(--glass)" title="card · glass">
-										<div class="mt-0.5 h-4 w-3/4 rounded-sm" style="background:var(--prose-800)" title="h1 · prose"></div>
-										<div class="mt-1.5 h-2 w-full rounded-sm" style="background:var(--muted-600)" title="p · muted"></div>
-										<div class="mt-1 h-2 w-2/3 rounded-sm" style="background:var(--muted-600)" title="p · muted"></div>
-										<span class="mt-1.5 inline-block h-2 w-10 rounded-sm" style="background:var(--accent-600)" title="a · accent"></span>
-									</div>
-								</div>
-							</div>
-							<div class="grid grid-rows-2 gap-2">
-								<div class="flex flex-col items-center justify-center gap-1 rounded-lg p-2" style="background:var(--pop-500)" title="circle · pop">
-									<span class="inline-block h-6 w-6 rounded-full border border-white/40 bg-white/25" aria-hidden="true"></span>
-									<span class="font-mono text-[10px] font-semibold text-white">pop</span>
-								</div>
-								<div class="flex flex-col items-center justify-center gap-1 rounded-lg p-2" style="background:var(--pop-twist)" title="circle · twist">
-									<span class="inline-block h-6 w-6 rounded-full border border-white/40 bg-white/25" aria-hidden="true"></span>
-									<span class="font-mono text-[10px] font-semibold text-white">twist</span>
-								</div>
-							</div>
-						</div>
-						<div class="mt-2 flex flex-wrap gap-x-3 gap-y-1" aria-label="Layer key">
-							{#each [["html · base", "var(--base-50)"], ["section · alt", "var(--alt-100)"], ["card · glass", "var(--glass-fill)"], ["h1 · prose", "var(--prose-800)"], ["p · muted", "var(--muted-600)"], ["a · accent", "var(--accent-600)"], ["pop", "var(--pop-500)"], ["twist", "var(--pop-twist)"]] as [name, bg] (name)}
-								<span class="flex items-center gap-1 font-mono text-[10px]" style="color:var(--muted-600)">
-									<span class="inline-block h-2.5 w-2.5 rounded-[3px] border border-black/20" style:background={bg}></span>
-									{name}
-								</span>
-							{/each}
-						</div>
-						</div>
-					</div>
-				</div>
+			<div class="mt-4 max-w-2xl rounded-lg border border-neutral-200 bg-white p-4">
+				<h2 class="text-sm font-semibold">Think in roles, not hex codes</h2>
+				<p class="mt-1 text-sm text-neutral-600">
+					You never pick raw colours — you assign meaning. Each semantic is a <em>job</em>:
+					<strong>Surfaces</strong> hold content (<code class="font-mono text-xs">base</code>,
+					<code class="font-mono text-xs">alt</code>, frosted <code class="font-mono text-xs">glass</code>);
+					<strong>Content</strong> is what you read (<code class="font-mono text-xs">prose</code>,
+					<code class="font-mono text-xs">muted</code>, <code class="font-mono text-xs">inverse</code> on dark fills);
+					<strong>Emphasis</strong> directs attention (<code class="font-mono text-xs">accent</code> for
+					interaction, <code class="font-mono text-xs">pop</code> — with its <code class="font-mono text-xs">twist</code> — for moments);
+					<strong>Traffic</strong> signals state. Pick one anchor per role and the engine grows its
+					scale, derives readable text pairings, and ships the same tokens the preview uses.
+				</p>
 			</div>
 			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 				{#each STEPS as s, i (s.id)}
