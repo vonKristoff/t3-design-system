@@ -86,11 +86,17 @@ export function generateScaleFromHex(sourceHex: string, anchor: ScaleStep): Colo
 }
 
 /**
- * Generate the constrained relative scale: the exact anchor plus two fixed
- * lightness steps either side. Every value stays near the anchor, so none of
- * them can collapse into the grey mud that distant rungs sometimes hit.
- * At extreme anchors clamped steps may duplicate — accepted by design.
+ * Light/dark siblings for an arbitrary hex: one fixed step either side using
+ * the classic ramp, so derived accents (e.g. pop-twist) follow the same
+ * rulings as every other relative state.
  */
+export function deriveLightDark(sourceHex: string, delta = RELATIVE_DELTA): { light: string; dark: string } {
+  const src = hexToOklch(sourceHex.toLowerCase());
+  const at = (l: number) => decayedHex(src, Math.min(0.99, Math.max(0.12, l)));
+  return { light: at(src.l + delta), dark: at(src.l - delta) };
+}
+
+/** Name-based relative scale with end-anchoring (see generateRelativeScaleFromHex). */
 export function generateRelativeScale(sourceName: string, delta = RELATIVE_DELTA): RelativeScale {
   const sourceHex = resolveTailwindHex(sourceName).toLowerCase();
   return generateRelativeScaleFromHex(sourceHex, delta);

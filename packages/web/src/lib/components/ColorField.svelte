@@ -7,9 +7,13 @@
 		label: string;
 		hint?: string;
 		value: string;
+		/** Override swatch background (e.g. alpha fill). Defaults to the opaque pick. */
+		fill?: string;
+		/** Render the transparency grid behind the swatch. */
+		checker?: boolean;
 	}
 
-	let { label, hint, value = $bindable() }: Props = $props();
+	let { label, hint, value = $bindable(), fill, checker = false }: Props = $props();
 
 	const family = $derived(value.split('-')[0] ?? '');
 	const step = $derived(value.split('-').at(-1) ?? '600');
@@ -46,11 +50,12 @@
 			</span>
 			<StrengthSelect {family} {step} onpick={pickStep} />
 		</span>
-		<span
-			class="inline-block min-h-28 rounded-md border border-black/20"
-			style:background={selectedHex}
-			title={`${value} · ${selectedHex}`}
-			aria-hidden="true"
-		></span>
+			<span
+				class="inline-block min-h-28 overflow-hidden rounded-md border border-black/20 {checker ? 'checkerboard' : ''}"
+				title={`${value} · ${fill ?? selectedHex}`}
+				aria-hidden="true"
+			>
+				<span class="block h-full min-h-28 w-full" style:background={fill ?? selectedHex}></span>
+			</span>
 	</div>
 </fieldset>

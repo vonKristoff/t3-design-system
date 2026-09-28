@@ -7,7 +7,6 @@
 		BLOCKQUOTE_VARIANTS,
 		PRESET_THEMES,
 		SCALE_STEPS,
-		SEMANTIC_NAMES,
 		fluidClamp,
 		docShellClasses,
 		resolveTailwindHex,
@@ -54,8 +53,6 @@
 		getGenerated,
 		getActivePreset,
 		applyPresetTheme,
-		getTextSource,
-		setTextSource,
 		getGlassAlpha,
 		setGlassAlpha,
 		getTwist,
@@ -880,26 +877,9 @@
 												label={field.label}
 												hint={field.hint}
 												bind:value={theme.colors[field.key as ColorKey]}
+												fill={field.key === 'glass' ? getGenerated().variables["--glass-fill"] : undefined}
+												checker={field.key === 'glass'}
 											/>
-										{#if field.key === 'prose'}
-											<label class="mt-2 block">
-												<span class="mb-1 block text-xs font-medium text-neutral-700">Text on base uses</span>
-												<select
-													value={getTextSource()}
-													onchange={(e) => setTextSource((e.currentTarget as HTMLSelectElement).value)}
-													class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-												>
-													<option value="auto">Auto · prose, readable</option>
-													{#each SEMANTIC_NAMES as sem (sem)}
-														<optgroup label={sem}>
-															<option value={`${sem}:light`}>{sem} light</option>
-															<option value={`${sem}:base`}>{sem} base</option>
-															<option value={`${sem}:dark`}>{sem} dark</option>
-														</optgroup>
-													{/each}
-												</select>
-											</label>
-										{/if}
 										{#if field.key === 'glass'}
 											<label class="mt-2 block">
 												<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
@@ -912,16 +892,6 @@
 													class="w-full accent-neutral-900" aria-label="Glass alpha percent"
 												/>
 											</label>
-											<div
-												class="checkerboard mt-1.5 overflow-hidden rounded-md border border-black/20"
-												title={`--glass-fill over transparency grid (alpha ${Math.round(getGlassAlpha() * 100)}%)`}
-											>
-												<div
-													class="h-12 w-full"
-													style:background={getGenerated().variables["--glass-fill"]}
-													aria-hidden="true"
-												></div>
-											</div>
 										{/if}
 									</div>
 								{/each}

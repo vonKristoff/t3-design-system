@@ -352,6 +352,20 @@ describe("readable pairs", () => {
     expect(() => validateThemeOptions({ version: 1, twist: { saturation: -99 } })).toThrow(/twist\.saturation/);
     expect(() => validateThemeOptions({ version: 1, twist: "spicy" })).toThrow(/twist/);
   });
+  test("twist light/dark follow the same rulings", () => {
+    const gen = generateTheme(DEFAULT_THEME);
+    const l = (hex: string) => hexToOklch(hex).l;
+    const base = gen.variables["--pop-twist"];
+    const light = gen.variables["--pop-twist-light"];
+    const dark = gen.variables["--pop-twist-dark"];
+    for (const v of [light, dark]) expect(isValidCssColor(v)).toBe(true);
+    expect(l(light)).toBeGreaterThan(l(base));
+    expect(l(base)).toBeGreaterThan(l(dark));
+    expect(l(light) - l(base)).toBeCloseTo(0.1, 1);
+    expect(l(base) - l(dark)).toBeCloseTo(0.1, 1);
+    expect(gen.rootCss).toContain("--pop-twist-light:");
+    expect(gen.rootCss).toContain("--pop-twist-dark:");
+  });
   test("pair vars are emitted and consumed", () => {
     const gen = generateTheme(DEFAULT_THEME);
     const files = generateThemeFiles(DEFAULT_THEME, gen, "");

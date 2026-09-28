@@ -1,4 +1,4 @@
-import { generateRelativeScale, generateRelativeScaleFromHex, generateScale, generateScaleFromHex } from "../colors/generate-scale.ts";
+import { generateRelativeScale, generateRelativeScaleFromHex, generateScale, generateScaleFromHex, deriveLightDark } from "../colors/generate-scale.ts";
 import { hexToOklch, oklchToHex } from "../colors/oklch.ts";
 import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
 import type { ChromaticName, ColorScale, RelativeScale, SemanticName, ThemeOptions } from "./types.ts";
@@ -74,6 +74,9 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
   variables["--glass-alpha"] = String(alpha);
   variables["--glass-fill"] = `color-mix(in srgb, var(--glass) ${alphaPct}%, transparent)`;
   variables["--pop-twist"] = twistPop(anchors["pop"], options.twist?.hue ?? 0, options.twist?.saturation ?? 0);
+  const twistSiblings = deriveLightDark(variables["--pop-twist"]);
+  variables["--pop-twist-light"] = twistSiblings.light;
+  variables["--pop-twist-dark"] = twistSiblings.dark;
   for (const [name, value] of Object.entries(pairs)) {
     variables[name] = value;
   }
