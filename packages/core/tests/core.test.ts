@@ -183,6 +183,21 @@ describe("relative scale", () => {
     expect(l(rel.light) - l(rel.base)).toBeCloseTo(0.1, 1);
     expect(l(rel.base) - l(rel.dark)).toBeCloseTo(0.1, 1);
   });
+  test("pale anchors shed chroma faster; mid anchors keep the classic ramp", () => {
+    const c = (hex: string) => hexToOklch(hex).c;
+    // End-anchored pale picks: dark siblings stay pastel (≤55% of anchor chroma).
+    for (const name of ["yellow-200", "lime-200", "pink-200"]) {
+      const rel = generateRelativeScale(name);
+      const anchorC = c(rel.light);
+      expect(anchorC).toBeGreaterThan(0.03);
+      expect(c(rel.dark)).toBeLessThanOrEqual(anchorC * 0.55);
+      expect(c(rel.base)).toBeLessThanOrEqual(anchorC);
+    }
+    // Mid-tone anchors: classic retention (~0.8 per step), unchanged behavior.
+    const mid = generateRelativeScale("blue-600");
+    expect(c(mid.dark) / c(mid.base)).toBeGreaterThan(0.8);
+    expect(c(mid.light) / c(mid.base)).toBeGreaterThan(0.8);
+  });
   test("light anchors occupy the light slot and derive backwards", () => {
     const theme = {
       ...structuredClone(DEFAULT_THEME),

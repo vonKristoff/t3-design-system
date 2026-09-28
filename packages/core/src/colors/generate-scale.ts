@@ -36,14 +36,16 @@ export function parseTailwindStep(sourceName: string): ScaleStep {
 /**
  * Render the source hue at a target lightness, decaying chroma with distance
  * from the source so near steps keep character and extremes stay sane.
- * Shared by the rung scale and the relative scale so both behave identically.
+ * The rung scale uses the classic slope; the relative scale steepens it for
+ * pale anchors (see relativeSlope) so pastel families stay pastel instead of
+ * snapping back to full-strength siblings one step down.
  */
-function decayedHex(src: Oklch, targetL: number): string {
+function decayedHex(src: Oklch, targetL: number, slope = 2.1): string {
   const achromatic = src.c < 0.012;
   const hue = achromatic ? 0 : src.h;
   const dist = Math.abs(targetL - src.l);
   // Base retention curve + extra taming at the very light/dark ends.
-  let retention = Math.max(0, 1 - dist * 2.1);
+  let retention = Math.max(0, 1 - dist * slope);
   if (targetL > 0.93) retention *= 0.45;
   else if (targetL > 0.86) retention *= 0.72;
   else if (targetL < 0.33) retention *= 0.62;
@@ -89,8 +91,12 @@ export function generateScale(sourceName: string): ColorScale {
 export function generateRelativeScale(sourceName: string, delta = RELATIVE_DELTA): RelativeScale {
   const sourceHex = resolveTailwindHex(sourceName).toLowerCase();
   const src = hexToOklch(sourceHex);
+  // Anchors at/below mid keep the classic ramp (byte-identical to before);
+  // paler anchors shed chroma faster when darkened so the trio reads as one
+  // pastel family instead of snapping to full strength a step down.
+  const slope = 2.1 + 4 * Math.max(0, src.l - 0.65);
   // Clamp first so chroma decay sees the lightness actually rendered.
-  const at = (l: number) => decayedHex(src, Math.min(0.99, Math.max(0.12, l)));
+  const at = (l: number) => decayedHex(src, Math.min(0.99, Math.max(0.12, l)), slope);
   // End-anchoring: the anchor occupies whichever slot fits. Too light for a
   // lighter step → anchor becomes `light` and the rest derive downwards;
   // too dark → anchor becomes `dark` and the rest derive upwards.
