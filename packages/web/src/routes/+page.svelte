@@ -667,21 +667,27 @@
 				</div>
 				<div class="p-4" style="background:var(--alt-100)">
 					<div class="rounded-md border border-neutral-200 p-2" aria-label="Layer key diagram">
-						<div class="rounded p-2" style="background:var(--base-50)">
-							<span class="font-mono text-[10px]" style="color:var(--muted-600)">html · base</span>
-							<div class="mt-1 rounded p-2" style="background:var(--alt-100)">
-								<span class="font-mono text-[10px]" style="color:var(--muted-600)">section · alt</span>
-								<div class="mt-1 rounded-lg border p-2" style="background:var(--glass-fill);border-color:var(--glass)">
-									<span class="font-mono text-[10px]" style="color:var(--muted-600)">card · glass</span>
-									<p class="mt-0.5 text-lg leading-tight font-bold" style="color:var(--prose-800)">h1 · prose</p>
-									<p class="text-xs" style="color:var(--muted-600)">p · muted <span style="color:var(--accent-600)">a · accent</span></p>
+						<div class="rounded p-2" style="background:var(--base-50)" title="html · base">
+							<div class="mt-1 rounded p-2" style="background:var(--alt-100)" title="section · alt">
+								<div class="mt-1 rounded-lg border p-2" style="background:var(--glass-fill);border-color:var(--glass)" title="card · glass">
+									<div class="mt-0.5 h-4 w-3/4 rounded-sm" style="background:var(--prose-800)" title="h1 · prose"></div>
+									<div class="mt-1.5 h-2 w-full rounded-sm" style="background:var(--muted-600)" title="p · muted"></div>
+									<div class="mt-1 h-2 w-2/3 rounded-sm" style="background:var(--muted-600)" title="p · muted"></div>
 									<div class="mt-1.5 flex items-center gap-1.5">
+										<span class="inline-block h-2 w-10 rounded-sm" style="background:var(--accent-600)" title="a · accent"></span>
 										<span class="inline-block h-5 w-5 rounded-full" style="background:var(--pop-500)" title="circle · pop"></span>
 										<span class="inline-block h-5 w-5 rounded-full" style="background:var(--pop-twist)" title="circle · twist"></span>
-										<span class="font-mono text-[10px]" style="color:var(--muted-600)">circles · pop / twist</span>
 									</div>
 								</div>
 							</div>
+						</div>
+						<div class="mt-2 flex flex-wrap gap-x-3 gap-y-1" aria-label="Layer key">
+							{#each [["html · base", "var(--base-50)"], ["section · alt", "var(--alt-100)"], ["card · glass", "var(--glass-fill)"], ["h1 · prose", "var(--prose-800)"], ["p · muted", "var(--muted-600)"], ["a · accent", "var(--accent-600)"], ["pop", "var(--pop-500)"], ["twist", "var(--pop-twist)"]] as [name, bg] (name)}
+								<span class="flex items-center gap-1 font-mono text-[10px]" style="color:var(--muted-600)">
+									<span class="inline-block h-2.5 w-2.5 rounded-[3px] border border-black/20" style:background={bg}></span>
+									{name}
+								</span>
+							{/each}
 						</div>
 					</div>
 				</div>
