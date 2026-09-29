@@ -1,4 +1,4 @@
-import { generateRelativeScale, generateRelativeScaleFromHex, generateScale, generateScaleFromHex, deriveLightDark } from "../colors/generate-scale.ts";
+import { generateRelativeScale, generateRelativeScaleFromHex, generateScale, generateScaleFromHex, deriveLightDark, RELATIVE_DELTA } from "../colors/generate-scale.ts";
 import { hexToOklch, oklchToHex } from "../colors/oklch.ts";
 import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
 import type { ChromaticName, ColorScale, RelativeScale, SemanticName, ThemeOptions } from "./types.ts";
@@ -39,42 +39,47 @@ export function generateTheme(options: ThemeOptions): GeneratedTheme {
   const relative = {} as Record<SemanticName | ChromaticName, RelativeScale>;
   const anchors = {} as Record<SemanticName | ChromaticName, string>;
   const variables: Record<string, string> = {};
+  const alpha = options.glassAlpha ?? GLASS_ALPHA_DEFAULT;
+  const alphaPct = Math.round(alpha * 100);
   const emit = (name: SemanticName | ChromaticName, sourceHex: string, scale: ColorScale, rel: RelativeScale) => {
     scales[name] = scale;
     relative[name] = rel;
     anchors[name] = sourceHex;
     // The raw anchor: exactly the colour chosen, never a generated variation.
-    variables[`--${name}`] = sourceHex;
+    // Glass is intrinsically translucent: every emitted glass swatch carries
+    // the alpha. Anchors/scales stay opaque hexes for derivation.
+    const glassy = (hex: string) =>
+      name === "glass" ? `color-mix(in srgb, ${hex} ${alphaPct}%, transparent)` : hex;
+    variables[`--${name}`] = glassy(sourceHex);
     for (const key of RELATIVE_KEYS) {
-      variables[`--${name}-${key}`] = rel[key];
+      variables[`--${name}-${key}`] = glassy(rel[key]);
     }
     for (const [step, value] of Object.entries(scale)) {
       variables[`--${name}-${step}`] = value;
     }
   };
+  const step = options.scaleStep ?? RELATIVE_DELTA;
   for (const [optKey, sem] of OPTION_TO_SEMANTIC) {
     const sourceHex = resolveTailwindHex(options.colors[optKey]).toLowerCase();
-    emit(sem, sourceHex, generateScale(options.colors[optKey]), generateRelativeScale(options.colors[optKey]));
+    emit(sem, sourceHex, generateScale(options.colors[optKey]), generateRelativeScale(options.colors[optKey], step));
   }
   // Fixed chromatics: absolute anchors, full generated ranges.
   for (const name of CHROMATIC_NAMES) {
     const hex = CHROMATIC_HEX[name];
-    emit(name, hex, generateScaleFromHex(hex, CHROMATIC_ANCHOR_STEP[name]), generateRelativeScaleFromHex(hex));
+    emit(name, hex, generateScaleFromHex(hex, CHROMATIC_ANCHOR_STEP[name]), generateRelativeScaleFromHex(hex, step));
   }
-  const pairs = deriveReadablePairs(scales);
+  const pairs = deriveReadablePairs(scales, anchors);
   // Swappable body-copy source: default is the auto-derived prose value;
   // an explicit swatch overrides it verbatim (warnings cover low contrast).
   if (options.textSource) {
     const { sem, level } = options.textSource;
     pairs["--prose-on-base"] = level === "base" ? anchors[sem] : relative[sem][level];
   }
-  // Frosted glass fill + pop twist (hue-rotated pop).
-  const alpha = options.glassAlpha ?? GLASS_ALPHA_DEFAULT;
-  const alphaPct = Math.round(alpha * 100);
+  // Frosted glass alpha + pop twist (hue-rotated pop).
+  // Glass swatches already carry the alpha, so panels use them directly.
   variables["--glass-alpha"] = String(alpha);
-  variables["--glass-fill"] = `color-mix(in srgb, var(--glass) ${alphaPct}%, transparent)`;
   variables["--pop-twist"] = twistPop(anchors["pop"], options.twist?.hue ?? 0, options.twist?.saturation ?? 0);
-  const twistSiblings = deriveLightDark(variables["--pop-twist"]);
+  const twistSiblings = deriveLightDark(variables["--pop-twist"], step);
   variables["--pop-twist-light"] = twistSiblings.light;
   variables["--pop-twist-dark"] = twistSiblings.dark;
   for (const [name, value] of Object.entries(pairs)) {

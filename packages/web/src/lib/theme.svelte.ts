@@ -4,7 +4,11 @@
 import {
 	DEFAULT_THEME,
 	GLASS_ALPHA_DEFAULT,
+	SCALE_STEP_DEFAULT,
+	SCALE_STEP_MAX,
+	SCALE_STEP_MIN,
 	PRESET_THEMES,
+	SEMANTIC_TO_OPTION,
 	matchPreset,
 	generateTheme,
 	generateThemeFiles,
@@ -82,6 +86,8 @@ function readTheme(): ThemeOptions {
 		breakouts: theme.breakouts ? { ...theme.breakouts } : undefined,
 		textSource: theme.textSource ? { ...theme.textSource } : undefined,
 		glassAlpha: theme.glassAlpha,
+		scaleStep: theme.scaleStep,
+		tailwindBridge: theme.tailwindBridge,
 		twist: theme.twist ? { ...theme.twist } : undefined
 	};
 }
@@ -117,6 +123,30 @@ const _varStyle = $derived.by(() => {
 
 export function getGenerated(): ReturnType<typeof generateTheme> {
 	return _generated;
+}
+
+const COLOR_KEY_TO_SEMANTIC = Object.fromEntries(
+	Object.entries(SEMANTIC_TO_OPTION).map(([sem, key]) => [key, sem])
+) as Record<ColorKey, SemanticName>;
+
+/**
+ * Live light / anchor / dark trio for a colour card — updates with scale
+ * step. Reads the emitted variables (not raw scales) so intrinsically
+ * translucent semantics like glass show their true swatches.
+ */
+export function getTrio(key: ColorKey): {
+	light: string;
+	base: string;
+	dark: string;
+	sem: SemanticName;
+} {
+	const sem = COLOR_KEY_TO_SEMANTIC[key];
+	return {
+		light: _generated.variables[`--${sem}-light`],
+		base: _generated.variables[`--${sem}`],
+		dark: _generated.variables[`--${sem}-dark`],
+		sem
+	};
 }
 
 export function getFontHref(): string {
@@ -194,7 +224,25 @@ export function getGlassAlpha(): number {
 }
 
 export function setGlassAlpha(alpha: number): void {
-  theme.glassAlpha = Math.min(1, Math.max(0, Math.round(alpha * 100) / 100));
+	theme.glassAlpha = Math.min(1, Math.max(0, Math.round(alpha * 100) / 100));
+}
+
+export function getScaleStep(): number {
+	return theme.scaleStep ?? SCALE_STEP_DEFAULT;
+}
+
+export function setScaleStep(step: number): void {
+	const rounded = Math.round(step * 100) / 100;
+	theme.scaleStep = Math.min(SCALE_STEP_MAX, Math.max(SCALE_STEP_MIN, rounded));
+}
+
+/** Whether generated output includes tw-bridge.css. Absent means included. */
+export function includeTailwind(): boolean {
+	return theme.tailwindBridge ?? true;
+}
+
+export function setIncludeTailwind(include: boolean): void {
+	theme.tailwindBridge = include ? undefined : false;
 }
 
 export function getTwist(): { hue: number; saturation: number } {
@@ -282,5 +330,7 @@ export function resetTheme(): void {
 	theme.components = fresh.components;
 	theme.textSource = fresh.textSource;
 	theme.glassAlpha = fresh.glassAlpha;
+	theme.scaleStep = fresh.scaleStep;
+	theme.tailwindBridge = fresh.tailwindBridge;
 	theme.twist = fresh.twist;
 }

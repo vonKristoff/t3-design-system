@@ -23,7 +23,7 @@ describe("cli output", () => {
     expect(code).toBe(0);
 
     const files = await readdir(out);
-    for (const name of ["root.css", "fonts.css", "base.css", "typography.css", "markdown.css", "layout.css", "tailwind.css", "index.css"]) {
+    for (const name of ["root.css", "fonts.css", "base.css", "typography.css", "markdown.css", "layout.css", "tw-bridge.css", "index.css"]) {
       expect(files).toContain(name);
     }
 

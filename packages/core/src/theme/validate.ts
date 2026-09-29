@@ -1,7 +1,7 @@
 import { isValidTailwindName } from "../colors/tailwind-palette.ts";
 import { DEFAULT_THEME } from "./defaults.ts";
 import type { BreakoutElement, FontElement, FontRole, SemanticName, SizeUnit, SizeValue, ThemeOptions } from "./types.ts";
-import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SEMANTIC_NAMES, SIZE_UNITS } from "./types.ts";
+import { BREAKOUT_ELEMENTS, PAYLOAD_VERSION, SCALE_STEP_MAX, SCALE_STEP_MIN, SEMANTIC_NAMES, SIZE_UNITS } from "./types.ts";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "muted",
@@ -221,7 +221,7 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     glassAlpha = a;
   }
 
-  // --- twist (absent => automatic +35°; tweaks -15..15) ---
+  // --- twist (absent => automatic +55°; tweaks -15..15) ---
   let twist: ThemeOptions["twist"];
   if (v["twist"] === undefined) {
     twist = undefined;
@@ -244,5 +244,28 @@ export function validateThemeOptions(value: unknown): ThemeOptions {
     }
   }
 
-  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, textSource, glassAlpha, twist };
+  // --- scaleStep (absent => default trio spacing) ---
+  let scaleStep: ThemeOptions["scaleStep"];
+  if (v["scaleStep"] === undefined) {
+    scaleStep = undefined;
+  } else {
+    const s = v["scaleStep"];
+    if (typeof s !== "number" || !Number.isFinite(s) || s < SCALE_STEP_MIN || s > SCALE_STEP_MAX) {
+      throw err(`Invalid scaleStep: ${JSON.stringify(s)}. Expected ${SCALE_STEP_MIN}–${SCALE_STEP_MAX}.`);
+    }
+    scaleStep = s;
+  }
+
+  // --- tailwindBridge (absent => included) ---
+  let tailwindBridge: ThemeOptions["tailwindBridge"];
+  if (v["tailwindBridge"] === undefined) {
+    tailwindBridge = undefined;
+  } else {
+    if (typeof v["tailwindBridge"] !== "boolean") {
+      throw err(`Invalid tailwindBridge: ${JSON.stringify(v["tailwindBridge"])}. Expected a boolean.`);
+    }
+    tailwindBridge = v["tailwindBridge"];
+  }
+
+  return { version: PAYLOAD_VERSION, colors, fonts, weights, elementWeights, fontAssignments, width, breakout, breakouts, components, textSource, glassAlpha, scaleStep, tailwindBridge, twist };
 }

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import {
 		READABLE_PAIRS,
+		backgroundHex,
+		contrastWarnings,
 		SCALE_STEPS,
 		SEMANTIC_NAMES,
 		type GeneratedTheme,
@@ -15,7 +17,9 @@
 
 	let { open, gen, onclose }: Props = $props();
 
-	const hoverBg = $derived(gen.scales['base']['50']);
+	const hoverBg = $derived(gen.anchors['base']);
+
+	const warnings = $derived(contrastWarnings(gen.options));
 
 	const LABELS: Record<SemanticName, string> = {
 		base: 'Base',
@@ -70,21 +74,32 @@
 				</button>
 			</div>
 
+			{#if warnings.length > 0}
+				<div
+					role="alert"
+					class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+				>
+					{#each warnings as w (w.pair)}
+						<p>{w.message}</p>
+					{/each}
+				</div>
+			{/if}
+
 			<div class="space-y-5">
 				{#each SEMANTIC_NAMES as sem (sem)}
 					<section aria-label={LABELS[sem]}>
 						<div class="mb-1.5 flex items-center gap-2">
 							<span
 								class="inline-block h-5 w-5 rounded border border-black/20"
-								style:background={gen.anchors[sem]}
-								title={`--${sem}: ${gen.anchors[sem]}`}
+								style:background={gen.variables[`--${sem}`]}
+								title={`--${sem}: ${gen.variables[`--${sem}`]}`}
 							></span>
 							<h3 class="text-sm font-semibold">{LABELS[sem]}</h3>
 							<span class="font-mono text-[11px] text-neutral-500">{gen.anchors[sem]}</span>
 						</div>
 						<div class="mb-1 flex gap-0.5" aria-label={`${LABELS[sem]} relative scale`}>
 							{#each RELATIVE_ORDER as key (key)}
-								{@const hex = key === 'base' ? gen.anchors[sem] : gen.relative[sem][key]}
+								{@const hex = gen.variables[`--${sem}${key === 'base' ? '' : '-' + key}`]}
 								<span
 									title={`--${sem}${key === 'base' ? '' : '-' + key}: ${hex}`}
 									style:background={hex}
@@ -132,7 +147,7 @@
 					<h3 class="mb-1.5 text-sm font-semibold">Readable pairs <span class="font-normal text-neutral-500">(≥ 4.5:1, auto-derived)</span></h3>
 					<div class="flex flex-wrap gap-1.5">
 						{#each READABLE_PAIRS as spec (spec.varName)}
-							{@const bg = gen.scales[spec.bgSem][spec.bgStep]}
+							{@const bg = backgroundHex(spec, gen) ?? 'transparent'}
 							<span
 								title={`${spec.varName}: ${gen.pairs[spec.varName]} on ${bg}`}
 								style:background={bg}

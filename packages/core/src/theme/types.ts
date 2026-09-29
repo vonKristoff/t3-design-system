@@ -58,7 +58,18 @@ export type GlassAlpha = number;
 export const GLASS_ALPHA_DEFAULT = 0.85;
 
 /**
- * Pop twist tweaks, applied on top of the automatic +35° rotation.
+ * Relative-scale step length: the OKLCH lightness distance between a
+ * semantic anchor and its `-light` / `-dark` siblings. Absent means
+ * SCALE_STEP_DEFAULT.
+ */
+export type ScaleStepLength = number;
+
+export const SCALE_STEP_DEFAULT = 0.1;
+export const SCALE_STEP_MIN = 0.02;
+export const SCALE_STEP_MAX = 0.3;
+
+/**
+ * Pop twist tweaks, applied on top of the automatic +55° rotation.
  * Hue offset in degrees (-15..15); saturation as relative percent (-15..15).
  */
 export interface Twist {
@@ -66,7 +77,7 @@ export interface Twist {
   saturation?: number;
 }
 
-export const TWIST_BASE_HUE = 35;
+export const TWIST_BASE_HUE = 55;
 
 /** Markdown structures that can be routed to a grid track. */
 export const BREAKOUT_ELEMENTS = ["blockquote", "table", "pre", "img", "callout", "hr"] as const;
@@ -109,8 +120,15 @@ export interface ThemeOptions {
   textSource?: TextSource;
   /** Frosted-surface opacity 0..1. Absent means GLASS_ALPHA_DEFAULT. */
   glassAlpha?: GlassAlpha;
-  /** Pop twist tweaks on top of the automatic +35° rotation. */
+  /** Relative-scale step length. Absent means SCALE_STEP_DEFAULT. */
+  scaleStep?: ScaleStepLength;
+  /** Pop twist tweaks on top of the automatic +55° rotation. */
   twist?: Twist;
+  /**
+   * Include the Tailwind bridge file (tw-bridge.css) in generated output.
+   * Absent means included.
+   */
+  tailwindBridge?: boolean;
 }
 
 export type ScaleStep =
@@ -147,9 +165,9 @@ export type ColorScale = Record<ScaleStep, string>;
  * either side. Emitted as --{semantic}, --{semantic}-light, --{semantic}-dark.
  *
  * End-anchoring: when the anchor sits too close to white (or black) for a
- * step to fit, the anchor itself occupies the extreme slot and the rest
- * derive backwards — e.g. a red-50 pick becomes prose-light, with prose and
- * prose-dark generated darker. The trio always spans light→dark.
+ * step to fit, the extreme slot takes the anchor hue-rotated 90° (with a
+ * chroma floor) instead of collapsing onto it, and the rest derive
+ * backwards. The trio always spans light→dark with every slot distinct.
  */
 export interface RelativeScale {
   base: string;

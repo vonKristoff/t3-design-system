@@ -100,6 +100,20 @@ export function formatOklch(L: number, C: number, H: number): string {
   return `oklch(${l} ${c} ${h})`;
 }
 
+/**
+ * Linear mix of two opaque hex colours in sRGB space, matching CSS
+ * `color-mix(in srgb, <a> <weightA>%, <b>)`: `weightA` is the fraction of
+ * colour `a` in the result (0..1). Used to keep derivation in lockstep with
+ * the tinted surfaces the generated CSS renders.
+ */
+export function mixSrgb(a: string, b: string, weightA: number): string {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const w = clamp01(weightA);
+  const mix = (x: number, y: number) => toHexByte(x * w + y * (1 - w));
+  return `#${mix(ca.r, cb.r)}${mix(ca.g, cb.g)}${mix(ca.b, cb.b)}`;
+}
+
 export function isValidCssColor(value: string): boolean {
   if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value.trim())) return true;
   const m = /^oklch\(\s*([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s*\)$/.exec(value.trim());

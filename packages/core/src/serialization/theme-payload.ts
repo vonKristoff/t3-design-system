@@ -85,6 +85,12 @@ export function encodeTheme(options: ThemeOptions): string {
   if (options.glassAlpha !== undefined) {
     out["glassAlpha"] = options.glassAlpha;
   }
+  if (options.scaleStep !== undefined) {
+    out["scaleStep"] = options.scaleStep;
+  }
+  if (options.tailwindBridge !== undefined) {
+    out["tailwindBridge"] = options.tailwindBridge;
+  }
   if (!same(options.twist ?? {}, {})) {
     out["twist"] = options.twist ?? {};
   }

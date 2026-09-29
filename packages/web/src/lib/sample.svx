@@ -2,6 +2,10 @@
 
 A **design system** is only as good as its *consistency*. This document exercises every Markdown element against the live theme, so what you see here is exactly what the CLI will generate — same engine, same variables, no approximations.
 
+## Think in roles, not hex codes
+
+You never pick raw colours — you assign meaning. Each semantic is a *job*: **Surfaces** hold content (`base`, `alt`, frosted `glass`); **Content** is what you read (`prose`, `muted`, `inverse` on dark fills); **Emphasis** directs attention (`accent` for interaction, `pop` — with its `twist` — for moments); **Traffic** signals state. Pick one anchor per role and the engine grows its scale, derives readable text pairings, and ships the same tokens the preview uses.
+
 ## Getting started
 
 Pick colours and fonts on the left. The preview updates [immediately](#live-preview), including the page background, links like this one, and every paragraph of prose.
@@ -81,23 +85,25 @@ The end of the document. If the theme looks right here, it will look right every
 
 | Token              | Role        | Example            |
 | ------------------ | ----------- | ------------------ |
-| `--base-50`        | Background  | Page canvas        |
-| `--alt-100`        | Surface     | Code, tables       |
-| `--prose-800`      | Text        | Paragraphs         |
-| `--accent-600`     | Interaction | Links, highlights  |
-| `--pop-500`        | Emphasis    | Badges, standouts  |
+| `--base`           | Background  | Page canvas        |
+| `--alt`            | Surface     | Cards, code, tables |
+| `--prose`          | Text        | Paragraphs         |
+| `--accent`         | Interaction | Links, highlights  |
+| `--pop`            | Emphasis    | Badges, standouts  |
 
 ## Status callouts
 
-<div class="callout">Heads up: this step is pending review before Thursday.</div>
+Each variant carries its own icon badge, border tint and surface — so state is readable at a glance, not just by hue.
 
-<div class="callout-pop">All checks passed. The theme is ready to generate.</div>
+<div class="callout"><strong>Pending review</strong>Heads up: this step is pending review before Thursday. The team will revisit it during sprint planning.</div>
 
-<div class="callout-stop">Something failed. The destructive action was rolled back safely.</div>
+<div class="callout-pop"><strong>Ready to generate</strong>All checks passed. Copy the <code>bunx</code> command below and ship it.</div>
 
-<div class="callout-warning">Caution: this action needs attention before continuing.</div>
+<div class="callout-stop"><strong>Deploy failed</strong>The destructive action was rolled back safely. Check the logs before retrying.</div>
 
-<div class="callout-ok">Confirmed. Everything checks out.</div>
+<div class="callout-warning"><strong>Action needs attention</strong>Make sure you have a backup of your current configuration before continuing.</div>
+
+<div class="callout-ok"><strong>Confirmed</strong>Everything checks out. Your design system is ready to use in production.</div>
 
 ## A picture break
 

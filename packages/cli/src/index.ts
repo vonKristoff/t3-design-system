@@ -65,4 +65,4 @@ for (const [name, content] of Object.entries(files)) {
   await writeFile(join(dir, name), content + "\n", "utf8");
   console.log(`wrote ${join(out, name)}`);
 }
-console.log(`\nTheme generated in ${out}/ — import "./${out}/index.css" (Tailwind v4: "./${out}/tailwind.css").`);
+console.log(`\nTheme generated in ${out}/ — import "./${out}/index.css" (Tailwind v4: "./${out}/tw-bridge.css").`);

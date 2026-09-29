@@ -1,6 +1,6 @@
 import { hexToRgb } from "../colors/oklch.ts";
 import { generateScale } from "../colors/generate-scale.ts";
-import { generateRelativeScale } from "../colors/generate-scale.ts";
+import { generateRelativeScale, RELATIVE_DELTA } from "../colors/generate-scale.ts";
 import { resolveTailwindHex } from "../colors/tailwind-palette.ts";
 import { SEMANTIC_TO_OPTION } from "./types.ts";
 import type { ThemeOptions } from "./types.ts";
@@ -43,10 +43,14 @@ export function contrastWarnings(options: ThemeOptions): ContrastWarning[] {
   try {
     const baseScale = generateScale(options.colors.base);
     const proseScale = generateScale(options.colors.prose);
+    // Compare against the actual canvas the stylesheet paints (the anchor),
+    // not an assumed rung — otherwise dark themes get inverted warnings.
+    const baseAnchor = resolveTailwindHex(options.colors.base).toLowerCase();
+    const proseAnchor = resolveTailwindHex(options.colors.prose).toLowerCase();
     const pairs: [string, string, string][] = [
-      [proseScale["800"], baseScale["50"], "Prose on Base"],
-      [proseScale["900"], baseScale["50"], "Headings on Base"],
-      [baseScale["50"], proseScale["900"], "Base on Prose (inverse)"],
+      [proseScale["800"], baseAnchor, "Prose on Base"],
+      [proseScale["900"], baseAnchor, "Headings on Base"],
+      [baseAnchor, proseAnchor, "Base on Prose (inverse)"],
     ];
     for (const [fg, bg, label] of pairs) {
       const fh = cssToHex(fg);
@@ -64,9 +68,9 @@ export function contrastWarnings(options: ThemeOptions): ContrastWarning[] {
       const swatch =
         level === "base"
           ? resolveTailwindHex(sourceName).toLowerCase()
-          : generateRelativeScale(sourceName)[level];
+          : generateRelativeScale(sourceName, options.scaleStep ?? RELATIVE_DELTA)[level];
       const fh = cssToHex(swatch);
-      const bh = cssToHex(generateScale(options.colors.base)["50"]);
+      const bh = cssToHex(resolveTailwindHex(options.colors.base).toLowerCase());
       if (fh && bh) {
         const ratio = contrastRatio(fh, bh);
         if (ratio < 4.5) {

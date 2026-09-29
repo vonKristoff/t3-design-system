@@ -35,6 +35,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import PaletteModal from '$lib/components/PaletteModal.svelte';
+	import TrioSwatch from '$lib/components/TrioSwatch.svelte';
 	import SampleDoc from '$lib/sample.svx';
 	import {
 		theme,
@@ -45,12 +46,16 @@
 		getVarStyle,
 		getFontHref,
 		getBunxCommand,
-		getWarnings,
 		getGenerated,
 		getActivePreset,
 		applyPresetTheme,
 		getGlassAlpha,
 		setGlassAlpha,
+		getScaleStep,
+		setScaleStep,
+		getTrio,
+		includeTailwind,
+		setIncludeTailwind,
 		getTwist,
 		setTwistHue,
 		setTwistSaturation,
@@ -179,18 +184,67 @@
 		return s.value * 8; // ch ≈ 8px at typical body size
 	}
 
-	const contentPct = $derived(`${Math.min(100, Math.round((sizePx(getWidth()) / 1480) * 100))}%`);
-	const breakoutPct = $derived(
-		`${Math.min(100, Math.round((sizePx(getWidth()) / 1480) * 100) + Math.round((sizePx(getBreakoutWidth()) / 1480) * 200))}%`
+	const contentPctN = $derived(Math.min(100, Math.round((sizePx(getWidth()) / 1480) * 100)));
+	const breakoutPctN = $derived(
+		Math.min(
+			100,
+			Math.round((sizePx(getWidth()) / 1480) * 100) +
+				Math.round((sizePx(getBreakoutWidth()) / 1480) * 200)
+		)
 	);
+	const contentPct = $derived(`${contentPctN}%`);
+	const breakoutPct = $derived(`${breakoutPctN}%`);
+
+	type GridLine = { key: string; pos: number; cls: string; title: string };
+
+	/** Edges closer than this (percentage points) render as one snapped line. */
+	const LINE_EPS = 1.5;
+
+	/** Which slider moved last — the snapped joint parks on the other edge. */
+	let layoutTouched = $state<'content' | 'breakout' | null>(null);
+
+	function gridLines(): GridLine[] {
+		const c = contentPctN / 2;
+		const b = breakoutPctN / 2;
+		const lines: GridLine[] = [];
+		for (const side of ['left', 'right'] as const) {
+			const cpos = side === 'left' ? 50 - c : 50 + c;
+			const bpos = side === 'left' ? 50 - b : 50 + b;
+			if (Math.abs(bpos - cpos) < LINE_EPS) {
+				const atBreakout = layoutTouched === 'content';
+				lines.push({
+					key: `${side}-joint`,
+					pos: atBreakout ? bpos : cpos,
+					cls: atBreakout ? 'border-sky-600' : 'border-neutral-500',
+					title: 'Content and breakout edges snapped together'
+				});
+			} else {
+				lines.push({
+					key: `${side}-content`,
+					pos: cpos,
+					cls: 'border-neutral-500',
+					title: 'Content edge'
+				});
+				lines.push({
+					key: `${side}-breakout`,
+					pos: bpos,
+					cls: 'border-sky-600',
+					title: 'Breakout edge'
+				});
+			}
+		}
+		return lines;
+	}
 
 	function setWidthValue(value: number): void {
+		layoutTouched = 'content';
 		setWidth({ ...getWidth(), value });
 	}
 	function setWidthUnit(unit: SizeUnit): void {
 		setWidth({ value: clampForUnit(getWidth().value, unit), unit });
 	}
 	function setBreakoutValue(value: number): void {
+		layoutTouched = 'breakout';
 		setBreakoutWidth({ ...getBreakoutWidth(), value });
 	}
 	function setBreakoutUnit(unit: SizeUnit): void {
@@ -237,7 +291,6 @@
 		}
 	];
 
-
 	const STEP_ICON = [Type, Palette, LayoutGrid];
 
 	let activeStep = $state<StepId>('step-fonts');
@@ -262,14 +315,35 @@
 		previewViewport === 'tablet' ? '768px' : previewViewport === 'mobile' ? '390px' : desktopMax
 	);
 
+	// Five scale-step stops (OKLCH lightness delta); level 3 is the default.
+	const SCALE_LEVELS = [0.05, 0.08, 0.1, 0.15, 0.2];
+
+	/** Nearest stop to the live value, so decoded off-stop values still read. */
+	function scaleLevel(): number {
+		const v = getScaleStep();
+		let best = 1;
+		for (let i = 1; i < SCALE_LEVELS.length; i++) {
+			if (Math.abs(SCALE_LEVELS[i] - v) < Math.abs(SCALE_LEVELS[best - 1] - v)) best = i + 1;
+		}
+		return best;
+	}
+
 	const CHIPS = [
-		['accent', 'var(--accent-600)', 'var(--inverse-on-accent)'],
-		['pop', 'var(--pop-600)', 'var(--inverse-on-pop)'],
-		['muted', 'var(--alt-100)', 'var(--muted-on-base)'],
-		['inverse', 'var(--prose-900)', 'var(--inverse)'],
-		['stop', 'var(--traffic-stop-100)', 'var(--traffic-stop-on-callout)'],
-		['warning', 'var(--traffic-warning-100)', 'var(--traffic-warning-on-callout)'],
-		['ok', 'var(--traffic-ok-100)', 'var(--traffic-ok-on-callout)']
+		['accent', 'var(--accent)', 'var(--inverse-on-accent)'],
+		['pop', 'var(--pop)', 'var(--inverse-on-pop)'],
+		['muted', 'var(--alt)', 'var(--muted-on-base)'],
+		['inverse', 'var(--prose)', 'var(--inverse)'],
+		[
+			'stop',
+			'color-mix(in srgb, var(--traffic-stop) 14%, var(--base))',
+			'var(--traffic-stop-on-callout)'
+		],
+		[
+			'warning',
+			'color-mix(in srgb, var(--traffic-warning) 14%, var(--base))',
+			'var(--traffic-warning-on-callout)'
+		],
+		['ok', 'color-mix(in srgb, var(--traffic-ok) 14%, var(--base))', 'var(--traffic-ok-on-callout)']
 	]
 		.map(
 			([label, bg, fg]) =>
@@ -299,6 +373,7 @@
 		el.srcdoc =
 			`<!DOCTYPE html><html><head><meta charset="utf-8">` +
 			`<meta name="viewport" content="width=device-width,initial-scale=1">` +
+			`<style>*,*::before,*::after{box-sizing:border-box}</style>` +
 			`<style id="tsb-theme">${css}</style></head>` +
 			`<body class="markdown">` +
 			`<div class="${docShellClasses()}" data-grid="">${sampleHtml}${CHIPS_HTML}</div></body></html>`;
@@ -401,7 +476,9 @@
 
 	function measureStack(): void {
 		const nav = document.querySelector('header')?.getBoundingClientRect().height ?? 56;
-		const heights = STEPS.map((s) => document.getElementById(s.id)?.getBoundingClientRect().height ?? 42);
+		const heights = STEPS.map(
+			(s) => document.getElementById(s.id)?.getBoundingClientRect().height ?? 42
+		);
 		let top = nav;
 		stackTops = heights.map((h) => {
 			const t = `${Math.round(top)}px`;
@@ -512,17 +589,18 @@
 ├── typography.css    fluid type
 ├── markdown.css      quotes / tables / code
 ├── layout.css        breakout grid
-├── tailwind.css      @theme bridge
+├── tw-bridge.css     @theme bridge
 └── index.css         imports all`;
 
 	const TAILWIND_EXCERPT = `@import "tailwindcss";
 @theme inline {
-  --color-accent-600: var(--accent-600);
-  --color-pop-500: var(--pop-500);
+  --color-base-50: var(--base-50);
+  --color-prose-800: var(--prose-800);
+  --color-twist-light: var(--pop-twist-light);
   --font-primary: var(--font-primary);
 }`;
 
-	const USAGE_EXCERPT = `<div class="bg-accent-600 font-primary">
+	const USAGE_EXCERPT = `<div class="bg-base-50 text-prose-800 font-primary">
   Ships with your system
 </div>`;
 </script>
@@ -548,7 +626,9 @@
 		<div class="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2.5 sm:px-8">
 			<p class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 				<Icon src="shapes" ctx="hand-1" size="1.75em" />
-				<span class="hidden text-base font-normal sm:inline" style="font-family:'Chewy', system-ui, sans-serif;"
+				<span
+					class="hidden text-base font-normal sm:inline"
+					style="font-family:'Chewy', system-ui, sans-serif;"
 					>three<span class="opacity-55">jjj</span>s</span
 				>
 				Design System Builder
@@ -609,31 +689,24 @@
 		</div>
 	</header>
 
-	{#if getWarnings().length > 0}
-		<div class="border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
-			<div class="mx-auto max-w-6xl sm:px-8">
-				{#each getWarnings() as w (w.pair)}
-					<p>{w.message}</p>
-				{/each}
-			</div>
-		</div>
-	{/if}
-
 	<div
 		class="min-w-0 flex-1 transition-[margin] duration-300 {cssPanelOpen ? 'lg:mr-[26rem]' : ''}"
 	>
 		<section class="mx-auto max-w-6xl px-4 pt-8 pb-2 sm:px-8">
-			<div class="grid items-end gap-6 lg:grid-cols-[1.25fr_1fr]">
+			<div class="mb-32 grid items-end gap-6 lg:grid-cols-[1.25fr_1fr]">
 				<div>
 					<p class="w-fit rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
 						Tailwind-compatible · scaffold CSS generator
 					</p>
-					<h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Ship your design system</h1>
+					<h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+						Ship your design system
+					</h1>
 					<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
 						This generator produces your design-system scaffold CSS — semantic colour scales, fluid
-						type, <strong class="font-semibold text-neutral-900">Markdown</strong> styles, breakout layout and a
-						<strong class="font-semibold text-neutral-900">Tailwind</strong> bridge — from three steps, exported as
-						a single <strong class="font-semibold text-neutral-900">bunx</strong> command.
+						type, <strong class="font-semibold text-neutral-900">Markdown</strong> styles, breakout
+						layout and a
+						<strong class="font-semibold text-neutral-900">Tailwind</strong> bridge — from three
+						steps, exported as a single <strong class="font-semibold text-neutral-900">bunx</strong> command.
 					</p>
 				</div>
 				<nav aria-label="System nouns" class="flex flex-col gap-1 lg:items-end lg:pb-1">
@@ -645,26 +718,15 @@
 							aria-label={`${item.word} — go to step ${item.n}`}
 						>
 							<span class="font-mono text-xs text-neutral-400">0{item.n}</span>
-							<span class="text-4xl font-bold tracking-tight text-neutral-900 group-hover:underline sm:text-5xl">{item.word}</span>
+							<span
+								class="text-4xl font-bold tracking-tight text-neutral-900 group-hover:underline sm:text-5xl"
+								>{item.word}</span
+							>
 						</button>
 					{/each}
 				</nav>
 			</div>
-			<div class="mt-4 max-w-2xl rounded-lg border border-neutral-200 bg-white p-4">
-				<h2 class="text-sm font-semibold">Think in roles, not hex codes</h2>
-				<p class="mt-1 text-sm text-neutral-600">
-					You never pick raw colours — you assign meaning. Each semantic is a <em>job</em>:
-					<strong>Surfaces</strong> hold content (<code class="font-mono text-xs">base</code>,
-					<code class="font-mono text-xs">alt</code>, frosted <code class="font-mono text-xs">glass</code>);
-					<strong>Content</strong> is what you read (<code class="font-mono text-xs">prose</code>,
-					<code class="font-mono text-xs">muted</code>, <code class="font-mono text-xs">inverse</code> on dark fills);
-					<strong>Emphasis</strong> directs attention (<code class="font-mono text-xs">accent</code> for
-					interaction, <code class="font-mono text-xs">pop</code> — with its <code class="font-mono text-xs">twist</code> — for moments);
-					<strong>Traffic</strong> signals state. Pick one anchor per role and the engine grows its
-					scale, derives readable text pairings, and ships the same tokens the preview uses.
-				</p>
-			</div>
-			<ol class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+			<ol class="mt-4 mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
 					<li>
@@ -687,10 +749,7 @@
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
 			<div class="space-y-6 pt-6">
 				<div id="step-fonts" class={stepHeaderCls('step-fonts')} style="top:{stackTops[0]}">
-					<a
-						href="#step-fonts"
-						class="flex w-full items-center justify-between py-2.5"
-					>
+					<a href="#step-fonts" class="flex w-full items-center justify-between py-2.5">
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span
 								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
@@ -701,137 +760,137 @@
 					</a>
 				</div>
 				<div id="step-fonts-body" data-step="step-fonts" class="space-y-4 pt-4">
-						<div class="grid gap-3 md:grid-cols-3">
-							{#each ROLES as role (role)}
-								<label class="block rounded-lg border border-neutral-200 bg-white p-3">
-									<span class="mb-1 block text-sm font-medium text-neutral-800"
-										>{ROLE_LABEL[role]}</span
-									>
+					<div class="grid gap-3 md:grid-cols-3">
+						{#each ROLES as role (role)}
+							<label class="block rounded-lg border border-neutral-200 bg-white p-3">
+								<span class="mb-1 block text-sm font-medium text-neutral-800"
+									>{ROLE_LABEL[role]}</span
+								>
+								<select
+									value={fontSelectValue(role)}
+									onchange={(e) => onFontSelect(role, (e.currentTarget as HTMLSelectElement).value)}
+									class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
+								>
+									{#if role === 'tertiary'}
+										<option value="__none">None (mono fallback)</option>
+									{:else}
+										<option value="">System default</option>
+									{/if}
+									{#each CURATED_FONTS as f (f.name)}
+										<option value={f.name}>{f.name} · {f.category}</option>
+									{/each}
+									<option value="__custom">Custom Google Font…</option>
+								</select>
+								{#if fontSelectValue(role) === '__custom' || customOpen[role]}
+									<input
+										type="text"
+										placeholder="e.g. Space Grotesk"
+										value={customName[role]}
+										oninput={(e) =>
+											onCustomInput(role, (e.currentTarget as HTMLInputElement).value)}
+										class="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
+									/>
+								{/if}
+								{#if weightRange(role)}
+									{@const range = weightRange(role)!}
+									<span class="mt-2 flex items-center gap-2">
+										<span class="shrink-0 text-xs text-neutral-500">Weight</span>
+										<input
+											type="range"
+											min={range[0]}
+											max={range[1]}
+											step="10"
+											value={roleWeight(role)}
+											oninput={(e) =>
+												onWeight(role, Number((e.currentTarget as HTMLInputElement).value))}
+											class="min-w-0 flex-1 accent-neutral-900"
+											aria-label={`${ROLE_LABEL[role]} variable weight`}
+										/>
+										<output class="w-10 shrink-0 text-right font-mono text-xs"
+											>{roleWeight(role)}</output
+										>
+									</span>
+								{/if}
+							</label>
+						{/each}
+					</div>
+					<div class="rounded-lg border border-neutral-200 bg-white p-3">
+						<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+							Font assignments
+						</h3>
+						<div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
+							{#each ASSIGNMENT_ELEMENTS as el (el.key)}
+								<label class="block">
+									<span class="mb-1 block text-xs font-medium text-neutral-700">{el.label}</span>
 									<select
-										value={fontSelectValue(role)}
+										value={assignmentFor(el.key)}
 										onchange={(e) =>
-											onFontSelect(role, (e.currentTarget as HTMLSelectElement).value)}
+											setAssignment(
+												el.key,
+												(e.currentTarget as HTMLSelectElement).value as FontRole
+											)}
 										class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
 									>
-										{#if role === 'tertiary'}
-											<option value="__none">None (mono fallback)</option>
-										{:else}
-											<option value="">System default</option>
-										{/if}
-										{#each CURATED_FONTS as f (f.name)}
-											<option value={f.name}>{f.name} · {f.category}</option>
-										{/each}
-										<option value="__custom">Custom Google Font…</option>
+										<option value="primary">Primary</option>
+										<option value="secondary">Secondary</option>
+										<option value="tertiary">Tertiary</option>
 									</select>
-									{#if fontSelectValue(role) === '__custom' || customOpen[role]}
-										<input
-											type="text"
-											placeholder="e.g. Space Grotesk"
-											value={customName[role]}
-											oninput={(e) =>
-												onCustomInput(role, (e.currentTarget as HTMLInputElement).value)}
-											class="mt-1 w-full rounded-md border border-neutral-300 px-2 py-1.5 text-sm"
-										/>
+								</label>
+							{/each}
+						</div>
+					</div>
+					<div class="rounded-lg border border-neutral-200 bg-white p-3">
+						<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+							Fluid type scale
+						</h3>
+						<p class="mb-3 text-xs text-neutral-500">
+							Live sizes from your theme — fluid between 360–1280px viewports, no breakpoints.
+						</p>
+						<div class={'markdown bq-' + getBlockquote()} style={getVarStyle()}>
+							{#each SPECIMEN as row (row.el)}
+								{@const [minPx, maxPx] = FLUID_SIZES[row.el]}
+								{@const range = elementWeightRange(row.el as FontElement)}
+								<div
+									class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4"
+								>
+									<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500"
+										>{row.el} · {minPx}→{maxPx}px</span
+									>
+									{#if row.el === 'blockquote'}
+										<blockquote><p>{row.sample}</p></blockquote>
+									{:else}
+										<svelte:element this={row.tag} style="margin: 0;">{row.sample}</svelte:element>
 									{/if}
-									{#if weightRange(role)}
-										{@const range = weightRange(role)!}
-										<span class="mt-2 flex items-center gap-2">
-											<span class="shrink-0 text-xs text-neutral-500">Weight</span>
+									{#if range}
+										<span class="ml-auto flex shrink-0 items-center gap-2">
+											<span class="text-[11px] text-neutral-500">w</span>
 											<input
 												type="range"
 												min={range[0]}
 												max={range[1]}
 												step="10"
-												value={roleWeight(role)}
+												value={elementWeight(row.el as FontElement)}
 												oninput={(e) =>
-													onWeight(role, Number((e.currentTarget as HTMLInputElement).value))}
-												class="min-w-0 flex-1 accent-neutral-900"
-												aria-label={`${ROLE_LABEL[role]} variable weight`}
+													onElementWeight(
+														row.el as FontElement,
+														Number((e.currentTarget as HTMLInputElement).value)
+													)}
+												class="w-28 accent-neutral-900"
+												aria-label={`${row.el} variable weight`}
 											/>
-											<output class="w-10 shrink-0 text-right font-mono text-xs">{roleWeight(role)}</output>
+											<output class="w-9 shrink-0 text-right font-mono text-[11px] text-neutral-600"
+												>{elementWeight(row.el as FontElement)}</output
+											>
 										</span>
 									{/if}
-								</label>
+								</div>
 							{/each}
 						</div>
-						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
-								Font assignments
-							</h3>
-							<div class="grid grid-cols-2 gap-2 sm:grid-cols-5">
-								{#each ASSIGNMENT_ELEMENTS as el (el.key)}
-									<label class="block">
-										<span class="mb-1 block text-xs font-medium text-neutral-700">{el.label}</span>
-										<select
-											value={assignmentFor(el.key)}
-											onchange={(e) =>
-												setAssignment(
-													el.key,
-													(e.currentTarget as HTMLSelectElement).value as FontRole
-												)}
-											class="w-full rounded-md border border-neutral-300 bg-white px-2 py-1.5 text-sm"
-										>
-											<option value="primary">Primary</option>
-											<option value="secondary">Secondary</option>
-											<option value="tertiary">Tertiary</option>
-										</select>
-									</label>
-								{/each}
-							</div>
-						</div>
-						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
-								Fluid type scale
-							</h3>
-							<p class="mb-3 text-xs text-neutral-500">
-								Live sizes from your theme — fluid between 360–1280px viewports, no breakpoints.
-							</p>
-							<div class={'markdown bq-' + getBlockquote()} style={getVarStyle()}>
-								{#each SPECIMEN as row (row.el)}
-									{@const [minPx, maxPx] = FLUID_SIZES[row.el]}
-									{@const range = elementWeightRange(row.el as FontElement)}
-									<div
-										class="flex flex-col gap-1 border-b border-neutral-100 py-2 last:border-0 sm:flex-row sm:items-baseline sm:gap-4"
-									>
-										<span class="w-32 shrink-0 font-mono text-[11px] text-neutral-500"
-											>{row.el} · {minPx}→{maxPx}px</span
-										>
-										{#if row.el === 'blockquote'}
-											<blockquote><p>{row.sample}</p></blockquote>
-										{:else}
-											<svelte:element this={row.tag} style="margin: 0;">{row.sample}</svelte:element
-											>
-										{/if}
-										{#if range}
-											<span class="ml-auto flex shrink-0 items-center gap-2">
-												<span class="text-[11px] text-neutral-500">w</span>
-												<input
-													type="range"
-													min={range[0]}
-													max={range[1]}
-													step="10"
-													value={elementWeight(row.el as FontElement)}
-													oninput={(e) =>
-														onElementWeight(row.el as FontElement, Number((e.currentTarget as HTMLInputElement).value))}
-													class="w-28 accent-neutral-900"
-													aria-label={`${row.el} variable weight`}
-												/>
-												<output class="w-9 shrink-0 text-right font-mono text-[11px] text-neutral-600"
-													>{elementWeight(row.el as FontElement)}</output
-												>
-											</span>
-										{/if}
-									</div>
-								{/each}
-							</div>
-						</div>
 					</div>
+				</div>
 
 				<div id="step-colours" class={stepHeaderCls('step-colours')} style="top:{stackTops[1]}">
-					<a
-						href="#step-colours"
-						class="flex w-full items-center justify-between py-2.5"
-					>
+					<a href="#step-colours" class="flex w-full items-center justify-between py-2.5">
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span
 								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
@@ -842,34 +901,89 @@
 					</a>
 				</div>
 				<div>
-					<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Preset themes</h3>
-					<div class="mb-4 flex flex-wrap gap-x-5 gap-y-2" role="radiogroup" aria-label="Preset themes">
-						{#each PRESET_THEMES as p (p.name)}
-							<label class="flex cursor-pointer items-center gap-1.5 text-sm" title={p.blurb}>
+					<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+						Preset themes
+					</h3>
+					<div class="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+						<div
+							class="flex flex-wrap items-center gap-x-5 gap-y-2"
+							role="radiogroup"
+							aria-label="Preset themes"
+						>
+							{#each PRESET_THEMES as p (p.name)}
+								<label class="flex cursor-pointer items-center gap-1.5 text-sm" title={p.blurb}>
+									<input
+										type="radio"
+										name="preset-theme"
+										checked={getActivePreset() === p.name}
+										onchange={() => applyPresetTheme(p.name)}
+										class="accent-neutral-900"
+									/>
+									<span class="font-medium">{p.label}</span>
+									<span class="flex" aria-hidden="true">
+										<span
+											class="inline-block h-3 w-3 rounded-full border border-black/20"
+											style:background={swatch(p.colors.base)}
+										></span>
+										<span
+											class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20"
+											style:background={swatch(p.colors.accent)}
+										></span>
+										<span
+											class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20"
+											style:background={swatch(p.colors.pop)}
+										></span>
+									</span>
+								</label>
+							{/each}
+						</div>
+						<div
+							class="ml-auto flex items-center gap-2"
+							role="group"
+							aria-label="Swatch step level"
+						>
+							<span
+								class="text-xs text-neutral-500"
+								title="Lightness distance between an anchor and its -light / -dark siblings (3 is normal)"
+								>Swatch Step Level</span
+							>
+							<span class="flex flex-col gap-1">
 								<input
-									type="radio"
-									name="preset-theme"
-									checked={getActivePreset() === p.name}
-									onchange={() => applyPresetTheme(p.name)}
-									class="accent-neutral-900"
+									type="range"
+									min="1"
+									max="5"
+									step="1"
+									value={scaleLevel()}
+									oninput={(e) =>
+										setScaleStep(
+											SCALE_LEVELS[Number((e.currentTarget as HTMLInputElement).value) - 1]
+										)}
+									class="w-28 accent-neutral-900"
+									aria-label="Swatch step level, 3 is normal"
 								/>
-								<span class="font-medium">{p.label}</span>
-								<span class="flex" aria-hidden="true">
-									<span class="inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.base)}></span>
-									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.accent)}></span>
-									<span class="-ml-1 inline-block h-3 w-3 rounded-full border border-black/20" style:background={swatch(p.colors.pop)}></span>
+								<span class="flex justify-between px-1" aria-hidden="true">
+									{#each SCALE_LEVELS as _, i (i)}
+										<span
+											class="h-1 w-1 rounded-full {scaleLevel() === i + 1
+												? 'bg-neutral-900'
+												: 'bg-neutral-300'}"
+										></span>
+									{/each}
 								</span>
-							</label>
-						{/each}
+							</span>
+							<output
+								class="w-6 text-center font-mono text-xs"
+								title="Lightness distance: {Math.round(getScaleStep() * 100)}%"
+								aria-live="polite">{scaleLevel()}</output
+							>
+						</div>
 					</div>
-					<div
-						id="step-colours-body"
-						data-step="step-colours"
-						class="space-y-5 pt-4"
-					>
+					<div id="step-colours-body" data-step="step-colours" class="space-y-5 pt-4">
 						{#each COLOR_GROUPS as group (group)}
 							<section aria-label={`${group} colours`}>
-								<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">{group}</h3>
+								<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+									{group}
+								</h3>
 								<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 									{#each COLOR_FIELDS.filter((f) => f.group === group) as field (field.key)}
 										<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
@@ -877,83 +991,110 @@
 												label={field.label}
 												hint={field.hint}
 												bind:value={theme.colors[field.key as ColorKey]}
-												fill={field.key === 'glass' ? `color-mix(in srgb, ${getGenerated().variables["--glass"]} ${Math.round(getGlassAlpha() * 100)}%, transparent)` : undefined}
-												checker={field.key === 'glass'}
+												trio={getTrio(field.key as ColorKey)}
 											/>
-										{#if field.key === 'glass'}
-											<label class="mt-2 block">
-												<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-													<span>Alpha</span>
-													<output class="font-mono">{Math.round(getGlassAlpha() * 100)}%</output>
-												</span>
-												<input
-													type="range" min="0" max="100" step="1" value={Math.round(getGlassAlpha() * 100)}
-													oninput={(e) => setGlassAlpha(Number((e.currentTarget as HTMLInputElement).value) / 100)}
-													class="w-full accent-neutral-900" aria-label="Glass alpha percent"
-												/>
-											</label>
-										{/if}
-									</div>
-								{/each}
-								{#if group === 'Emphasis'}
-									<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
-										<div class="grid grid-cols-[3fr_2fr] items-stretch gap-2">
-											<span class="min-w-0 space-y-1.5">
-												<span class="block">
-													<span class="block text-sm font-medium text-neutral-800">Twist</span>
-													<span class="block text-xs text-neutral-500">Pop rotated +35°, tweakable ±15</span>
-												</span>
-												<label class="block">
-													<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-														<span>Hue {getTwist().hue >= 0 ? '+' : ''}{getTwist().hue}°</span>
-														<output class="font-mono">+{35 + getTwist().hue}°</output>
+											{#if field.key === 'glass'}
+												<label class="mt-2 block">
+													<span
+														class="mb-1 flex justify-between text-xs font-medium text-neutral-700"
+													>
+														<span>Alpha</span>
+														<output class="font-mono">{Math.round(getGlassAlpha() * 100)}%</output>
 													</span>
 													<input
-														type="range" min="-15" max="15" step="1" value={getTwist().hue}
-														oninput={(e) => setTwistHue(Number((e.currentTarget as HTMLInputElement).value))}
-														class="w-full accent-neutral-900" aria-label="Twist hue tweak degrees"
+														type="range"
+														min="0"
+														max="100"
+														step="1"
+														value={Math.round(getGlassAlpha() * 100)}
+														oninput={(e) =>
+															setGlassAlpha(
+																Number((e.currentTarget as HTMLInputElement).value) / 100
+															)}
+														class="w-full accent-neutral-900"
+														aria-label="Glass alpha percent"
 													/>
 												</label>
-											<label class="block">
-												<span class="mb-1 flex justify-between text-xs font-medium text-neutral-700">
-													<span>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist().saturation}%</span>
-												</span>
-												<input
-													type="range" min="-15" max="15" step="1" value={getTwist().saturation}
-													oninput={(e) => setTwistSaturation(Number((e.currentTarget as HTMLInputElement).value))}
-													class="w-full accent-neutral-900" aria-label="Twist saturation tweak percent"
-												/>
-											</label>
-											<div class="flex items-stretch gap-0.5" aria-label="Twist light and dark">
-												{#each ["light", "base", "dark"] as k (k)}
-													<span
-														title={`--pop-twist${k === 'base' ? '' : '-' + k}: ${k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}`}
-														style:background={k === 'base' ? getGenerated().variables["--pop-twist"] : getGenerated().variables[`--pop-twist-${k}`]}
-														class="h-5 flex-1 border border-black/20 first:rounded-l-md last:rounded-r-md"
-													></span>
-												{/each}
-											</div>
-										</span>
-											<span
-												class="inline-block min-h-28 rounded-md border border-black/20"
-												style:background={getGenerated().variables["--pop-twist"]}
-												title={`--pop-twist: ${getGenerated().variables["--pop-twist"]}`}
-												aria-hidden="true"
-											></span>
+											{/if}
 										</div>
-									</div>
-								{/if}
-							</div>
-						</section>
-					{/each}
+									{/each}
+									{#if group === 'Emphasis'}
+										<div class="rounded-lg border border-neutral-200 bg-zinc-200 p-3">
+											<div class="grid grid-cols-[3fr_2fr] items-stretch gap-2">
+												<span class="min-w-0 space-y-1.5">
+													<span class="block">
+														<span class="block text-sm font-medium text-neutral-800">Twist</span>
+														<span class="block text-xs text-neutral-500"
+															>Pop rotated +55°, tweakable ±15</span
+														>
+													</span>
+													<label class="block">
+														<span
+															class="mb-1 flex justify-between text-xs font-medium text-neutral-700"
+														>
+															<span>Hue {getTwist().hue >= 0 ? '+' : ''}{getTwist().hue}°</span>
+															<output class="font-mono">+{55 + getTwist().hue}°</output>
+														</span>
+														<input
+															type="range"
+															min="-15"
+															max="15"
+															step="1"
+															value={getTwist().hue}
+															oninput={(e) =>
+																setTwistHue(Number((e.currentTarget as HTMLInputElement).value))}
+															class="w-full accent-neutral-900"
+															aria-label="Twist hue tweak degrees"
+														/>
+													</label>
+													<label class="block">
+														<span
+															class="mb-1 flex justify-between text-xs font-medium text-neutral-700"
+														>
+															<span
+																>Saturation {getTwist().saturation >= 0 ? '+' : ''}{getTwist()
+																	.saturation}%</span
+															>
+														</span>
+														<input
+															type="range"
+															min="-15"
+															max="15"
+															step="1"
+															value={getTwist().saturation}
+															oninput={(e) =>
+																setTwistSaturation(
+																	Number((e.currentTarget as HTMLInputElement).value)
+																)}
+															class="w-full accent-neutral-900"
+															aria-label="Twist saturation tweak percent"
+														/>
+													</label>
+												</span>
+												<TrioSwatch
+													rows={[
+														{
+															hex: getGenerated().variables['--pop-twist-light'],
+															name: '--pop-twist-light'
+														},
+														{ hex: getGenerated().variables['--pop-twist'], name: '--pop-twist' },
+														{
+															hex: getGenerated().variables['--pop-twist-dark'],
+															name: '--pop-twist-dark'
+														}
+													]}
+												/>
+											</div>
+										</div>
+									{/if}
+								</div>
+							</section>
+						{/each}
 					</div>
 				</div>
 
 				<div id="step-layout" class={stepHeaderCls('step-layout')} style="top:{stackTops[2]}">
-					<a
-						href="#step-layout"
-						class="flex w-full items-center justify-between py-2.5"
-					>
+					<a href="#step-layout" class="flex w-full items-center justify-between py-2.5">
 						<h2 class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap">
 							<span
 								class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-[11px] text-white"
@@ -964,105 +1105,152 @@
 					</a>
 				</div>
 				<div id="step-layout-body" data-step="step-layout" class="space-y-3 pt-4">
-						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Measure</h3>
-							<div class="space-y-1">
-								<div class="rounded-sm bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">full viewport</div>
-								<div class="mx-auto rounded-sm bg-sky-100 px-2 py-1 text-[10px] text-sky-800" style:width={breakoutPct}>breakout</div>
-								<div class="mx-auto rounded-sm bg-neutral-900 px-2 py-1 text-[10px] text-white" style:width={contentPct}>content</div>
+					<div class="rounded-lg border border-neutral-200 bg-white p-3">
+						<h3 class="mb-2 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+							Measure
+						</h3>
+						<div class="relative space-y-1">
+							<div class="rounded-sm bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+								full viewport
 							</div>
-						</div>
-
-						<div class="grid gap-3 md:grid-cols-2">
-							<div class="rounded-lg border border-neutral-200 bg-white p-3">
-								<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
-								<div class="flex items-center gap-2">
-									<input
-										type="range"
-										min={contentRange.min}
-										max={contentRange.max}
-										step={contentRange.step}
-										value={getWidth().value}
-										oninput={(e) => setWidthValue(Number((e.currentTarget as HTMLInputElement).value))}
-										class="min-w-0 flex-1 accent-neutral-900"
-										aria-label="Content width"
-									/>
-									<output class="w-12 shrink-0 text-right font-mono text-xs">{getWidth().value}</output>
-									<select
-										value={getWidth().unit}
-										onchange={(e) => setWidthUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
-										class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
-										aria-label="Content width unit"
-									>
-										{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
-									</select>
-								</div>
-								<span class="mt-1 block text-xs text-neutral-500"
-									>Reading measure. Use ch for ~60–75 character lines; % scales with the container.</span
-								>
+							<div
+								class="mx-auto rounded-sm bg-sky-100 px-2 py-1 text-[10px] text-sky-800"
+								style:width={breakoutPct}
+							>
+								breakout
 							</div>
-							<div class="rounded-lg border border-neutral-200 bg-white p-3">
-								<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout width</span>
-								<div class="flex items-center gap-2">
-									<input
-										type="range"
-										min={breakoutRange.min}
-										max={breakoutRange.max}
-										step={breakoutRange.step}
-										value={getBreakoutWidth().value}
-										oninput={(e) => setBreakoutValue(Number((e.currentTarget as HTMLInputElement).value))}
-										class="min-w-0 flex-1 accent-neutral-900"
-										aria-label="Breakout width"
-									/>
-									<output class="w-12 shrink-0 text-right font-mono text-xs">{getBreakoutWidth().value}</output>
-									<select
-										value={getBreakoutWidth().unit}
-										onchange={(e) => setBreakoutUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
-										class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
-										aria-label="Breakout width unit"
-									>
-										{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
-									</select>
-								</div>
-								<span class="mt-1 block text-xs text-neutral-500"
-									>Extra width each side of content. % keeps breakouts distinct at any viewport.</span
-								>
+							<div
+								class="mx-auto rounded-sm bg-neutral-900 px-2 py-1 text-[10px] text-white"
+								style:width={contentPct}
+							>
+								content
 							</div>
-						</div>
-
-						<div class="rounded-lg border border-neutral-200 bg-white p-3">
-							<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">Breakout elements</h3>
-							<p class="mb-2 text-xs text-neutral-500">
-								Route plain Markdown structures to a track — no wrapper divs needed.
-							</p>
-							<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-								{#each BREAKOUT_ELEMENTS as el (el)}
-									<div class="flex items-center justify-between gap-2 rounded-md border border-neutral-100 bg-neutral-50 px-2 py-1.5">
-										<span class="text-sm font-medium text-neutral-800">{BREAKOUT_ELEMENT_LABEL[el]}</span>
-										<div class="flex shrink-0 rounded-md border border-neutral-200 bg-white p-0.5" role="group" aria-label={`${BREAKOUT_ELEMENT_LABEL[el]} track`}>
-											{#each BREAKOUT_LEVELS as level (level)}
-												<button
-													type="button"
-													onclick={() => setBreakoutRoute(el, level)}
-													aria-pressed={getBreakoutRoute(el) === level}
-													class="rounded px-2 py-1 text-[11px] font-medium {getBreakoutRoute(el) === level
-														? 'bg-neutral-900 text-white'
-														: 'text-neutral-500 hover:bg-neutral-100'}"
-												>
-													{level === 'content' ? 'Content' : level === 'breakout' ? 'Breakout' : 'Full'}
-												</button>
-											{/each}
-										</div>
-									</div>
-								{/each}
-							</div>
+							{#each gridLines() as line (line.key)}
+								<span
+									class="pointer-events-none absolute inset-y-0 border-l border-dashed {line.cls}"
+									style="left:{line.pos}%"
+									title={line.title}
+									aria-hidden="true"
+								></span>
+							{/each}
 						</div>
 					</div>
+
+					<div class="grid gap-3 md:grid-cols-2">
+						<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<span class="mb-1 block text-sm font-medium text-neutral-800">Content width</span>
+							<div class="flex items-center gap-2">
+								<input
+									type="range"
+									min={contentRange.min}
+									max={contentRange.max}
+									step={contentRange.step}
+									value={getWidth().value}
+									oninput={(e) =>
+										setWidthValue(Number((e.currentTarget as HTMLInputElement).value))}
+									class="min-w-0 flex-1 accent-neutral-900"
+									aria-label="Content width"
+								/>
+								<output class="w-12 shrink-0 text-right font-mono text-xs"
+									>{getWidth().value}</output
+								>
+								<select
+									value={getWidth().unit}
+									onchange={(e) =>
+										setWidthUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
+									class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
+									aria-label="Content width unit"
+								>
+									{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
+								</select>
+							</div>
+							<span class="mt-1 block text-xs text-neutral-500"
+								>Reading measure. Use ch for ~60–75 character lines; % scales with the container.</span
+							>
+						</div>
+						<div class="rounded-lg border border-neutral-200 bg-white p-3">
+							<span class="mb-1 block text-sm font-medium text-neutral-800">Breakout width</span>
+							<div class="flex items-center gap-2">
+								<input
+									type="range"
+									min={breakoutRange.min}
+									max={breakoutRange.max}
+									step={breakoutRange.step}
+									value={getBreakoutWidth().value}
+									oninput={(e) =>
+										setBreakoutValue(Number((e.currentTarget as HTMLInputElement).value))}
+									class="min-w-0 flex-1 accent-neutral-900"
+									aria-label="Breakout width"
+								/>
+								<output class="w-12 shrink-0 text-right font-mono text-xs"
+									>{getBreakoutWidth().value}</output
+								>
+								<select
+									value={getBreakoutWidth().unit}
+									onchange={(e) =>
+										setBreakoutUnit((e.currentTarget as HTMLSelectElement).value as SizeUnit)}
+									class="shrink-0 rounded-md border border-neutral-300 bg-white px-1.5 py-1 text-xs"
+									aria-label="Breakout width unit"
+								>
+									{#each SIZE_UNITS as u (u)}<option value={u}>{u}</option>{/each}
+								</select>
+							</div>
+							<span class="mt-1 block text-xs text-neutral-500"
+								>Extra width each side of content. % keeps breakouts distinct at any viewport.</span
+							>
+						</div>
+					</div>
+
+					<div class="rounded-lg border border-neutral-200 bg-white p-3">
+						<h3 class="mb-1 text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+							Breakout elements
+						</h3>
+						<p class="mb-2 text-xs text-neutral-500">
+							Route plain Markdown structures to a track — no wrapper divs needed.
+						</p>
+						<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+							{#each BREAKOUT_ELEMENTS as el (el)}
+								<div
+									class="flex items-center justify-between gap-2 rounded-md border border-neutral-100 bg-neutral-50 px-2 py-1.5"
+								>
+									<span class="text-sm font-medium text-neutral-800"
+										>{BREAKOUT_ELEMENT_LABEL[el]}</span
+									>
+									<div
+										class="flex shrink-0 rounded-md border border-neutral-200 bg-white p-0.5"
+										role="group"
+										aria-label={`${BREAKOUT_ELEMENT_LABEL[el]} track`}
+									>
+										{#each BREAKOUT_LEVELS as level (level)}
+											<button
+												type="button"
+												onclick={() => setBreakoutRoute(el, level)}
+												aria-pressed={getBreakoutRoute(el) === level}
+												class="rounded px-2 py-1 text-[11px] font-medium {getBreakoutRoute(el) ===
+												level
+													? 'bg-neutral-900 text-white'
+													: 'text-neutral-500 hover:bg-neutral-100'}"
+											>
+												{level === 'content'
+													? 'Content'
+													: level === 'breakout'
+														? 'Breakout'
+														: 'Full'}
+											</button>
+										{/each}
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
 			</div>
 		</main>
 
 		<section aria-label="Markdown preview" style={getVarStyle()} class="w-full">
-			<div class="mx-auto mt-8 flex max-w-6xl items-center justify-between gap-2 bg-highlight px-4 py-3 sm:px-8">
+			<div
+				class="mx-auto mt-8 flex max-w-6xl items-center justify-between gap-2 bg-highlight px-4 py-3 sm:px-8"
+			>
 				<h2 class="text-xs font-semibold tracking-widest uppercase" style="color:var(--prose-700)">
 					Markdown preview
 				</h2>
@@ -1116,24 +1304,53 @@
 						title="Theme preview document"
 						scrolling="no"
 						onload={() => {
-						applyToFrame();
-						fitFrame();
-					}}
+							applyToFrame();
+							fitFrame();
+						}}
 						class="block w-full"
-						style="border:0;background:var(--base-50);height:900px;overflow:hidden"
+						style="border:0;background:var(--base);height:900px;overflow:hidden"
 					></iframe>
+				</div>
+			</div>
+			<div class="mx-auto max-w-6xl px-4 pb-12 sm:px-8">
+				<div class="rounded-lg border border-neutral-200 bg-white p-4">
+					<h2 class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+						Tailwind bridge
+						<span
+							class="rounded-full px-2 py-0.5 font-mono text-[11px] font-medium {includeTailwind()
+								? 'bg-emerald-100 text-emerald-800'
+								: 'bg-neutral-100 text-neutral-500'}"
+						>
+							{includeTailwind() ? 'included' : 'excluded'}
+						</span>
+					</h2>
+					<p class="mt-1 max-w-3xl text-sm text-neutral-600">
+						Ships <code class="font-mono text-xs">tw-bridge.css</code>: every semantic variable
+						re-exposed as a Tailwind v4 theme token, so components and page layouts use utilities
+						instead of raw values — your springboard for distributing the system further. Hand-edit
+						it after generation; toggle inclusion with the Tailwind bridge checkbox in the command
+						bar below.
+					</p>
+					<div class="mt-3 grid gap-2 sm:grid-cols-3">
+						<pre
+							class="overflow-x-auto rounded-md bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-200">{'<div class="bg-base-50 text-prose-800">\n  Page canvas\n</div>'}</pre>
+						<pre
+							class="overflow-x-auto rounded-md bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-200">{'<div class="bg-twist-light font-primary">\n  Signature moment\n</div>'}</pre>
+						<pre
+							class="overflow-x-auto rounded-md bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-200">{'<p class="text-traffic-stop-on-callout">\n  State-aware text\n</p>'}</pre>
+					</div>
 				</div>
 			</div>
 		</section>
 
 		<section aria-label="Components" class="mx-auto max-w-6xl px-4 pt-6 pb-8 sm:px-8">
-			<h2 class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">
-				Components
-			</h2>
+			<h2 class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">Components</h2>
 			<p class="mt-1 text-sm text-neutral-600">coming soon</p>
 			<div class="mt-3 grid gap-2 sm:grid-cols-3" aria-hidden="true">
 				{#each ['Card', 'Accordion', 'Dialog'] as name (name)}
-					<div class="rounded-lg border border-dashed border-neutral-300 bg-white/60 p-4 text-center">
+					<div
+						class="rounded-lg border border-dashed border-neutral-300 bg-white/60 p-4 text-center"
+					>
 						<span class="block text-sm font-medium text-neutral-400">{name}</span>
 						<span class="block text-xs text-neutral-400">soon</span>
 					</div>
@@ -1141,6 +1358,22 @@
 			</div>
 		</section>
 
+		{#snippet dot(bg: string, line1: string, line2: string)}
+			<span class="group relative inline-flex" role="img" aria-label={`${line1} — ${line2}`}>
+				<span
+					class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
+					style:background={bg}
+					aria-hidden="true"
+				></span>
+				<span
+					class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden -translate-x-1/2 rounded-md bg-neutral-900 px-2 py-1 text-center whitespace-nowrap group-hover:block"
+					aria-hidden="true"
+				>
+					<span class="block text-[11px] font-semibold text-white">{line1}</span>
+					<span class="block font-mono text-[10px] text-neutral-300">{line2}</span>
+				</span>
+			</span>
+		{/snippet}
 		<footer
 			class="{footerVisible
 				? 'relative'
@@ -1148,43 +1381,76 @@
 		>
 			<div class="mx-auto max-w-6xl sm:px-8">
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-					<div class="flex flex-row items-center gap-1.5" aria-label="Chosen theme colours">
-						{#each COLOR_FIELDS as field (field.key)}
-							{@const chosen = theme.colors[field.key as ColorKey]}
-							<span class="group relative inline-flex" role="img" aria-label={`${field.label}: ${chosen}, ${swatch(chosen)} — ${field.hint}`}>
-								<span
-									class="inline-block h-4 w-4 shrink-0 rounded-full border border-black/20"
-									style:background={swatch(chosen)}
-									aria-hidden="true"
-								></span>
-								<span
-									class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden -translate-x-1/2 rounded-md bg-neutral-900 px-2 py-1 text-center whitespace-nowrap group-hover:block"
-									aria-hidden="true"
-								>
-									<span class="block text-[11px] font-semibold text-white">{field.label} · {chosen}</span>
-									<span class="block font-mono text-[10px] text-neutral-300">{swatch(chosen)} — {field.hint}</span>
-								</span>
-							</span>
-						{/each}
+					<div class="flex shrink-0 flex-col gap-1.5" aria-label="Chosen theme colours">
+						<div class="flex flex-row items-center gap-1.5">
+							{#each COLOR_FIELDS.slice(0, 7) as field (field.key)}
+								{@const chosen = theme.colors[field.key as ColorKey]}
+								{@render dot(
+									swatch(chosen),
+									`${field.label} · ${chosen}`,
+									`${swatch(chosen)} — ${field.hint}`
+								)}
+							{/each}
+						</div>
+						<div
+							class="flex flex-row items-center gap-1.5"
+							aria-label="Emphasis, derived twist and traffic"
+						>
+							{#each COLOR_FIELDS.slice(7, 8) as field (field.key)}
+								{@const chosen = theme.colors[field.key as ColorKey]}
+								{@render dot(
+									swatch(chosen),
+									`${field.label} · ${chosen}`,
+									`${swatch(chosen)} — ${field.hint}`
+								)}
+							{/each}
+							{#each [{ v: '--pop-twist-light', label: 'Twist light' }, { v: '--pop-twist', label: 'Twist' }, { v: '--pop-twist-dark', label: 'Twist dark' }] as tw (tw.v)}
+								{@render dot(
+									getGenerated().variables[tw.v],
+									`${tw.label} · ${tw.v}`,
+									getGenerated().variables[tw.v]
+								)}
+							{/each}
+							{#each COLOR_FIELDS.slice(8) as field (field.key)}
+								{@const chosen = theme.colors[field.key as ColorKey]}
+								{@render dot(
+									swatch(chosen),
+									`${field.label} · ${chosen}`,
+									`${swatch(chosen)} — ${field.hint}`
+								)}
+							{/each}
+						</div>
 					</div>
-				<code
-					class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100"
-					>{getBunxCommand()}</code
-				>
-				<button
-					type="button"
-					onclick={copyCommand}
-					class="flex min-w-28 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium text-white {copied
-						? 'bg-green-600'
-						: 'bg-neutral-900 hover:bg-neutral-700'}"
-				>
-					{#if copied}
-						<Check size={16} />
-					{:else}
-						<Copy size={16} />
-					{/if}
-					{copied ? 'Copied!' : 'Copy'}
-				</button>
+					<code
+						class="min-w-0 flex-1 overflow-x-auto rounded-md bg-neutral-900 p-3 font-mono text-xs break-all text-neutral-100"
+						>{getBunxCommand()}</code
+					>
+					<button
+						type="button"
+						onclick={copyCommand}
+						class="flex min-w-28 shrink-0 items-center justify-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium text-white {copied
+							? 'bg-green-600'
+							: 'bg-neutral-900 hover:bg-neutral-700'}"
+					>
+						{#if copied}
+							<Check size={16} />
+						{:else}
+							<Copy size={16} />
+						{/if}
+						{copied ? 'Copied!' : 'Copy'}
+					</button>
+					<label
+						class="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs font-medium whitespace-nowrap"
+						title="Include tw-bridge.css (Tailwind v4 @theme bridge) in generated output"
+					>
+						<input
+							type="checkbox"
+							checked={includeTailwind()}
+							onchange={(e) => setIncludeTailwind((e.currentTarget as HTMLInputElement).checked)}
+							class="accent-neutral-900"
+						/>
+						Tailwind bridge
+					</label>
 				</div>
 			</div>
 		</footer>
@@ -1205,7 +1471,8 @@
 			<div class="border-b border-neutral-200 px-4 py-3">
 				<h2 class="text-sm font-semibold">CSS preview</h2>
 				<p class="text-xs text-neutral-500">
-					Live values from your theme — this is what the CLI ships.
+					A section of the generated CSS for example purposes — live values, not the full output.
+					The CLI ships every file in full.
 				</p>
 			</div>
 			<div
@@ -1221,7 +1488,9 @@
 							class="inline-block h-3 w-3 shrink-0 rounded-sm border border-white/20"
 							style:background={getGenerated().anchors[g.sem]}
 						></span>
-						<span class="text-sky-300">--{g.sem}</span><span>: {getGenerated().anchors[g.sem]};</span>
+						<span class="text-sky-300">--{g.sem}</span><span
+							>: {getGenerated().anchors[g.sem]};</span
+						>
 					</p>
 					{#each SCALE_STEPS as step (step)}
 						{@const v = getGenerated().scales[g.sem][step]}
@@ -1237,7 +1506,7 @@
 				<p>&#125;</p>
 				<p class="mt-4 text-emerald-400">/* typography.css — fluid, no breakpoints */</p>
 				<pre>{`.markdown h1 {\n  font-family: var(--font-h1);\n  font-size: ${fluidClamp(FLUID_SIZES.h1[0], FLUID_SIZES.h1[1])};\n}`}</pre>
-				<p class="mt-4 text-emerald-400">/* tailwind.css — utilities read your system */</p>
+				<p class="mt-4 text-emerald-400">/* tw-bridge.css — utilities read your system */</p>
 				<pre>{TAILWIND_EXCERPT}</pre>
 				<p class="mt-4 text-emerald-400">&lt;!-- use it --&gt;</p>
 				<pre>{USAGE_EXCERPT}</pre>

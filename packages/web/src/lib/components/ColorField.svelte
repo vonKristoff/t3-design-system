@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolveTailwindHex } from '@tsup-system/core';
+	import TrioSwatch from './TrioSwatch.svelte';
 	import FamilySelect from './FamilySelect.svelte';
 	import StrengthSelect from './StrengthSelect.svelte';
 
@@ -7,13 +8,11 @@
 		label: string;
 		hint?: string;
 		value: string;
-		/** Override swatch background (e.g. alpha fill). Defaults to the opaque pick. */
-		fill?: string;
-		/** Render the transparency grid behind the swatch. */
-		checker?: boolean;
+		/** Live light / anchor / dark trio; renders as three labelled strips when set. */
+		trio?: { light: string; base: string; dark: string; sem: string };
 	}
 
-	let { label, hint, value = $bindable(), fill, checker = false }: Props = $props();
+	let { label, hint, value = $bindable(), trio }: Props = $props();
 
 	const family = $derived(value.split('-')[0] ?? '');
 	const step = $derived(value.split('-').at(-1) ?? '600');
@@ -50,12 +49,24 @@
 			</span>
 			<StrengthSelect {family} {step} onpick={pickStep} />
 		</span>
+		{#if trio}
+			<TrioSwatch
+				rows={[
+					{ hex: trio.light, name: `--${trio.sem}-light` },
+					{ hex: trio.base, name: `--${trio.sem}` },
+					{ hex: trio.dark, name: `--${trio.sem}-dark` }
+				]}
+				title={`${value} · --${trio.sem}-light ${trio.light} / --${trio.sem} ${trio.base} / --${trio.sem}-dark ${trio.dark}`}
+				checker={trio.sem === 'glass'}
+			/>
+		{:else}
 			<span
-				class="inline-block min-h-28 overflow-hidden rounded-md border border-black/20 {checker ? 'checkerboard' : ''}"
-				title={`${value} · ${fill ?? selectedHex}`}
+				class="inline-block min-h-28 overflow-hidden rounded-md border border-black/20"
+				title={`${value} · ${selectedHex}`}
 				aria-hidden="true"
 			>
-				<span class="block h-full min-h-28 w-full" style:background={fill ?? selectedHex}></span>
+				<span class="block h-full min-h-28 w-full" style:background={selectedHex}></span>
 			</span>
+		{/if}
 	</div>
 </fieldset>

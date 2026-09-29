@@ -1,4 +1,11 @@
 import type { GeneratedTheme } from "./generate-theme.ts";
+import {
+  CANVAS_SHADE,
+  EDGE_SHADE,
+  RAISED_SHADE,
+  TRAFFIC_EDGE,
+  TRAFFIC_TINT,
+} from "./readable-pairs.ts";
 import { fontStacks } from "../typography/fonts.ts";
 import { fluidClamp, FLUID_SIZES } from "../typography/fluid.ts";
 import type {
@@ -9,6 +16,7 @@ import type {
   SizeValue,
   ThemeOptions,
 } from "./types.ts";
+import { CHROMATIC_NAMES, SCALE_STEPS, SEMANTIC_NAMES } from "./types.ts";
 
 export interface ThemeFiles {
   "root.css": string;
@@ -17,7 +25,8 @@ export interface ThemeFiles {
   "typography.css": string;
   "markdown.css": string;
   "layout.css": string;
-  "tailwind.css": string;
+  /** Tailwind v4 bridge. Absent when the theme opts out via tailwindBridge. */
+  "tw-bridge.css"?: string;
   "index.css": string;
 }
 
@@ -74,7 +83,7 @@ export function generateLayoutCss(): string {
 [data-grid] > .full-width { grid-column: full; }
 /* Replaced elements don't stretch to grid tracks by default — make images
    fill whichever track routing assigns them. */
-[data-grid] > img { display: block; width: 100%; height: auto; }
+[data-grid] > img { display: block; width: 100%; height: auto; margin-bottom: 1.3rem; }
 [data-grid] .breakout img, [data-grid] .full-width img { display: block; width: 100%; height: auto; }
 /* Full-bleed images run edge to edge: no radius. */
 [data-grid] > .full-width img { border-radius: 0; }
@@ -82,6 +91,14 @@ export function generateLayoutCss(): string {
   [data-grid] { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 100%) [content-end] 0 [breakout-end] 0 [full-end]; padding-inline: 1.25rem; }
 }`;
 }
+
+/**
+ * Every callout variant. The base component rules target this whole group so
+ * a modifier class works standalone (`class="callout-stop"`), and each
+ * variant only overrides its surface, border, ink and badge glyph.
+ */
+const CALLOUTS =
+  ":is(.markdown .callout, .markdown .callout-pop, .markdown .callout-stop, .markdown .callout-warning, .markdown .callout-ok)";
 
 const BREAKOUT_SELECTOR: Record<BreakoutElement, string> = {
   blockquote: "blockquote",
@@ -142,7 +159,11 @@ export function generateWidthCss(width: SizeValue, breakout: SizeValue): string 
       ? `\n.tsb-doc.content-grid { grid-template-columns: [full-start] 0 [breakout-start] 0 [content-start] minmax(0, 1fr) [content-end] 0 [breakout-end] 0 [full-end]; }`
       : "";
   return `/* Content ${size(width)}; breakout +${size(breakout)} per side. */
-.tsb-doc { --content-size: ${size(width)}; --breakout-size: ${size(breakout)}; margin-inline: auto; padding-block: 2.5rem; background: var(--base-50); color: var(--prose-on-base); }${fullOverride}`;
+.tsb-doc { --content-size: ${size(width)}; --breakout-size: ${size(breakout)}; margin-inline: auto; min-width: 0; padding-block: 2.5rem; background: var(--base); color: var(--prose-on-base); }
+/* Grid items never collapse margins, so rhythm is single-direction: tops are
+   zeroed here (layout ships last, so this wins ties) and each block carries
+   only its bottom margin — the same spacing collapsing would have produced. */
+.tsb-doc > * { margin-top: 0; }${fullOverride}`;
 }
 
 export function fontRoleVars(options: ThemeOptions): Record<string, string> {
@@ -174,6 +195,7 @@ export function fontWeightVars(options: ThemeOptions): Record<string, number> {
 export function generateThemeFiles(options: ThemeOptions, gen: GeneratedTheme, fontsCss: string): ThemeFiles {
   const roleVars = fontRoleVars(options);
   const weightVars = fontWeightVars(options);
+  const pct = (w: number) => `${Math.round(w * 100)}%`;
 
   const rootCss =
     gen.rootCss.replace(/\}$/, "") +
@@ -183,28 +205,30 @@ export function generateThemeFiles(options: ThemeOptions, gen: GeneratedTheme, f
     Object.entries(weightVars).map(([k, v]) => `\n  ${k}: ${v};`).join("") +
     "\n}";
 
-  const baseCss = `/* Base document styles — semantic variables only, no hardcoded palette. */
-html { background: var(--base-100); }
+  const baseCss = `/* Base document styles — semantic variables only, no hardcoded palette.
+   Surfaces shade via color-mix with --prose so a dark canvas stays dark:
+   the canvas is always exactly the chosen --base, never an assumed rung. */
+html { background: color-mix(in srgb, var(--prose) ${pct(CANVAS_SHADE)}, var(--base)); }
 body {
   margin: 0;
-  background: var(--base-50);
+  background: var(--base);
   color: var(--prose-on-base);
   font-family: var(--font-p, var(--font-primary));
 }
 a { color: var(--accent-on-base); }
 a:hover { color: var(--accent-hover-on-base); }
-hr { border: 0; border-top: 1px solid var(--alt-300); }
+hr { border: 0; border-top: 1px solid color-mix(in srgb, var(--prose) ${pct(EDGE_SHADE)}, var(--alt)); margin-bottom: 1.3rem; }
 .glass-panel {
-  background: var(--glass-fill);
+  background: var(--glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass);
+  border: 1px solid color-mix(in srgb, var(--prose) ${pct(EDGE_SHADE)}, var(--alt));
   border-radius: 0.75rem;
 }
 img { max-width: 100%; border-radius: 0.5rem; }
 /* Full-bleed preview band: matches the html background so themed
    documents read as a continuous canvas. */
-.preview { background: var(--base-100); }
+.preview { background: color-mix(in srgb, var(--prose) ${pct(CANVAS_SHADE)}, var(--base)); }
 `;
 
   const fluid = (el: keyof typeof FLUID_SIZES): string => {
@@ -216,16 +240,17 @@ img { max-width: 100%; border-radius: 0.5rem; }
    Splendor: Merriweather/Georgia serif body, modular heading scale, generous line-height.
    Sizes are fluid (tolin-style clamp over 360–1280px viewports); desktop max = Splendor scale. */
 .markdown { font-size: 1.05rem; font-optical-sizing: auto; }
-.markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 1.414rem 0 0.5rem; font-weight: inherit; line-height: normal; text-wrap: balance; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { margin: 0 0 0.5rem; font-weight: inherit; line-height: normal; text-wrap: balance; overflow-wrap: anywhere; }
+.markdown h5, .markdown h6 { overflow-wrap: anywhere; }
 .markdown h1 { font-family: var(--font-h1); font-weight: var(--font-h1-weight, 400); font-size: ${fluid("h1")}; margin-top: 0; }
 .markdown h2 { font-family: var(--font-h2); font-weight: var(--font-h2-weight, 400); font-size: ${fluid("h2")}; }
 .markdown h3 { font-family: var(--font-h3); font-weight: var(--font-h3-weight, 400); font-size: ${fluid("h3")}; }
 .markdown h4 { font-family: var(--font-h4); font-weight: var(--font-h4-weight, 400); font-size: ${fluid("h4")}; }
 .markdown h5 { font-family: var(--font-h5); font-weight: var(--font-h5-weight, 400); font-size: ${fluid("h5")}; }
 .markdown h6 { font-family: var(--font-h6); font-weight: var(--font-h6-weight, 400); font-size: ${fluid("h6")}; }
-.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-on-base); line-height: normal; font-size: ${fluid("p")}; text-wrap: pretty; }
+.markdown p, .markdown li { font-family: var(--font-p); font-weight: var(--font-p-weight, 400); color: var(--prose-on-base); line-height: normal; font-size: ${fluid("p")}; text-wrap: pretty; overflow-wrap: anywhere; }
 .markdown p { margin-bottom: 1.3rem; }
-.markdown ul, .markdown ol { font-family: var(--font-list); font-weight: var(--font-list-weight, 400); }
+.markdown ul, .markdown ol { font-family: var(--font-list); font-weight: var(--font-list-weight, 400); margin-bottom: 1.3rem; }
 .markdown li { margin-left: 0.5rem; }
 .markdown strong { color: inherit; font-weight: 700; }
 .markdown em { color: inherit; font-style: italic; }
@@ -237,13 +262,13 @@ img { max-width: 100%; border-radius: 0.5rem; }
    .bq-pull (large centered pull-quote) or .bq-minimal (plain indent). */
 .markdown blockquote {
   font-family: var(--font-blockquote);
-  margin: 1rem 0;
+  margin: 0 0 1rem;
 }
 .markdown blockquote p { margin-bottom: 0; }
 .markdown.bq-rule blockquote {
   color: var(--prose-on-quote);
-  background: var(--alt-100);
-  border-left: 4px solid var(--accent-500);
+  background: var(--alt);
+  border-left: 4px solid var(--accent);
   padding: 0.75rem 1rem;
   border-radius: 0 0.5rem 0.5rem 0;
 }
@@ -271,59 +296,136 @@ img { max-width: 100%; border-radius: 0.5rem; }
   font-size: ${fluid("code")};
   border-radius: 0.5rem;
   overflow-x: auto;
+  max-width: 100%;
+  margin-bottom: 1.3rem;
   padding: 1.125em;
 }
-.markdown code { font-family: var(--font-code); background: var(--alt-200); color: var(--prose-on-alt); padding: 0.1em 0.35em; border-radius: 0.3rem; }
+/* Inline code wraps mid-token so long names and payloads can never force a
+   horizontal overflow; code inside pre keeps white-space: pre and scrolls. */
+.markdown code { font-family: var(--font-code); background: color-mix(in srgb, var(--prose) ${pct(RAISED_SHADE)}, var(--alt)); color: var(--prose-on-alt); padding: 0.1em 0.35em; border-radius: 0.3rem; overflow-wrap: anywhere; }
 .markdown pre code { background: transparent; color: inherit; padding: 0; }
-.markdown table { width: 100%; border-collapse: collapse; font-family: var(--font-p); }.markdown th { background: var(--alt-200); color: var(--prose-on-alt); text-align: left; }
-.markdown th, .markdown td { border: 1px solid var(--alt-300); padding: 0.5rem 0.75rem; }
-.markdown tbody tr:nth-child(even) { background: var(--alt-100); }
+/* Tables always fill their track (auto layout shares leftover width, so no
+   lopsided trailing space); cells wrap mid-token when squeezed, which also
+   keeps long values from blowing out the grid track on narrow screens. */
+.markdown table { width: 100%; margin-bottom: 1.3rem; border-collapse: collapse; font-family: var(--font-p); }.markdown th { background: color-mix(in srgb, var(--prose) ${pct(RAISED_SHADE)}, var(--alt)); color: var(--prose-on-alt); text-align: left; }
+.markdown th, .markdown td { border: 1px solid color-mix(in srgb, var(--prose) ${pct(EDGE_SHADE)}, var(--alt)); padding: 0.5rem 0.75rem; overflow-wrap: anywhere; }
+.markdown tbody tr:nth-child(even) { background: var(--alt); }
 .markdown ul { list-style: disc; padding-left: 1.5rem; }
 .markdown ol { list-style: decimal; padding-left: 1.5rem; }
 .markdown ul ul { list-style: circle; }
 .markdown ol ol, .markdown ul ol { list-style: lower-roman; }
 .markdown li { margin: 0.25rem 0; }
 .markdown li::marker { color: var(--accent-on-base); }
-.markdown .callout { position: relative; border-radius: 0.75rem; padding: 1.1rem 1.25rem 1.1rem 3rem; margin: 1.25rem 0; background: var(--alt-100); border-left: 4px solid var(--accent-500); color: var(--prose-on-quote); box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 12px rgb(0 0 0 / 0.06); }
-.markdown .callout::before { content: ""; position: absolute; left: 1.1rem; top: 1.35rem; width: 0.6rem; height: 0.6rem; border-radius: 9999px; background: var(--accent-500); }
-.markdown .callout-pop { background: var(--pop-600); border-left: 4px solid var(--pop-700); color: var(--inverse-on-pop); }
-.markdown .callout-pop::before { background: var(--inverse-on-pop); }
-.markdown .callout-stop { background: var(--traffic-stop-100); border-left: 6px solid var(--traffic-stop-500); color: var(--traffic-stop-on-callout); }
-.markdown .callout-stop::before { background: var(--traffic-stop-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-stop-500) 20%, transparent); }
-.markdown .callout-warning { background: var(--traffic-warning-100); border-left: 6px solid var(--traffic-warning-500); color: var(--traffic-warning-on-callout); }
-.markdown .callout-warning::before { background: var(--traffic-warning-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-warning-500) 20%, transparent); }
-.markdown .callout-ok { background: var(--traffic-ok-100); border-left: 6px solid var(--traffic-ok-500); color: var(--traffic-ok-on-callout); }
-.markdown .callout-ok::before { background: var(--traffic-ok-500); box-shadow: 0 0 0 4px color-mix(in srgb, var(--traffic-ok-500) 20%, transparent); }
+/* Callouts share the language of blockquotes, tables and code: the same
+   radius, border and type rhythm, plus a leading icon badge. Surfaces are
+   derived from the theme anchors (tints over --base), so they keep the
+   theme's polarity instead of assuming a light canvas. A strong first child
+   reads as an optional title line.
+   The base rules target the whole family, so a modifier can be used on its
+   own — a lone callout-stop class needs no callout companion. */
+${CALLOUTS} {
+  position: relative;
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem 1rem 3.25rem;
+  margin: 0 0 1.5rem;
+  overflow-wrap: anywhere;
+  background: var(--alt);
+  border: 1px solid color-mix(in srgb, var(--prose) ${pct(EDGE_SHADE)}, var(--alt));
+  color: var(--prose-on-quote);
+}
+${CALLOUTS} > strong:first-child { display: block; margin-bottom: 0.25rem; color: inherit; }
+${CALLOUTS}::before {
+  content: "i";
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--inverse-on-accent);
+  font-family: var(--font-p);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+}
+.markdown .callout-pop {
+  background: var(--pop);
+  border-color: var(--pop);
+  color: var(--inverse-on-pop);
+}
+.markdown .callout-pop::before {
+  content: "★";
+  background: rgb(0 0 0 / 0.22);
+  color: inherit;
+  font-style: normal;
+}
+.markdown .callout-stop {
+  background: color-mix(in srgb, var(--traffic-stop) ${pct(TRAFFIC_TINT)}, var(--base));
+  border-color: color-mix(in srgb, var(--traffic-stop) ${pct(TRAFFIC_EDGE)}, var(--base));
+  color: var(--traffic-stop-on-callout);
+}
+.markdown .callout-stop::before { content: "✕"; background: var(--traffic-stop); color: var(--traffic-stop-on-fill); font-style: normal; }
+.markdown .callout-warning {
+  background: color-mix(in srgb, var(--traffic-warning) ${pct(TRAFFIC_TINT)}, var(--base));
+  border-color: color-mix(in srgb, var(--traffic-warning) ${pct(TRAFFIC_EDGE)}, var(--base));
+  color: var(--traffic-warning-on-callout);
+}
+.markdown .callout-warning::before { content: "!"; background: var(--traffic-warning); color: var(--traffic-warning-on-fill); font-style: normal; }
+.markdown .callout-ok {
+  background: color-mix(in srgb, var(--traffic-ok) ${pct(TRAFFIC_TINT)}, var(--base));
+  border-color: color-mix(in srgb, var(--traffic-ok) ${pct(TRAFFIC_EDGE)}, var(--base));
+  color: var(--traffic-ok-on-callout);
+}
+.markdown .callout-ok::before { content: "✓"; background: var(--traffic-ok); color: var(--traffic-ok-on-fill); font-style: normal; }
 .markdown .pop { color: var(--pop); }
 .markdown .muted { color: var(--muted-on-base); }
-/* Stacked images keep breathing room, in and out of the grid. */
-.markdown img + img { margin-top: 1.5rem; }
+/* Stacked images keep breathing room, in and out of the grid. Tops are zeroed
+   on grid children, so the pair rides the first image's bottom margin. */
+.markdown img + img { margin-top: 0; }
 `;
 
-  const tailwindCss = `/* Tailwind v4 semantic bridge — utilities consume generated variables. */
-@import "tailwindcss";
-
-@theme inline {
-  --color-base-50: var(--base-50);
-  --color-base-100: var(--base-100);
-  --color-base-500: var(--base-500);
-  --color-base-900: var(--base-900);
-  --color-accent-500: var(--accent-500);
-  --color-accent-600: var(--accent-600);
-  --color-accent: var(--accent);
-  --color-muted: var(--muted);
-  --color-muted-600: var(--muted-600);
-  --color-pop: var(--pop);
-  --color-pop-500: var(--pop-500);
-  --color-pop-600: var(--pop-600);
-  --color-inverse: var(--inverse);
-  --color-traffic-stop: var(--traffic-stop-600);
-  --color-traffic-warning: var(--traffic-warning-500);
-  --color-traffic-ok: var(--traffic-ok-600);
-  --font-primary: var(--font-primary);
-  --font-secondary: var(--font-secondary);
-}
-`;
+  const includeBridge = options.tailwindBridge !== false;
+  const bridge: string[] = [
+    "/* Tailwind v4 semantic bridge — every generated variable re-exposed, so",
+    "   components use utilities (bg-base-50, text-prose-800, bg-twist-light)",
+    "   instead of raw values. Hand-edit after generation as needed. */",
+    '@import "tailwindcss";',
+    "",
+    "@theme inline {",
+  ];
+  for (const sem of [...SEMANTIC_NAMES, ...CHROMATIC_NAMES]) {
+    // Bare `base` would collide with the `text-base` font-size utility.
+    if (sem !== "base") bridge.push(`  --color-${sem}: var(--${sem});`);
+    bridge.push(`  --color-${sem}-light: var(--${sem}-light);`);
+    bridge.push(`  --color-${sem}-dark: var(--${sem}-dark);`);
+    for (const step of SCALE_STEPS) {
+      bridge.push(`  --color-${sem}-${step}: var(--${sem}-${step});`);
+    }
+  }
+  // Readable text-on-surface pairs, e.g. `text-prose-on-base`.
+  for (const name of Object.keys(gen.pairs)) {
+    bridge.push(`  --color-${name.slice(2)}: var(${name});`);
+  }
+  // Twist trio, canonical and short names.
+  for (const [token, ref] of [
+    ["pop-twist", "--pop-twist"],
+    ["pop-twist-light", "--pop-twist-light"],
+    ["pop-twist-dark", "--pop-twist-dark"],
+    ["twist", "--pop-twist"],
+    ["twist-light", "--pop-twist-light"],
+    ["twist-dark", "--pop-twist-dark"],
+  ] as const) {
+    bridge.push(`  --color-${token}: var(${ref});`);
+  }
+  bridge.push(`  --font-primary: var(--font-primary);`);
+  bridge.push(`  --font-secondary: var(--font-secondary);`);
+  if (fontStacks(options).tertiary) bridge.push(`  --font-tertiary: var(--font-tertiary);`);
+  bridge.push("}");
+  const tailwindCss = bridge.join("\n") + "\n";
 
   const layoutCss =
     generateLayoutCss() +
@@ -332,22 +434,19 @@ img { max-width: 100%; border-radius: 0.5rem; }
     "\n" +
     generateRoutingCss(options.breakouts ?? {});
 
-  const indexCss = `@import "./root.css";
-@import "./fonts.css";
-@import "./base.css";
-@import "./typography.css";
-@import "./markdown.css";
-@import "./layout.css";
-`;
+  const indexParts = ["root.css", "fonts.css", "base.css", "typography.css", "markdown.css", "layout.css"];
+  if (includeBridge) indexParts.push("tw-bridge.css");
+  const indexCss = indexParts.map((f) => `@import "./${f}";`).join("\n") + "\n";
 
-  return {
+  const files: ThemeFiles = {
     "root.css": rootCss,
     "fonts.css": fontsCss,
     "base.css": baseCss,
     "typography.css": typographyCss,
     "markdown.css": markdownCss,
     "layout.css": layoutCss,
-    "tailwind.css": tailwindCss,
     "index.css": indexCss,
   };
+  if (includeBridge) files["tw-bridge.css"] = tailwindCss;
+  return files;
 }

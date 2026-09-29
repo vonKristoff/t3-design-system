@@ -194,8 +194,10 @@ Inverse text colour — content placed on contrasting surfaces
 as text, not as a surface.
 
 glass
-Frosted surface with an alpha channel (--glass-alpha, --glass-fill,
-.glass-panel). Lives with Surfaces.
+Intrinsically translucent frosted surface: every emitted glass swatch
+(--glass, --glass-light, --glass-dark) carries the alpha channel, with
+--glass-alpha holding the value and .glass-panel consuming it. Lives with
+Surfaces.
 
 stop
 Negative/error/destructive state (errors, failed operations).
