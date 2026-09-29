@@ -3,7 +3,7 @@ import { DEFAULT_THEME } from "../theme/defaults.ts";
 import type { ThemeOptions } from "../theme/types.ts";
 import { validateThemeOptions } from "../theme/validate.ts";
 
-export const CLI_PACKAGE_NAME = "tsup-system";
+export const CLI_PACKAGE_NAME = "@threejjjs/dsb";
 
 const COLOR_KEYS: (keyof ThemeOptions["colors"])[] = [
   "base", "alt", "prose", "muted",

@@ -11,6 +11,8 @@
     "test:core": "bun test packages/core",
     "cli": "bun run packages/cli/src/index.ts",
     "web:dev": "bun --cwd packages/web dev",
-    "web:build": "bun --cwd packages/web build"
+    "web:build": "bun --cwd packages/web build",
+    "web:deploy": "bun --cwd packages/web deploy",
+    "release": "bun --cwd packages/cli release"
   }
 }

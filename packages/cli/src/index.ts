@@ -7,10 +7,10 @@ import { generateThemeFiles } from "@tsup-system/core";
 import { generateFontsCss } from "@tsup-system/core";
 
 function usage(): string {
-  return `tsup-system — Design System Builder CLI
+  return `dsb — Design System Builder CLI
 
 Usage:
-  bunx tsup-system --theme="<payload>" [--out <dir>]
+  bunx @threejjjs/dsb --theme="<payload>" [--out <dir>]
 
 Options:
   --theme="<payload>"   Required. Versioned compressed Base64URL theme payload.

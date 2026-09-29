@@ -1,12 +1,20 @@
 {
-  "name": "tsup-system",
-  "version": "0.0.1",
+  "name": "@threejjjs/dsb",
+  "version": "0.1.5",
+  "description": "Design System Builder — generate a semantic theme directory from a compressed payload. Bun-only.",
+  "license": "MIT",
   "type": "module",
   "bin": {
-    "tsup-system": "./src/index.ts"
+    "dsb": "./dist/index.js"
   },
-  "dependencies": {
-    "@tsup-system/core": "workspace:*"
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outfile dist/index.js --target bun && chmod +x dist/index.js",
+    "release": "bun run build && npm version patch && npm publish --access public",
+    "prepublishOnly": "bun run build",
+    "test": "bun test"
   },
   "devDependencies": {
     "typescript": "^5.6.3",

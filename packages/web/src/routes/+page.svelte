@@ -20,6 +20,7 @@
 	import {
 		Check,
 		Copy,
+		FolderTree,
 		LayoutGrid,
 		Monitor,
 		Palette,
@@ -27,7 +28,9 @@
 		PanelRightClose,
 		RotateCcw,
 		Smartphone,
+		Sparkles,
 		Tablet,
+		Terminal,
 		Type
 	} from 'lucide-svelte';
 	import { mount, unmount, untrack } from 'svelte';
@@ -693,7 +696,7 @@
 		class="min-w-0 flex-1 transition-[margin] duration-300 {cssPanelOpen ? 'lg:mr-[26rem]' : ''}"
 	>
 		<section class="mx-auto max-w-6xl px-4 pt-8 pb-2 sm:px-8">
-			<div class="mb-32 grid items-end gap-6 lg:grid-cols-[1.25fr_1fr]">
+			<div class="mb-16 grid items-end gap-6 lg:grid-cols-[1.25fr_1fr]">
 				<div>
 					<p class="w-fit rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
 						Tailwind-compatible · scaffold CSS generator
@@ -726,7 +729,7 @@
 					{/each}
 				</nav>
 			</div>
-			<ol class="mt-4 mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+			<!-- <ol class="mt-4 mb-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
 				{#each STEPS as s, i (s.id)}
 					{@const Icon = STEP_ICON[i]}
 					<li>
@@ -743,7 +746,88 @@
 						</button>
 					</li>
 				{/each}
-			</ol>
+			</ol> -->
+			<dic aria-label="From command to theme" style={getVarStyle()}>
+				<!-- <h2 class="text-xs font-semibold tracking-widest text-neutral-500 uppercase">
+					From command to theme/
+				</h2>
+				<p class="mt-1 text-sm text-neutral-600">
+					Run the copied command anywhere — the same engine that paints the preview compiles your
+					theme and drops the style directory into the current working directory.
+				</p> -->
+				<div class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+					<div class="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white p-3">
+						<p class="flex items-center gap-2 text-sm font-semibold">
+							<Terminal size={16} />
+							Design your command
+						</p>
+						<div
+							class="mt-2 overflow-x-auto rounded-md bg-neutral-950 px-3 py-2 font-mono text-[11px] whitespace-nowrap text-neutral-200"
+						>
+							<span class="text-emerald-400">$</span> bunx @threejjjs/dsb --theme="…"
+						</div>
+						<p class="mt-2 text-xs text-neutral-500">One command, copied from the bar below.</p>
+					</div>
+					<span aria-hidden="true" class="rotate-90 self-center text-neutral-300 sm:rotate-0">
+						<svg
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg
+						>
+					</span>
+					<div class="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white p-3">
+						<p class="flex items-center gap-2 text-sm font-semibold">
+							<Sparkles size={16} />
+							Engine compiles
+						</p>
+						<div class="mt-2 flex gap-0.5" aria-hidden="true">
+							{#each ['200', '300', '400', '500', '600', '700', '800'] as step (step)}
+								<span
+									class="h-7 flex-1 rounded-[3px] border border-black/10"
+									style:background={`var(--accent-${step})`}
+									title={`--accent-${step}`}
+								></span>
+							{/each}
+						</div>
+						<p class="mt-2 text-xs text-neutral-500">
+							OKLCH scales · readable pairs · eight files.
+						</p>
+					</div>
+					<span aria-hidden="true" class="rotate-90 self-center text-neutral-300 sm:rotate-0">
+						<svg
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"><path d="M9 6l6 6-6 6" /></svg
+						>
+					</span>
+					<div class="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white p-3">
+						<p class="flex items-center gap-2 text-sm font-semibold">
+							<FolderTree size={16} />
+							theme/ lands in cwd
+						</p>
+						<pre
+							class="mt-2 overflow-x-auto rounded-md bg-neutral-950 p-3 font-mono text-[11px] leading-relaxed text-neutral-200">{`theme/
+├── root.css
+├── fonts.css
+├── base.css
+├── typography.css
+├── markdown.css
+├── layout.css
+├── tw-bridge.css
+└── index.css`}</pre>
+					</div>
+				</div>
+			</dic>
 		</section>
 
 		<main class="mx-auto max-w-6xl px-4 sm:px-8">
@@ -1295,7 +1379,7 @@
 						<span
 							class="mx-auto hidden w-full max-w-md truncate rounded-md bg-white px-3 py-1 text-center font-mono text-[11px] text-neutral-500 sm:block"
 						>
-							tsup-system.preview/{fmtSize(getWidth())}
+							dsb.preview/{fmtSize(getWidth())}
 						</span>
 						<span class="w-14 shrink-0" aria-hidden="true"></span>
 					</div>
